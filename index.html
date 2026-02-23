@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gym Logger</title>
+    <style>
+        :root { --bg: #000000; --card: #121212; --accent: #FFD700; --text-main: #FFFFFF; --text-muted: #888888; --input-bg: #2C2C2E; --border: #333333; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 50px; }
+        
+        #home-screen, #workout-screen { display: none; padding: 15px; }
+        #home-screen.active, #workout-screen.active { display: block; }
+        
+        .app-title { text-align: center; color: var(--accent); font-size: 28px; margin-bottom: 30px; margin-top: 20px;}
+        .program-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
+        .program-card:active { transform: scale(0.98); border-color: var(--accent); }
+        .program-title { font-size: 18px; font-weight: bold; margin: 0 0 5px 0; }
+        .program-desc { color: var(--text-muted); font-size: 14px; margin: 0; }
+        
+        .header-nav { display: flex; gap: 10px; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border); align-items: center;}
+        .back-btn { background: transparent; color: var(--accent); border: none; font-size: 16px; padding: 5px; cursor: pointer; }
+        select { flex: 1; padding: 8px; background: var(--input-bg); color: var(--text-main); border: none; border-radius: 6px; font-size: 14px; }
+        
+        .exercise-container { margin-bottom: 20px; border-bottom: 5px solid #222; }
+        .ex-title { text-align: center; font-size: 18px; font-weight: bold; padding: 15px 0; border-bottom: 1px solid var(--border); margin: 0; background: var(--card); }
+        .global-e1rm { text-align: center; color: var(--accent); font-weight: bold; font-size: 16px; padding: 10px 0; background: var(--card); border-bottom: 1px solid var(--border); }
+        
+        .block-container { padding: 15px; background: var(--card); }
+        .block-header { color: var(--text-main); font-size: 14px; font-weight: 500; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .block-header span.yellow-dot { color: var(--accent); margin-right: 5px; }
+        .block-header span.rest { color: var(--accent); }
+
+        .set-row { display: grid; grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.5fr 0.8fr; gap: 5px; align-items: center; text-align: center; margin-bottom: 10px; font-size: 15px; }
+        .set-row.header { color: var(--text-muted); font-size: 13px; margin-bottom: 15px; }
+        
+        .input-box { background: var(--input-bg); border: 1px solid transparent; color: white; border-radius: 6px; padding: 8px 2px; width: 100%; text-align: center; font-size: 15px; box-sizing: border-box; }
+        .input-box:focus { outline: none; border-color: var(--accent); }
+        .input-rpe { color: var(--accent); background: #222; }
+        .calc-box { background: transparent; color: var(--text-muted); font-size: 15px; }
+        
+        .check-circle { width: 22px; height: 22px; border: 2px solid var(--text-muted); border-radius: 50%; display: inline-block; cursor: pointer; margin: 0 auto;}
+        .check-circle.checked { background-color: var(--accent); border-color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="active">
+        <h1 class="app-title">Gym Logger</h1>
+        <p style="color: var(--text-muted); margin-bottom: 10px;">Select a Program</p>
+        
+        <div class="program-card" onclick="startProgram('pop1')">
+            <h3 class="program-title">Path of Powerlifting I</h3>
+            <p class="program-desc">5 Days/Week • Foundation Block</p>
+        </div>
+        <div class="program-card" onclick="startProgram('16w')">
+            <h3 class="program-title">16-Week Peak</h3>
+            <p class="program-desc">Competition Prep Program</p>
+        </div>
+    </div>
+
+    <div id="workout-screen">
+        <div class="header-nav">
+            <button class="back-btn" onclick="goHome()">◀ Home</button>
+            <select id="week-select">
+                <option value="1">Week 1</option>
+                <option value="2">Week 2</option>
+            </select>
+            <select id="day-select">
+                <option value="1">Day 1</option>
+                <option value="2">Day 2</option>
+                <option value="3">Day 3</option>
+                <option value="4">Day 4</option>
+                <option value="5">Day 5</option>
+            </select>
+        </div>
+        <div id="workout-container"></div>
+    </div>
+
+    <script>
+        const db = {
+            "pop1": {
+                name: "Path of Powerlifting I",
+                weeks: {
+                    1: {
+                        1: [
+                            { name: "Squat", type: "main", blocks: [ { type: "top", sets: 1, reps: 4, targetRpe: 6.5, pct: null, rest: "4min" }, { type: "backoff", sets: 3, reps: 5, targetRpe: 6.5, pct: 0.75, rest: "3min" } ] },
+                            { name: "Bench", type: "main", blocks: [ { type: "top", sets: 1, reps: 4, targetRpe: 6.5, pct: null, rest: "4min" }, { type: "backoff", sets: 4, reps: 5, targetRpe: 6.5, pct: 0.75, rest: "2min" } ] },
+                            { name: "Biceps of Choice", type: "acc", blocks: [ { type: "acc", sets: 3, reps: 12, targetRpe: 7.0, pct: null, rest: "2min" } ] }
+                        ],
+                        2: [
+                            { name: "Deadlift", type: "main", blocks: [ { type: "top", sets: 1, reps: 4, targetRpe: 6.5, pct: null, rest: "4min" }, { type: "backoff", sets: 3, reps: 5, targetRpe: 6.5, pct: 0.75, rest: "3min" } ] },
+                            { name: "3-Count Pause Bench", type: "main", blocks: [ { type: "top", sets: 1, reps: 1, targetRpe: 7.0, pct: null, rest: "3min" }, { type: "backoff", sets: 3, reps: 3, targetRpe: 7.0, pct: 0.78, rest: "2.5min" } ] },
+                            { name: "Pull-Up", type: "acc", blocks: [ { type: "acc", sets: 3, reps: 10, targetRpe: 8.0, pct: null, rest: "2min" } ] }
+                        ],
+                        3: [
+                            { name: "High Bar Squat", type: "main", blocks: [ { type: "top", sets: 1, reps: 8, targetRpe: 8.0, pct: null, rest: "4min" }, { type: "backoff", sets: 2, reps: 10, targetRpe: 8.0, pct: 0.69, rest: "3min" } ] },
+                            { name: "Touch and Go Bench", type: "main", blocks: [ { type: "top", sets: 1, reps: 8, targetRpe: 8.0, pct: null, rest: "3min" }, { type: "backoff", sets: 3, reps: 10, targetRpe: 8.0, pct: 0.60, rest: "2min" } ] },
+                            { name: "DB Bench", type: "acc", blocks: [ { type: "acc", sets: 3, reps: 12, targetRpe: 7.0, pct: null, rest: "2min" } ] }
+                        ],
+                        4: [
+                            { name: "Stiff Leg Deadlift", type: "main", blocks: [ { type: "top", sets: 1, reps: 8, targetRpe: 8.0, pct: null, rest: "4min" }, { type: "backoff", sets: 2, reps: 10, targetRpe: 8.0, pct: 0.60, rest: "3min" } ] },
+                            { name: "Overhead Press", type: "main", blocks: [ { type: "top", sets: 1, reps: 8, targetRpe: 8.0, pct: null, rest: "3min" }, { type: "backoff", sets: 3, reps: 10, targetRpe: 8.0, pct: 0.60, rest: "2.5min" } ] },
+                            { name: "Delt Superset", type: "acc", blocks: [ { type: "acc", sets: 3, reps: 10, targetRpe: 7.0, pct: null, rest: "2min" } ] }
+                        ],
+                        5: [
+                            { name: "Lunges", type: "acc", blocks: [ { type: "acc", sets: 3, reps: 8, targetRpe: 7.0, pct: null, rest: "2min" } ] },
+                            { name: "Dumbbell OHP", type: "acc", blocks: [ { type: "acc", sets: 4, reps: 10, targetRpe: 7.0, pct: null, rest: "2min" } ] },
+                            { name: "Triceps of Choice", type: "acc", blocks: [ { type: "acc", sets: 4, reps: 12, targetRpe: 7.0, pct: null, rest: "1.5min" } ] },
+                            { name: "Core of Choice", type: "acc", blocks: [ { type: "acc", sets: 4, reps: 10, targetRpe: 7.5, pct: null, rest: "1.5min" } ] }
+                        ]
+                    }
+                }
+            },
+            "16w": { name: "16-Week Program", weeks: {} }
+        };
+
+        const homeScreen = document.getElementById('home-screen');
+        const workoutScreen = document.getElementById('workout-screen');
+        const weekSel = document.getElementById('week-select');
+        const daySel = document.getElementById('day-select');
+        const container = document.getElementById('workout-container');
+
+        let currentProgram = null;
+
+        window.onload = () => {
+            const savedProgram = localStorage.getItem('activeProgram');
+            if (savedProgram && db[savedProgram]) {
+                startProgram(savedProgram);
+            }
+        };
+
+        function startProgram(programId) {
+            currentProgram = programId;
+            localStorage.setItem('activeProgram', programId);
+            homeScreen.classList.remove('active');
+            workoutScreen.classList.add('active');
+            renderWorkout();
+        }
+
+        function goHome() {
+            localStorage.removeItem('activeProgram');
+            workoutScreen.classList.remove('active');
+            homeScreen.classList.add('active');
+        }
+
+        function renderWorkout() {
+            container.innerHTML = '';
+            const w = weekSel.value;
+            const d = daySel.value;
+            const exercises = db[currentProgram]?.weeks[w]?.[d];
+
+            if (!exercises) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;">Rest Day / No Data</div>';
+                return;
+            }
+
+            exercises.forEach((ex, exIndex) => {
+                const exId = `ex-${exIndex}`;
+                const isMain = ex.type === 'main';
+                
+                let html = `
+                <div class="exercise-container" id="${exId}">
+                    <h2 class="ex-title">${ex.name}</h2>
+                    ${isMain ? `<div class="global-e1rm" id="global-e1rm-${exId}">1RM --</div>` : ''}
+                `;
+
+                ex.blocks.forEach((block) => {
+                    const blockPct = block.pct ? `(${(block.pct*100).toFixed(0)}%)` : '';
+                    
+                    html += `
+                    <div class="block-container">
+                        <div class="block-header">
+                            <span><span class="yellow-dot">●</span> ${block.sets} x ${block.reps} Reps | ${blockPct}</span>
+                            <span class="rest">Rest: ${block.rest}</span>
+                        </div>
+                        <div class="set-row header">
+                            <span>Set</span><span>Reps</span><span>RPE</span><span>Load</span>${isMain ? '<span>e1RM</span>' : ''}<span></span>
+                        </div>
+                    `;
+
+                    for(let s = 1; s <= block.sets; s++) {
+                        const isTop = block.type === 'top';
+                        const loadClass = isTop ? 'input-box top-load' : 'input-box backoff-load';
+                        const rpeClass = isTop ? 'input-box input-rpe top-rpe' : 'input-box input-rpe';
+                        const rpeValue = block.targetRpe ? block.targetRpe.toFixed(1) : '';
+
+                        html += `
+                        <div class="set-row" style="${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 0.8fr;' : ''}">
+                            <span>${s}</span>
+                            <span>${block.reps}</span>
+                            <span><input type="number" class="${rpeClass}" data-exid="${exId}" value="${rpeValue}" step="0.5" inputmode="decimal"></span>
+                            <span><input type="number" class="${loadClass}" data-exid="${exId}" data-reps="${block.reps}" data-pct="${block.pct}" placeholder="kg" inputmode="decimal"></span>
+                            ${isMain ? `<span class="calc-box e1rm-display" data-exid="${exId}">--</span>` : ''}
+                            <span class="check-circle" onclick="this.classList.toggle('checked')"></span>
+                        </div>
+                        `;
+                    }
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+
+            attachListeners();
+        }
+
+        function attachListeners() {
+            const topLoads = document.querySelectorAll('.top-load');
+            const topRpes = document.querySelectorAll('.top-rpe');
+
+            const calculateTrigger = (e) => {
+                const exId = e.target.dataset.exid;
+                const loadInput = document.querySelector(`.top-load[data-exid="${exId}"]`);
+                const rpeInput = document.querySelector(`.top-rpe[data-exid="${exId}"]`);
+                
+                if(!loadInput || !rpeInput) return;
+
+                const weight = parseFloat(loadInput.value);
+                const rpe = parseFloat(rpeInput.value);
+                const reps = parseFloat(loadInput.dataset.reps);
+
+                if (weight > 0 && rpe > 0) {
+                    const e1rm = weight * (1 + (reps + (10 - rpe)) / 30);
+                    
+                    const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
+                    if(headerE1rm) headerE1rm.innerText = `1RM ${e1rm.toFixed(1)}kg`;
+                    
+                    document.querySelectorAll(`.e1rm-display[data-exid="${exId}"]`).forEach(display => {
+                        display.innerText = `${e1rm.toFixed(1)}kg`;
+                    });
+
+                    document.querySelectorAll(`.backoff-load[data-exid="${exId}"]`).forEach(backoffInput => {
+                        const pct = parseFloat(backoffInput.dataset.pct);
+                        if (pct) {
+                            const targetWeight = Math.round((e1rm * pct) / 2.5) * 2.5;
+                            backoffInput.value = targetWeight;
+                        }
+                    });
+                }
+            };
+
+            topLoads.forEach(input => input.addEventListener('input', calculateTrigger));
+            topRpes.forEach(input => input.addEventListener('input', calculateTrigger));
+        }
+
+        weekSel.addEventListener('change', renderWorkout);
+        daySel.addEventListener('change', renderWorkout);
+    </script>
+</body>
+</html>
