@@ -1,0 +1,4319 @@
+{
+    "12": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.5,
+                        "pct": 0.89,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.5,
+                        "pct": 0.9,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.5,
+                        "pct": 0.9,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "2": [],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 2,
+                        "targetRpe": 5.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "4": [],
+        "5": []
+    },
+    "1": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75
+                    }
+                ]
+            },
+            {
+                "name": "Biceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75
+                    }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.78
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": 0.69
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 5.5,
+                        "pct": 0.6
+                    }
+                ]
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": 0.69
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": 0.6
+                    }
+                ]
+            },
+            {
+                "name": "DB Bench",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": 0.69
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.6
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": 0.69
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 5.5,
+                        "pct": 0.6
+                    }
+                ]
+            },
+            {
+                "name": "Delt Superset",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Lunges",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 12,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.815
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.82
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Biceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.815
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.5,
+                        "pct": 0.71
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.5,
+                        "pct": 0.71
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "DB Bench",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.5,
+                        "pct": 0.71
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 8,
+                        "targetRpe": 8.5,
+                        "pct": 0.71
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "Delt Superset",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Lunges",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 12,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.83
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.79
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.83
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.79
+                    }
+                ]
+            },
+            {
+                "name": "Biceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.83
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.815
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.5,
+                        "pct": 0.73
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.65
+                    }
+                ]
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": 0.73
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.65
+                    }
+                ]
+            },
+            {
+                "name": "DB Bench",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": 0.73
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": 0.73
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.63
+                    }
+                ]
+            },
+            {
+                "name": "Delt Superset",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Lunges",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 6,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 12,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    }
+                ]
+            },
+            {
+                "name": "Biceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.85
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.5,
+                        "pct": 0.86
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.5,
+                        "pct": 0.74
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": 0.665
+                    }
+                ]
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": 0.74
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.5,
+                        "pct": 0.665
+                    }
+                ]
+            },
+            {
+                "name": "DB Bench",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.5,
+                        "pct": 0.74
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": 0.665
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 6,
+                        "targetRpe": 8.5,
+                        "pct": 0.74
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 10,
+                        "targetRpe": 5.5,
+                        "pct": 0.605
+                    }
+                ]
+            },
+            {
+                "name": "Delt Superset",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Lunges",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 6,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 12,
+                        "targetRpe": 7.5,
+                        "pct": null
+                    }
+                ]
+            }
+        ]
+    },
+    "5": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.775
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 8,
+                        "targetRpe": 6.0,
+                        "pct": 0.65
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 6.0,
+                        "pct": 0.65
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.825
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.775,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.775,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 2,
+                        "reps": 8,
+                        "targetRpe": 5.5,
+                        "pct": 0.65,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": 0.67,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "6": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.825
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.76
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 6.0,
+                        "pct": 0.65
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.825
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.775,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 12,
+                        "targetRpe": 6.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 2,
+                        "reps": 8,
+                        "targetRpe": 5.5,
+                        "pct": 0.65,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.67,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 7.5,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "7": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.825
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.825
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.825,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.775,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 6.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 2,
+                        "reps": 8,
+                        "targetRpe": 5.5,
+                        "pct": 0.65,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.72,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "8": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.825
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.825
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 6,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.81
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 5,
+                        "reps": 4,
+                        "targetRpe": 6.5,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 6.5,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 4,
+                        "reps": 4,
+                        "targetRpe": 6.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Chin-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null
+                    }
+                ]
+            },
+            {
+                "name": "Pause (squat) (2ct Pause)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.825
+                    }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench) (Light, controlled touches)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.74
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.7715,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 5,
+                        "targetRpe": 7.5,
+                        "pct": 0.775,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 12,
+                        "targetRpe": 6.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 2,
+                        "reps": 8,
+                        "targetRpe": 5.5,
+                        "pct": 0.65,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 7.0,
+                        "pct": 0.72,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "9": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 5,
+                        "targetRpe": 6.5,
+                        "pct": 0.75,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.825,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "1-Board (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.825,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Snatch-Grip Romanian Deadlift (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": 0.69,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "10": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.85,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.85,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 1,
+                        "targetRpe": 7.0,
+                        "pct": 0.89,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.85,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 5,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 3,
+                        "targetRpe": 6.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.835,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "1-Board (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 2,
+                        "targetRpe": 8.0,
+                        "pct": 0.86,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 4,
+                        "targetRpe": 7.5,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Snatch-Grip Romanian Deadlift (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.0,
+                        "pct": 0.69,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    },
+    "11": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 2,
+                        "reps": 1,
+                        "targetRpe": 8.0,
+                        "pct": 0.92,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.86,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 1,
+                        "targetRpe": 8.0,
+                        "pct": 0.92,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.86,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 1,
+                        "targetRpe": 8.0,
+                        "pct": 0.92,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.86,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 6.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Pull-Up (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 5,
+                        "targetRpe": 7.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Bench",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 4,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Triceps of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 6,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 3,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 8.0,
+                        "pct": 0.84,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 4,
+                        "targetRpe": 7.0,
+                        "pct": 0.8,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 4,
+                        "reps": 10,
+                        "targetRpe": 8.0,
+                        "pct": null,
+                        "rest": null
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 3,
+                        "targetRpe": 7.0,
+                        "pct": 0.825,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "1-Board (bench)",
+                "type": "main",
+                "blocks": [
+                    {
+                        "type": "top",
+                        "sets": 1,
+                        "reps": 1,
+                        "targetRpe": 7.5,
+                        "pct": 0.9,
+                        "rest": null
+                    },
+                    {
+                        "type": "backoff",
+                        "sets": 2,
+                        "reps": 3,
+                        "targetRpe": 7.5,
+                        "pct": 0.83,
+                        "rest": null
+                    }
+                ]
+            },
+            {
+                "name": "Snatch-Grip Romanian Deadlift (deadlift)",
+                "type": "acc",
+                "blocks": [
+                    {
+                        "type": "acc",
+                        "sets": 3,
+                        "reps": 8,
+                        "targetRpe": 7.5,
+                        "pct": 0.72,
+                        "rest": null
+                    }
+                ]
+            }
+        ]
+    }
+}
