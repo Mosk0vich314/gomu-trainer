@@ -2,12 +2,17 @@ import os
 import re
 import json
 from PIL import Image
-from google import genai # Using the brand new SDK!
+from google import genai
 
-# 1. PASTE YOUR API KEY HERE
-API_KEY = "AIzaSyCiyL4qZYqAAc63dCcxy3KPD6Dk5XWMCwI"
+# Read the API key from your secret local file
+try:
+    with open("api_key.txt", "r") as key_file:
+        API_KEY = key_file.read().strip()
+except FileNotFoundError:
+    print("❌ Error: Could not find api_key.txt. Please create it and paste your API key inside.")
+    exit()
 
-# 2. Initialize the new Client
+# Initialize the Client
 client = genai.Client(api_key=API_KEY)
 
 def parse_filename(filename):
