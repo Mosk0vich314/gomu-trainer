@@ -1,0 +1,1394 @@
+{
+    "1": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": 0.75,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": "The % is just an estimate, refer more strictly to the RPE to get the right weight on"
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": "The % is just an estimate, refer more strictly to the RPE to get the right weight on"
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": "The % is just an estimate, refer more strictly to the RPE to get the right weight on"
+            },
+            {
+                "name": "Leg Press",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg extension",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg curls",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 2,
+                "reps": 6,
+                "rpe": 7,
+                "pct": 0.74,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Pause Squat",
+                "sets": 2,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.79,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": "2-count cause"
+            },
+            {
+                "name": "Romanian Deadlift",
+                "sets": 2,
+                "reps": 10,
+                "rpe": 9,
+                "pct": 0.73,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Overhead Press",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Barbell Row",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Lateral Raise",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 3,
+                "reps": 6,
+                "rpe": 7,
+                "pct": 0.74,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "DB Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Incline Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 5,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": 0.6,
+                "weight_kg": 62.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rack Chin Ups",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 2,
+                "reps": 6,
+                "rpe": 7,
+                "pct": 0.74,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": 0.625,
+                "weight_kg": 57.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Pull-Ups",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": "Don't stress if you get less than 10, just stick with the RPEs and try to build it on"
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Seated Cable Rows",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": 0.75,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Leg Press",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg extension",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg curls",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 4,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.81,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Pause Squat",
+                "sets": 2,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.79,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": "2-count cause"
+            },
+            {
+                "name": "Romanian Deadlift",
+                "sets": 2,
+                "reps": 10,
+                "rpe": 9,
+                "pct": 0.73,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 70,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Overhead Press",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Barbell Row",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Lateral Raise",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 5,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.8,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "DB Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Incline Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 76,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 7,
+                "pct": null,
+                "weight_kg": 76,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": 0.6,
+                "weight_kg": 62.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rack Chin Ups",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 4,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.8,
+                "weight_kg": 85,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": 0.625,
+                "weight_kg": 57.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Pull-Ups",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": "Don't stress if you get less than 10, just stick with the RPEs and try to build it on"
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Seated Cable Rows",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.8,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Leg Press",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg extension",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg curls",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 4,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.825,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Pause Squat",
+                "sets": 2,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.79,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": "2-count cause"
+            },
+            {
+                "name": "Romanian Deadlift",
+                "sets": 2,
+                "reps": 10,
+                "rpe": 9,
+                "pct": 0.73,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.725,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 72.5,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 72.5,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Overhead Press",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Barbell Row",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Lateral Raise",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 5,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.815,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "DB Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Incline Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 85,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 80,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": 0.6,
+                "weight_kg": 62.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rack Chin Ups",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 4,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.825,
+                "weight_kg": 87.5,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": 0.625,
+                "weight_kg": 57.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Pull-Ups",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": "Don't stress if you get less than 10, just stick with the RPEs and try to build it on"
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Seated Cable Rows",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.82,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Leg Press",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg extension",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Leg curls",
+                "sets": 2,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Squat",
+                "sets": 4,
+                "reps": 3,
+                "rpe": 8,
+                "pct": 0.85,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Pause Squat",
+                "sets": 2,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.79,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": "2-count cause"
+            },
+            {
+                "name": "Romanian Deadlift",
+                "sets": 2,
+                "reps": 10,
+                "rpe": 9,
+                "pct": 0.73,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": 0.75,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 75,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Overhead Press",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Barbell Row",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Lateral Raise",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": 5,
+                "reps": 3,
+                "rpe": 8,
+                "pct": 0.85,
+                "weight_kg": null,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "DB Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "DB Incline Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Triceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 85,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": 4,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": 81,
+                "type": "back_off",
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "sets": 3,
+                "reps": 8,
+                "rpe": 8,
+                "pct": 0.6,
+                "weight_kg": 62.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rack Chin Ups",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "sets": 3,
+                "reps": 12,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "sets": 4,
+                "reps": 3,
+                "rpe": 8,
+                "pct": 0.865,
+                "weight_kg": 90,
+                "type": "top_set",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Bench",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": 0.625,
+                "weight_kg": 57.5,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Wide Grip Pull-Ups",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 8,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": "Don't stress if you get less than 10, just stick with the RPEs and try to build it on"
+            },
+            {
+                "name": "Biceps of Choice",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            },
+            {
+                "name": "Seated Cable Rows",
+                "sets": 3,
+                "reps": 10,
+                "rpe": 9,
+                "pct": null,
+                "weight_kg": null,
+                "type": "acc",
+                "notes": null
+            }
+        ]
+    }
+}

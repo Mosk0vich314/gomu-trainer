@@ -1,0 +1,1807 @@
+{
+    "0": {
+        "1": [
+            {
+                "exercise_name": "Squat",
+                "notes": "Check out the video!",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 82.5,
+                        "pct": 0.826,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 3,
+                        "rpe": 5,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.825,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 4,
+                        "reps": 3,
+                        "rpe": 5,
+                        "weight_kg": 60,
+                        "pct": 0.7,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 87.5,
+                        "pct": 0.825,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 3,
+                        "rpe": 5,
+                        "weight_kg": 72.5,
+                        "pct": 0.7,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "5ct Pause (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 2,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "exercise_name": "High Bar 3-2-0 Tempo (squat)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "rpe": 7,
+                        "weight_kg": 82.5,
+                        "pct": 0.84,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 3,
+                        "rpe": 6,
+                        "weight_kg": 77.5,
+                        "pct": 0.78,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Touch and Go (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "rpe": 9,
+                        "weight_kg": 52.5,
+                        "pct": 0.62,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": "AMRAP",
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Core of Choice",
+                "notes": "11 minute core circuit. Choose 2-4 exercises, open ended sets/reps. Favorites of mine are cable crunches, spread eagle sit-ups, back extensions, and kettlebell/cable rotations",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "Non competition (deadlift)",
+                "notes": "If you are a conventional puller, pull these sumo, if you are a sumo puller, pull these conventional - the gov/idea here is that these are load limiting because you're doing something you're bad at.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "rpe": 7,
+                        "weight_kg": 87.5,
+                        "pct": 0.84,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 3,
+                        "rpe": 6,
+                        "weight_kg": 82.5,
+                        "pct": 0.78,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Incline (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 7,
+                        "weight_kg": 55,
+                        "pct": 0.625,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 8,
+                        "reps_max": 9,
+                        "rpe": 6,
+                        "weight_kg": 55,
+                        "pct": 0.625,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ]
+    },
+    "1": {
+        "1": [
+            {
+                "exercise_name": "Squat",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7,
+                        "weight_kg": 90,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": "Rep Drop from Xd8-88 -> Xd3x87, same load",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 77.5,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.825,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7,
+                        "weight_kg": 60,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "DB Incline Bench",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Arm Triceps Movement of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Core of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 95,
+                        "pct": 0.905,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.675,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Count Pause Bench (bench)",
+                "notes": "Perform the top set here, and then you're going to do rep drops for the subsequent sets - AND superset them with lunges.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lunges",
+                "notes": "I like using an SSB for these, but you can use DB's, BB, SSB, whatever you have access to!",
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "exercise_name": "3-0-0 Tempo (squat)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 8,
+                        "weight_kg": 75,
+                        "pct": 0.75,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 75,
+                        "pct": 0.75,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": 62.5,
+                        "pct": 0.71,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 5,
+                        "reps_max": 7,
+                        "rpe": 7,
+                        "weight_kg": 62.5,
+                        "pct": 0.71,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Romanian (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 10,
+                        "rpe": 6.5,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "Vs Bands (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 8,
+                        "weight_kg": 80,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 80,
+                        "pct": 0.75,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "I-Board (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "rpe": 8,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 3,
+                        "reps_max": 4,
+                        "rpe": 7,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Horizontal Row of Choice",
+                "notes": "Rep drop and superset with the rows",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 8,
+                        "reps_max": 9,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "exercise_name": "Squat",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 92.5,
+                        "pct": 0.925,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": "Rep Drop from Xd8-88 -> Xd3x87, same load",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 80,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.825,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 60,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "DB Incline Bench",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Arm Triceps Movement of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Core of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 97.5,
+                        "pct": 0.925,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.675,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Count Pause Bench (bench)",
+                "notes": "Perform the top set here, and then you're going to do rep drops for the subsequent sets - AND superset them with lunges.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 67.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lunges",
+                "notes": "I like using an SSB for these, but you can use DB's, BB, SSB, whatever you have access to!",
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "exercise_name": "3-0-0 Tempo (squat)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 8,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": 65,
+                        "pct": 0.74,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 4,
+                        "reps_max": 5,
+                        "rpe": 7,
+                        "weight_kg": 65,
+                        "pct": 0.74,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Romanian (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "Vs Bands (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 82.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 82.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "I-Board (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 3,
+                        "reps_max": 4,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Horizontal Row of Choice",
+                "notes": "Rep drop and superset with the rows",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 8,
+                        "reps_max": 9,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "exercise_name": "Squat",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 92.5,
+                        "pct": 0.925,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": "Rep Drop from Xd8-88 -> Xd3x87, same load",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 80,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.825,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 60,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "DB Incline Bench",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Arm Triceps Movement of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Core of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 97.5,
+                        "pct": 0.925,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.675,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Count Pause Bench (bench)",
+                "notes": "Perform the top set here, and then you're going to do rep drops for the subsequent sets - AND superset them with lunges.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lunges",
+                "notes": "I like using an SSB for these, but you can use DB's, BB, SSB, whatever you have access to!",
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "exercise_name": "3-0-0 Tempo (squat)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 7.5,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "rpe": 8,
+                        "weight_kg": 65,
+                        "pct": 0.74,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps_min": 4,
+                        "reps_max": 5,
+                        "rpe": 7,
+                        "weight_kg": 65,
+                        "pct": 0.74,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Romanian (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "2ct Pause (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 7,
+                        "weight_kg": 80,
+                        "pct": 0.75,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 6,
+                        "weight_kg": 80,
+                        "pct": 0.75,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Dips",
+                "notes": "Rep drop here as well",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Barbell Bent Over Row",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 6,
+                        "reps_max": 7,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "exercise_name": "Squat",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 92.5,
+                        "pct": 0.925,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": "Rep Drop from Xd8-88 -> Xd3x87, same load",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 80,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.825,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 60,
+                        "pct": 0.7,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "DB Incline Bench",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Arm Triceps Movement of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Core of Choice",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 97.5,
+                        "pct": 0.925,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.675,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "2-Count Pause Bench (bench)",
+                "notes": "Perform the top set here, and then you're going to do rep drops for the subsequent sets - AND superset them with lunges.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lunges",
+                "notes": "I like using an SSB for these, but you can use DB's, BB, SSB, whatever you have access to!",
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "exercise_name": "2-Count Pause (squat)",
+                "notes": "Again - rep drop. Hit the x4@7, then use the same load, but take as many reps as it takes to get to @6. It should be 2-3.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 7,
+                        "weight_kg": 75,
+                        "pct": 0.75,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 6,
+                        "weight_kg": 75,
+                        "pct": 0.75,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Close Grip (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8,
+                        "weight_kg": 80,
+                        "pct": 0.92,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 77.5,
+                        "pct": 0.89,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "DB Incline Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 10,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "2ct Pause (deadlift)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 7,
+                        "weight_kg": 80,
+                        "pct": 0.75,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 2,
+                        "reps_max": 3,
+                        "rpe": 6,
+                        "weight_kg": 80,
+                        "pct": 0.75,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Dips",
+                "notes": "Rep drop here as well",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "rpe": 9,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 7,
+                        "reps_max": 9,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Barbell Bent Over Row",
+                "notes": "Rep Drop",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps_min": 6,
+                        "reps_max": 7,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ]
+    },
+    "5": {
+        "3": [
+            {
+                "exercise_name": "Squat",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 6,
+                        "weight_kg": 87.5,
+                        "pct": 0.875,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 90,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 92.5,
+                        "pct": 0.935,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 6.5,
+                        "weight_kg": 75,
+                        "pct": 0.875,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 77.5,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 80,
+                        "pct": 0.935,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Incline (bench)",
+                "notes": "Rep Drop - Use same load for x5@8 and backoffs, perform as many reps as necessary on backoffs to get to @7RPE.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "rpe": 8,
+                        "weight_kg": 67.5,
+                        "pct": 0.78,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "rpe": 7,
+                        "weight_kg": 67.5,
+                        "pct": 0.78,
+                        "set_type": "backoff"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Squat (Option 2)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 90,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Bench (Option 2)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 4,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 77.5,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Incline (bench) (Option 2)",
+                "notes": "Rep Drop - Use same load for x5@9 and backoffs, perform as many reps as necessary on backoffs to get to @8RPE.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.81,
+                        "set_type": "top"
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 4,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.81,
+                        "set_type": "backoff"
+                    }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "exercise_name": "Deadlift",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 6.5,
+                        "weight_kg": 92.5,
+                        "pct": 0.875,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 95,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "rpe": 8.5,
+                        "weight_kg": 97.5,
+                        "pct": 0.935,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Touch and Go (bench)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.815,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 72.5,
+                        "pct": 0.83,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lat Pulldowns",
+                "notes": "Rep Drop - Use same load for x8@8 and backoffs, perform as many reps as necessary to get to @7 on backoffs.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 7,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Deadlift (Option 2)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "rpe": 7.5,
+                        "weight_kg": 95,
+                        "pct": 0.905,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Touch and Go (bench) (Option 2)",
+                "notes": null,
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 7,
+                        "weight_kg": 70,
+                        "pct": 0.8,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 70,
+                        "pct": 0.815,
+                        "set_type": "set"
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "rpe": 8,
+                        "weight_kg": 72.5,
+                        "pct": 0.83,
+                        "set_type": "set"
+                    }
+                ]
+            },
+            {
+                "exercise_name": "Lat Pulldowns (Option 2)",
+                "notes": "Rep Drop - Use same load for x8@8 and backoffs, perform as many reps as necessary to get to @7 on backoffs.",
+                "sets": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "rpe": 8,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 7,
+                        "rpe": 7,
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc"
+                    }
+                ]
+            }
+        ],
+        "5": [
+            {
+                "exercise_name": "Rest Day",
+                "notes": "If you're competing on Saturday, I'd recommend the following weekly structure for taper week: Monday - off - Weds - off - off - Competition. You can feel free to adjust around your schedule as well - it's probably better to get the lifts in when you have the time and energy to be present and put focus into the sessions as opposed to cramming it into a busy day to line up with an \"ideal\" schedule."
+            }
+        ],
+        "6": [
+            {
+                "exercise_name": "Competition Day",
+                "notes": "9 x 1 Rep. If you haven't already, ensure you join the Discord using the \"community\" tab and clicking on the CBB logo. Danil and/or myself can help with attempt selection, reviewing openers the week of, and taper modifications as well. Also, there is a meet card & free download in the Discord that can help with planning attempts for competition day, so make sure to check that out."
+            }
+        ]
+    }
+}

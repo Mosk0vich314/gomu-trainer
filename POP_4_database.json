@@ -1,0 +1,2499 @@
+{
+    "1": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 75.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 75.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 75.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 75.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Primer - PoP IV - Phase I: Check out the video!!"
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 65.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 65.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 65.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 65.0,
+                        "pct": 0.75,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Feet-Up (Bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 60.0,
+                        "pct": 0.7,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 52.5,
+                        "pct": 0.62,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.75,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.75,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.75,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.75,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 67.5,
+                        "pct": 0.775,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 5,
+                        "weight": 67.5,
+                        "pct": 0.775,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Use a \"rep drop\" here. On the backoff sets, perform how ever many reps it takes to get to @7RPE."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 8,
+                        "weight": 50.0,
+                        "pct": 0.5,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Focus here is just quality movement. These are intentionally very light and will scale."
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 82.5,
+                        "pct": 0.84,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 72.5,
+                        "pct": 0.84,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.74,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 7,
+                        "weight": 65.0,
+                        "pct": 0.74,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Utilizes a \"rep drop\" here. Perform top set X@8, then for backoffs, do however many reps it takes to get to @RPE."
+            },
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 4,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.84,
+                        "rpe": 5.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overload (Bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "For this exercise, choose one of the following - Slingshot, 1-Board Bench, Mid-level Pin Press, Reverse Band, or just wrap a wrist wrap around the center of the bar knurling to give you something approximating a 1-board."
+            },
+            {
+                "name": "Barbell Bent Over Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 70.0,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 52.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 62.5,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Reps per arm"
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 71.0,
+                        "pct": 0.825,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 8,
+                        "weight": 57.5,
+                        "pct": 0.665,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.76,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.76,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.76,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 80.0,
+                        "pct": 0.76,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 67.5,
+                        "pct": 0.795,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 5,
+                        "weight": 67.5,
+                        "pct": 0.795,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Use a \"rep drop\" here. On the backoff sets, perform how ever many reps it takes to get to @8RPE."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "weight": 55.0,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Focus here is just quality movement. These are intentionally very light and will scale."
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 85.0,
+                        "pct": 0.86,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 75.0,
+                        "pct": 0.86,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.74,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 7,
+                        "weight": 65.0,
+                        "pct": 0.74,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Utilizes a \"rep drop\" here. Perform top set X@8, then for backoffs, do however many reps it takes to get to @RPE."
+            },
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 4,
+                        "reps": 1,
+                        "weight": 90.0,
+                        "pct": 0.86,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overload (Bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "For this exercise, choose one of the following - Slingshot, 1-Board Bench, Mid-level Pin Press, Reverse Band, or just wrap a wrist wrap around the center of the bar knurling to give you something approximating a 1-board."
+            },
+            {
+                "name": "Barbell Bent Over Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 70.0,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 52.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 62.5,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Reps per arm"
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.835,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.835,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 74.0,
+                        "pct": 0.86,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 8,
+                        "weight": 60.0,
+                        "pct": 0.695,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Use a \"rep drop\" here. On the backoff sets, perform how ever many reps it takes to get to @8RPE."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 8,
+                        "weight": 57.5,
+                        "pct": 0.58,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Focus here is just quality movement. These are intentionally very light and will scale."
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 5,
+                        "reps": 1,
+                        "weight": 75.0,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.765,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 7,
+                        "weight": 65.0,
+                        "pct": 0.765,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Utilizes a \"rep drop\" here. Perform top set X@8, then for backoffs, do however many reps it takes to get to @RPE."
+            },
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 4,
+                        "reps": 1,
+                        "weight": 92.5,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overload (Bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "For this exercise, choose one of the following - Slingshot, 1-Board Bench, Mid-level Pin Press, Reverse Band, or just wrap a wrist wrap around the center of the bar knurling to give you something approximating a 1-board."
+            },
+            {
+                "name": "Barbell Bent Over Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 70.0,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 62.5,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Reps per arm"
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 4,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.7,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Primer - PoP IV - Phase II: Check out the video!"
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 5,
+                        "reps": 3,
+                        "weight": 60.0,
+                        "pct": 0.7,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "DB Lateral Raise",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Core of Choice",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 10,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 4,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.7,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "5ct Pause (bench)",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": "5ct Pause",
+                        "weight": 72.5,
+                        "pct": 0.84,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "High Bar (squat)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 10,
+                        "weight": 50.0,
+                        "pct": 0.5,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 8.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 62.5,
+                        "pct": 0.72,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Spoto (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.765,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 7,
+                        "weight": 60.0,
+                        "pct": 0.7,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Use a \"rep drop\" here. Perform first set x6@8, then for backoff sets, use the same weight but only do as many reps as it takes to get to @8RPE."
+            }
+        ],
+        "4": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 70.0,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 52.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": 62.5,
+                        "pct": 0.71,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 10,
+                        "weight": 47.5,
+                        "pct": 0.55,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Row",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 12,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 9.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Reps per arm"
+            }
+        ]
+    },
+    "5": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.82,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Primer - PoP IV - Phase III: Check out the video!"
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.75,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 6,
+                        "weight": 65.0,
+                        "pct": 0.74,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use the same load from your x4@8 and do however many reps it takes to get to @7 for backoffs."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 5,
+                        "weight": 65.0,
+                        "pct": 0.65,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "weight": 90.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 4,
+                        "reps": 1,
+                        "weight": 77.5,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "weight": 70.0,
+                        "pct": 0.81,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.81,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x5@9 and backoffs, perform as many reps as necessary on backoffs to get to @8RPE."
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "weight": 95.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Lat Pulldowns",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 3,
+                        "reps": 7,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x8@8 and backoffs, perform as many reps as necessary to get to @7 on backoffs."
+            }
+        ]
+    },
+    "6": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.82,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.835,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 77.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.82,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.82,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 5,
+                        "weight": 65.0,
+                        "pct": 0.76,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 87.5,
+                        "pct": 0.835,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 87.5,
+                        "pct": 0.835,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 2,
+                        "reps": 4,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use the same load from your x4@8 and do however many reps it takes to get to @7 for backoffs."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 5,
+                        "weight": 75.0,
+                        "pct": 0.765,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 90.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 92.5,
+                        "pct": 0.935,
+                        "rpe": 8.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 1,
+                        "weight": 75.0,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 90.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 80.0,
+                        "pct": 0.935,
+                        "rpe": 8.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 5,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x5@8 and backoffs, perform as many reps as necessary on backoffs to get to @7RPE."
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 92.5,
+                        "pct": 0.875,
+                        "rpe": 6.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 95.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 97.5,
+                        "pct": 0.935,
+                        "rpe": 8.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Lat Pulldowns",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 8.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 7,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x8@8 and backoffs, perform as many reps as necessary to get to @7 on backoffs."
+            }
+        ]
+    },
+    "7": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 82.5,
+                        "pct": 0.835,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 3,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    },
+                    {
+                        "num_sets": 1,
+                        "reps": 3,
+                        "weight": 85.0,
+                        "pct": 0.8,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "weight": 70.0,
+                        "pct": 0.8,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use the same load from your x4@8 and do however many reps it takes to get to @7 for backoffs."
+            },
+            {
+                "name": "Squat",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "weight": 80.0,
+                        "pct": 0.8,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.89,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 77.5,
+                        "pct": 0.905,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 4,
+                        "weight": 67.5,
+                        "pct": 0.78,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x5@8 and backoffs, perform as many reps as necessary on backoffs to get to @7RPE."
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 92.5,
+                        "pct": 0.89,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 2,
+                        "weight": 72.5,
+                        "pct": 0.83,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Lat Pulldowns",
+                "type": "accessory",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 8,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": 7.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Rep Drop - Use same load for x8@8 and backoffs, perform as many reps as necessary to get to @7 on backoffs."
+            }
+        ]
+    },
+    "8": {
+        "1": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 90.0,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "The top single here should be at or just below your planned opener. Play it smart based on fatigue levels and realize the goal of this week is to essentially maintain the adaptation from all of the previous work, as well as allow for the fatigue we've got built up to dissipate."
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 77.5,
+                        "pct": 0.905,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Again, top single should be at or around opener."
+            },
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.84,
+                        "rpe": 7.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "Top single here should be at or around last warmup. If you feel like you need it, you can do a speed and technique here. It's going to carry over beyond just your recovery, but I also think specifically with the deadlift we can usually allow a bit of extra recovery."
+            }
+        ],
+        "2": [
+            {
+                "name": "Squat",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 2,
+                        "reps": 2,
+                        "weight": 82.5,
+                        "pct": 0.83,
+                        "rpe": 6.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "weight": 70.0,
+                        "pct": 0.815,
+                        "rpe": 8.5,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Deadlift",
+                "type": "main_lift",
+                "blocks": [
+                    {
+                        "num_sets": 3,
+                        "reps": 1,
+                        "weight": 87.5,
+                        "pct": 0.83,
+                        "rpe": 5.0,
+                        "block_notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Rest Day",
+                "type": "rest_day",
+                "blocks": [],
+                "notes": "See the notes below\nIf you're competing on Saturday, I'd recommend the following weekly structure for taper week: Monday - off - Weds - off - off - Competition. You can feel free to adjust around your schedule as well - it's probably better to get the lifts in when you have the time and energy to be present and put focus into the sessions as opposed to cramming it into a busy day to line up with an \"ideal\" schedule."
+            }
+        ],
+        "4": [
+            {
+                "name": "Competition Day",
+                "type": "competition_day",
+                "blocks": [
+                    {
+                        "num_sets": 1,
+                        "reps": 9,
+                        "weight": null,
+                        "pct": null,
+                        "rpe": null,
+                        "block_notes": null
+                    }
+                ],
+                "notes": "If you haven't already, ensure you join the Discord using the \"community\" tab and clicking on the CBB logo. Danil and/or myself can help with attempt selection, reviewing openers the week of, and taper modifications as well. Also, there is a mock competition free download in the Discord that can help you with planning attempts for competition day, so make sure to check that out."
+            }
+        ]
+    }
+}

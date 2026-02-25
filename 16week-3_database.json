@@ -1,0 +1,3248 @@
+{
+    "1": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "8",
+                        "weight_kg": 85,
+                        "pct": 0.845,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 77.5,
+                        "pct": 0.845,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "4 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 72.5,
+                        "pct": 0.8,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Close Grip (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Incline (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm DB Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Snatch Grip Stiff-Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "7",
+                        "weight_kg": 85,
+                        "pct": 0.82,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": 72.5,
+                        "pct": 0.766,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "7",
+                        "weight_kg": 75,
+                        "pct": 0.811,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "8",
+                        "weight_kg": 77.5,
+                        "pct": 0.837,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": "Pause: 3 Seconds\nThe load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "High Bar (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": "5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "These should be around last warmup weight, the goal here is just good intentional movement, not forcing load."
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 12 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm Triceps Movement of Choice",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 12 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7",
+                        "weight_kg": 90,
+                        "pct": 0.89,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7",
+                        "weight_kg": 82.5,
+                        "pct": 0.89,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "4 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 65,
+                        "pct": 0.7,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Incline DB Front Raises",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 75,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 77.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 5 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 70,
+                        "pct": 0.75,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": 60,
+                        "pct": 0.65,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Machine Chest Press",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "If you don\u2019t have access, you can swap for dumbbell flat bench or feet up close grip bench."
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo Romanian Deadlift (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 4 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "DB Flys",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7",
+                        "weight_kg": 92.5,
+                        "pct": 0.89,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 72.5,
+                        "pct": 0.735,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Stiff Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Deficit (if conventional) or 2ct Pause (if sumo) (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "6",
+                        "weight_kg": 80,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "7",
+                        "weight_kg": 82.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "8",
+                        "weight_kg": 85,
+                        "pct": 0.8,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "5",
+                        "weight_kg": 57.5,
+                        "pct": 0.62,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": 60,
+                        "pct": 0.65,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "6",
+                        "weight_kg": 62.5,
+                        "pct": 0.67,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Single Leg RDL (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Neutral Grip Lat Pulldowns",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dips",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Slingshot (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": 70,
+                        "pct": 0.762,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Seated BB OHP (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Chest Supported Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "9",
+                        "weight_kg": 86,
+                        "pct": 0.86,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "5 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 75,
+                        "pct": 0.82,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "9",
+                        "weight_kg": 80,
+                        "pct": 0.88,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "5 x 4 Reps",
+                        "rpe": null,
+                        "weight_kg": 75,
+                        "pct": 0.82,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Close Grip (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Incline (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm DB Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Snatch Grip Stiff-Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 87.5,
+                        "pct": 0.837,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": null,
+                        "weight_kg": 72.5,
+                        "pct": 0.74,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "6",
+                        "weight_kg": 70,
+                        "pct": 0.765,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "7",
+                        "weight_kg": 70,
+                        "pct": 0.765,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 4 Reps",
+                        "rpe": "8",
+                        "weight_kg": 72.5,
+                        "pct": 0.79,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": "Pause: 3 Seconds\nThe load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "High Bar (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 3 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": "6",
+                        "weight_kg": 72.5,
+                        "pct": 0.72,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "This slot is just movement practice, don't worry about pushing it hard."
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 12 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm Triceps Movement of Choice",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7.5",
+                        "weight_kg": 90,
+                        "pct": 0.905,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 72.5,
+                        "pct": 0.735,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7.5",
+                        "weight_kg": 82.5,
+                        "pct": 0.905,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "4 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 70,
+                        "pct": 0.735,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Incline DB Front Raises",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 75,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 77.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 5 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 70,
+                        "pct": 0.75,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": 60,
+                        "pct": 0.65,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Machine Chest Press",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "If you don\u2019t have access, you can swap for dumbbell flat bench or feet up close grip bench."
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo Romanian Deadlift (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 4 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "DB Flys",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "7.5",
+                        "weight_kg": 95,
+                        "pct": 0.905,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 73.5,
+                        "pct": 0.735,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 5 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Stiff Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Deficit (if conventional) or 2ct Pause (if sumo) (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": 77.5,
+                        "pct": 0.74,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "7",
+                        "weight_kg": 80,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "8",
+                        "weight_kg": 82.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "5",
+                        "weight_kg": 57.5,
+                        "pct": 0.62,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": 60,
+                        "pct": 0.65,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "6",
+                        "weight_kg": 62.5,
+                        "pct": 0.67,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Single Leg RDL (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Neutral Grip Lat Pulldowns",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dips",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Slingshot (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 6 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": 70,
+                        "pct": 0.762,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Seated BB OHP (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Chest Supported Row",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 87.5,
+                        "pct": 0.88,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 82.5,
+                        "pct": 0.82,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8",
+                        "weight_kg": 80,
+                        "pct": 0.88,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "5 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 75,
+                        "pct": 0.82,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Close Grip (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Incline (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm DB Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Snatch Grip Stiff-Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 92.5,
+                        "pct": 0.89,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 90,
+                        "pct": 0.85,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 77.5,
+                        "pct": 0.83,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8",
+                        "weight_kg": 80,
+                        "pct": 0.85,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 80,
+                        "pct": 0.87,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": "Pause: 3 Seconds"
+            },
+            {
+                "name": "High Bar (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 3 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": "7",
+                        "weight_kg": 70,
+                        "pct": 0.7,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "This slot is just movement practice, don't worry about pushing it hard."
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 75,
+                        "pct": 0.81,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "Note the drop to 2-count from 3-count in previous weeks"
+            },
+            {
+                "name": "1-Arm Triceps Movement of Choice",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "8",
+                        "weight_kg": 92.5,
+                        "pct": 0.92,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "8.5",
+                        "weight_kg": 85,
+                        "pct": 0.92,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "4 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Incline DB Front Raises",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 75,
+                        "pct": 0.74,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 77.5,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 2 Reps",
+                        "rpe": "6",
+                        "weight_kg": 80,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 72.5,
+                        "pct": 0.775,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": 62.5,
+                        "pct": 0.675,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Machine Chest Press",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "If you don\u2019t have access, you can swap for dumbbell flat bench or feet up close grip bench."
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo Romanian Deadlift (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 4 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "DB Flys",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 1 Rep",
+                        "rpe": "8",
+                        "weight_kg": 97.5,
+                        "pct": 0.93,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 82.5,
+                        "pct": 0.775,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 4 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Stiff Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Deficit (if conventional) or 2ct Pause (if sumo) (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "7",
+                        "weight_kg": 77.5,
+                        "pct": 0.74,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "8",
+                        "weight_kg": 80,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 82.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": 57.5,
+                        "pct": 0.635,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 60,
+                        "pct": 0.685,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": 62.5,
+                        "pct": 0.695,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Single Leg RDL (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Neutral Grip Lat Pulldowns",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dips",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Slingshot (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 5 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 72.5,
+                        "pct": 0.786,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Seated BB OHP (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Chest Supported Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8",
+                        "weight_kg": 85,
+                        "pct": 0.86,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 82.5,
+                        "pct": 0.835,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8",
+                        "weight_kg": 80,
+                        "pct": 0.86,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "4 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 77.5,
+                        "pct": 0.835,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Close Grip (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Incline (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm DB Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Snatch Grip Stiff-Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "9",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 2 Reps",
+                        "rpe": "8",
+                        "weight_kg": 90,
+                        "pct": 0.86,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "3 x 2 Reps",
+                        "rpe": null,
+                        "weight_kg": 87.5,
+                        "pct": 0.835,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": "The load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "2-Count Pause Bench (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 3 Reps",
+                        "rpe": "8",
+                        "weight_kg": 77.5,
+                        "pct": 0.83,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "High Bar (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 3 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 3 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 75,
+                        "pct": 0.74,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "This slot is just movement practice, don't worry about pushing it hard."
+            },
+            {
+                "name": "Meadows Row",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "1-Arm Triceps Movement of Choice",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "3": [
+            {
+                "name": "Squat",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 1 Rep",
+                        "rpe": "8.5",
+                        "weight_kg": 85,
+                        "pct": 0.85,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 60,
+                        "pct": 0.6,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Bench",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 1 Rep",
+                        "rpe": "8.5",
+                        "weight_kg": 77.5,
+                        "pct": 0.85,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 55,
+                        "pct": 0.6,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Incline DB Front Raises",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "2-Count Pause (squat)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": 77.5,
+                        "pct": 0.775,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": 80,
+                        "pct": 0.8,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 5 Reps",
+                        "rpe": "6",
+                        "weight_kg": 82.5,
+                        "pct": 0.825,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 4 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 72.5,
+                        "pct": 0.775,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Close Grip Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": 62.5,
+                        "pct": 0.675,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Machine Chest Press",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "If you don\u2019t have access, you can swap for dumbbell flat bench or feet up close grip bench."
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "3-0-0 Tempo Romanian Deadlift (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 4 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "DB Flys",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "6",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 15 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ],
+        "4": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 1 Rep",
+                        "rpe": "8.5",
+                        "weight_kg": 90,
+                        "pct": 0.85,
+                        "set_type": "top_set",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 3 Reps",
+                        "rpe": null,
+                        "weight_kg": 62.5,
+                        "pct": 0.6,
+                        "set_type": "backoff",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 4 Reps",
+                        "rpe": null,
+                        "weight_kg": 65,
+                        "pct": 0.7,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Stiff Leg (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Deficit (if conventional) or 2ct Pause (if sumo) (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 77.5,
+                        "pct": 0.74,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "8",
+                        "weight_kg": 80,
+                        "pct": 0.76,
+                        "set_type": "main",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 5 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": 82.5,
+                        "pct": 0.78,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Touch and Go (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": 57.5,
+                        "pct": 0.635,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 10 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 60,
+                        "pct": 0.685,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "8",
+                        "weight_kg": 62.5,
+                        "pct": 0.695,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": "Touch and Go"
+            },
+            {
+                "name": "Single Leg RDL (deadlift)",
+                "sets": [
+                    {
+                        "reps_sets": "3 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Neutral Grip Lat Pulldowns",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dips",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 10 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Slingshot (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 7 Reps",
+                        "rpe": "7.5",
+                        "weight_kg": 75,
+                        "pct": 0.81,
+                        "set_type": "main",
+                        "notes": null
+                    }
+                ],
+                "notes": "Timed: 2 Seconds\nThe load for the first set is only the recommended load. Use judgement to select weights to match the target RPE"
+            },
+            {
+                "name": "Seated BB OHP (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "4 x 6 Reps",
+                        "rpe": "8",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Chest Supported Row",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "6.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 8 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "sets": [
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "5.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    },
+                    {
+                        "reps_sets": "1 x 6 Reps",
+                        "rpe": "8.5",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "sets": [
+                    {
+                        "reps_sets": "2 x 8 Reps",
+                        "rpe": "7",
+                        "weight_kg": null,
+                        "pct": null,
+                        "set_type": "acc",
+                        "notes": null
+                    }
+                ],
+                "notes": null
+            }
+        ]
+    }
+}
