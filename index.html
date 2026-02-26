@@ -36,17 +36,10 @@
 
         /* PERFECTED DASHBOARD BACKGROUND */
         #home-screen { 
-            background: linear-gradient(to bottom, rgba(9,9,11,0.0) 0%, rgba(9,9,11,0.8) 260px, rgba(9,9,11,1) 320px), url('dashboard.jpg') no-repeat center top; 
-            background-size: 100% auto; 
-            padding-top: 20px; 
+            background: linear-gradient(to bottom, rgba(9,9,11,0.0) 0%, rgba(9,9,11,0.8) 220px, rgba(9,9,11,1) 280px), url('dashboard.jpg') no-repeat center top; 
+            background-size: 100% 280px; 
+            padding-top: 15px; 
         }
-        
-        /* STREAK & CHART CSS */
-        .streak-container { display: flex; justify-content: space-between; margin-bottom: 25px; padding: 0 5px; }
-        .streak-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .s-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text-muted); transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-        .s-dot.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4); }
-        .chart-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 14px; font-family: 'Inter'; max-width: 150px; text-overflow: ellipsis; outline: none; }
         
         /* Bottom Navigation Bar */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 1500; padding-bottom: calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
@@ -55,31 +48,36 @@
         .nav-icon { margin-bottom: 2px; }
 
         /* Sleek Glass-Morphism Dashboard Hero Card */
-        .hero-card { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px 24px; margin-top: 220px; margin-bottom: 20px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;}
+        .hero-card { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 15px 20px; margin-top: 160px; margin-bottom: 15px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;}
         .hero-card.active-state { border-color: var(--accent); box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2); cursor: pointer; transition: 0.2s; background: rgba(24, 24, 27, 0.85); }
         .hero-card.active-state:active { transform: scale(0.97); }
-        .hero-card span { color: var(--accent); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
-        .hero-card h2 { margin: 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;}
-        .hero-card p { color: var(--text-muted); margin: 0 0 16px 0; font-size: 14px; }
-        .hero-btn { background: var(--text-main); color: #000; border: none; padding: 12px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; width: 100%; cursor: pointer; }
+        .hero-card span { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+        .hero-card h2 { margin: 4px 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;}
+        .hero-card p { color: var(--text-muted); margin: 0 0 12px 0; font-size: 13px; }
+        .hero-btn { background: var(--text-main); color: #000; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; width: 100%; cursor: pointer; }
         .hero-card.active-state .hero-btn { background: var(--accent); color: #000; }
 
         /* Dashboard Progress Bar */
-        .progress-container { background: var(--input-bg); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .progress-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .progress-container { background: var(--input-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
         .progress-header span:last-child { color: var(--accent); }
         .progress-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease-out; border-radius: 4px; }
 
-        /* ANALYTICS BLOCKS */
-        .analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .analytics-header { font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
-        .a-val { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
-        .a-lbl { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700;}
+        /* ANALYTICS BLOCKS & STREAK */
+        .streak-container { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 0 5px; }
+        .streak-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .s-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--text-muted); transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .s-dot.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4); }
+
+        .analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .analytics-header { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
+        .a-val { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; color: var(--accent); white-space: nowrap; }
+        .a-lbl { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; font-weight: 700;}
 
         /* Stats Launch Button */
-        .stats-launch-btn { background: linear-gradient(135deg, #27272a 0%, #18181b 100%); border: 1px solid var(--border); color: var(--text-main); width: 100%; padding: 16px; border-radius: 16px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 30px; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center;}
+        .stats-launch-btn { background: linear-gradient(135deg, #27272a 0%, #18181b 100%); border: 1px solid var(--border); color: var(--text-main); width: 100%; padding: 15px; border-radius: 16px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 15px; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center;}
         .stats-launch-btn span { color: var(--accent); }
         .stats-launch-btn:active { border-color: var(--accent); }
 
@@ -159,7 +157,16 @@
         .hd-set-row span:nth-child(2) { color: #fff; text-align: center; flex: 1; }
         .hd-set-row span:nth-child(3) { text-align: right; width: 60px; color: var(--accent); }
         .empty-history { text-align: center; color: var(--text-muted); padding: 40px 20px; font-style: italic; }
-
+        /* Sleek Native-Looking Dropdown */
+        /* Custom UI Dropdown */
+        .custom-select-wrapper { position: relative; user-select: none; width: 160px; }
+        .custom-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 10px 36px 10px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+        .custom-select.open { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
+        .custom-options { position: absolute; top: 100%; left: 0; right: 0; margin-top: 5px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow-y: auto; max-height: 200px; display: none; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
+        .custom-options.show { display: block; animation: fadeIn 0.15s ease-out; }
+        .custom-option { padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.1s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .custom-option:last-child { border-bottom: none; }
+        .custom-option:hover, .custom-option:active { background: #27272a; color: var(--accent); }
         /* Sticky Banners */
         .floating-banner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--accent); color: #000; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 15px; text-align: center; display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); cursor: pointer; transition: 0.2s; border: 2px solid #fff;}
         .floating-banner:active { transform: translateX(-50%) scale(0.96); }
@@ -435,8 +442,14 @@
         </div>
         <div class="history-card" style="padding: 20px 20px 25px 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <span style="font-weight:800; font-size:16px; color: var(--text-main);">📈 Lift Progress</span>
-                <select id="chart-ex-select" class="chart-select" onchange="drawChart()"></select>
+                <span style="font-weight:800; font-size:16px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    Lift Progress
+                </span>
+                <div class="custom-select-wrapper">
+                    <div id="chart-custom-select" class="custom-select" onclick="toggleChartDropdown()">--</div>
+                    <div id="chart-custom-options" class="custom-options"></div>
+                </div>
             </div>
             <div id="chart-container" style="position:relative; height: 140px; width: 100%;"></div>
         </div>
@@ -687,15 +700,31 @@
             let workoutDates = history.map(h => {
                 let d = new Date(h.date); d.setHours(0,0,0,0); return d.getTime();
             });
+            
+            // Logic to find the most recent Saturday
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            let day = today.getDay(); // 0=Sun, 6=Sat
+            let diffToSat = (day === 6) ? 0 : -(day + 1);
+            
+            let startOfSat = new Date(today);
+            startOfSat.setDate(today.getDate() + diffToSat);
+
             let html = '';
-            for(let i=6; i>=0; i--) {
-                let d = new Date(); d.setDate(d.getDate() - i);
+            for(let i=0; i<7; i++) {
+                let d = new Date(startOfSat);
+                d.setDate(startOfSat.getDate() + i);
                 let dayChar = d.toLocaleDateString('en-US', {weekday: 'short'}).charAt(0);
-                d.setHours(0,0,0,0);
                 let isDone = workoutDates.includes(d.getTime());
                 let cls = isDone ? 's-dot active' : 's-dot';
                 let content = isDone ? '✓' : dayChar;
-                html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
+                
+                // Dim future days slightly so you know the week isn't over yet
+                if (d.getTime() > today.getTime()) {
+                    html += `<div class="streak-day"><div class="s-dot" style="opacity: 0.3;">${dayChar}</div></div>`;
+                } else {
+                    html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
+                }
             }
             container.innerHTML = html;
         }
@@ -709,7 +738,7 @@
             history.forEach(log => { ltSets += (log.sets || 0); ltVol += (log.volume || 0); });
             const formatVol = (v) => {
                 if (v >= 1000000) return (v/1000000).toFixed(1) + 'm kg';
-                if (v >= 1000) return (v/1000).toFixed(1) + 'k kg';
+                if (v >= 1000) return Math.round(v/1000) + 'k kg'; // Removed decimal here to save space
                 return Math.round(v) + ' kg';
             };
             const wEl = document.getElementById('lt-workouts');
@@ -795,6 +824,20 @@
                 btn.style.background = '#22c55e';
                 
                 heroResume.onclick = () => {
+                    // FIX: Delete checkmarks AND wipe all saved input data so it's pristine next time
+                    let prefix = currentProgram + "_";
+                    Object.keys(completedDays).forEach(k => {
+                        if (k.startsWith(prefix)) delete completedDays[k];
+                    });
+                    localStorage.setItem('completedDays', JSON.stringify(completedDays));
+
+                    let keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        let k = localStorage.key(i);
+                        if (k && k.startsWith(prefix)) keysToRemove.push(k);
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+
                     currentProgram = null;
                     localStorage.removeItem('activeProgram');
                     updateDashboard();
@@ -1066,43 +1109,80 @@
             };
             
             let history = safeParse('workoutHistory', []);
-            history = history.filter(h => h.key !== key);
+            
+            // FIX: Removed the line that deleted previous workouts of the same name. 
+            // Now, every completion logs a brand new entry, enabling multiple sessions per day!
             history.unshift(logEntry); 
+            
             localStorage.setItem('workoutHistory', JSON.stringify(history));
 
             renderDayPills(); 
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
             document.getElementById('summary-screen').classList.add('active');
         }
+
+    let currentChartEx = '';
+
+        function toggleChartDropdown() {
+            document.getElementById('chart-custom-options').classList.toggle('show');
+            document.getElementById('chart-custom-select').classList.toggle('open');
+        }
+
+        function selectChartEx(ex) {
+            currentChartEx = ex;
+            document.getElementById('chart-custom-select').innerText = ex;
+            document.getElementById('chart-custom-options').classList.remove('show');
+            document.getElementById('chart-custom-select').classList.remove('open');
+            drawChart();
+        }
+
+        // Close dropdown if clicked outside
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.custom-select-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                const opts = document.getElementById('chart-custom-options');
+                const sel = document.getElementById('chart-custom-select');
+                if(opts) opts.classList.remove('show');
+                if(sel) sel.classList.remove('open');
+            }
+        });
+
         function initChartSelect() {
             let history = safeParse('workoutHistory', []);
             let exSet = new Set();
             history.forEach(log => log.details.forEach(e => exSet.add(e.name)));
-            let select = document.getElementById('chart-ex-select');
-            if(!select) return;
+            let optionsHtml = document.getElementById('chart-custom-options');
+            let selectDisplay = document.getElementById('chart-custom-select');
+            if(!optionsHtml || !selectDisplay) return;
+            
             let options = Array.from(exSet).sort();
             
             if(options.length === 0) {
-                select.innerHTML = '<option value="">No Data</option>';
+                selectDisplay.innerText = 'No Data';
+                optionsHtml.innerHTML = '';
+                currentChartEx = '';
                 drawChart();
                 return;
             }
-            let curr = select.value;
-            select.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
-            if(options.includes(curr)) select.value = curr;
-            else select.value = options.includes('Squat') ? 'Squat' : options[0];
+            
+            if(!options.includes(currentChartEx)) {
+                currentChartEx = options.includes('Squat') ? 'Squat' : options[0];
+            }
+            
+            selectDisplay.innerText = currentChartEx;
+            optionsHtml.innerHTML = options.map(o => `<div class="custom-option" onclick="selectChartEx('${o}')">${o}</div>`).join('');
+            
             drawChart();
         }
 
         window.drawChart = function() {
-            const select = document.getElementById('chart-ex-select');
             const container = document.getElementById('chart-container');
-            if(!select || !container) return;
-            if(!select.value) { 
+            if(!container) return;
+            if(!currentChartEx) { 
                 container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size: 13px; font-style: italic;">Complete a workout to plot progress.</div>'; 
                 return; 
             }
-            let exName = select.value;
+            let exName = currentChartEx;
             let history = safeParse('workoutHistory', []).slice().reverse(); 
             let data = [];
             history.forEach(log => {
@@ -1116,23 +1196,30 @@
                 container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size:13px; font-style: italic;">Need 2 sessions of this lift to plot progress.</div>`;
                 return;
             }
+            
             let w = container.clientWidth; let h = 140; let padding = 20; 
             let minW = Math.min(...data.map(d => d.weight));
             let maxW = Math.max(...data.map(d => d.weight));
             let range = maxW - minW; if(range === 0) range = 10; 
+            
+            // Adjusted X padding so text doesn't hit the screen edges
             let points = data.map((d, i) => {
-                let x = (i / (data.length - 1)) * (w - 20) + 10; 
+                let x = (i / (data.length - 1)) * (w - 40) + 20; 
                 let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
                 return `${x},${y}`;
             }).join(' ');
+            
             let circles = data.map((d, i) => {
-                let x = (i / (data.length - 1)) * (w - 20) + 10;
+                let x = (i / (data.length - 1)) * (w - 40) + 20;
                 let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
-                return `<circle cx="${x}" cy="${y}" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/><text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.weight}</text>`;
+                return `<circle cx="${x}" cy="${y}" r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
+                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.weight}kg</text>`;
             }).join('');
-            container.innerHTML = `<svg width="100%" height="${h}"><polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${circles}</svg>`;
+            
+            container.innerHTML = `<svg width="100%" height="${h}" style="overflow:visible;"><polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${circles}</svg>`;
         };
-        function renderHistory() {
+
+    function renderHistory() {
             const historyContainer = document.getElementById('history-container');
             let history = safeParse('workoutHistory', []);
 
@@ -1917,6 +2004,7 @@
                 });
             });
         }
+
         function renderStreak() {
             const container = document.getElementById('streak-container');
             if(!container) return;
@@ -1924,15 +2012,36 @@
             let workoutDates = history.map(h => {
                 let d = new Date(h.date); d.setHours(0,0,0,0); return d.getTime();
             });
+            
+            // Get today in your local timezone
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // Find the most recent Saturday (0=Sun, ..., 6=Sat)
+            let dayOfWeek = today.getDay(); 
+            let daysSinceSaturday = (dayOfWeek === 6) ? 0 : (dayOfWeek + 1);
+            
+            let startOfStreak = new Date(today);
+            startOfStreak.setDate(today.getDate() - daysSinceSaturday);
+
             let html = '';
-            for(let i=6; i>=0; i--) {
-                let d = new Date(); d.setDate(d.getDate() - i);
-                let dayChar = d.toLocaleDateString('en-US', {weekday: 'short'}).charAt(0);
-                d.setHours(0,0,0,0);
+            // Hard-locked to your Saturday-Friday schedule
+            const dayLabels = ['S', 'S', 'M', 'T', 'W', 'T', 'F'];
+            
+            for (let i = 0; i < 7; i++) {
+                let d = new Date(startOfStreak);
+                d.setDate(startOfStreak.getDate() + i);
+                
                 let isDone = workoutDates.includes(d.getTime());
                 let cls = isDone ? 's-dot active' : 's-dot';
-                let content = isDone ? '✓' : dayChar;
-                html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
+                let content = isDone ? '✓' : dayLabels[i];
+                
+                // Dim future days so you know the week isn't over yet
+                if (d.getTime() > today.getTime()) {
+                    html += `<div class="streak-day"><div class="s-dot" style="opacity: 0.3;">${dayLabels[i]}</div></div>`;
+                } else {
+                    html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
+                }
             }
             container.innerHTML = html;
         }
@@ -1956,7 +2065,7 @@
             if(sEl) sEl.innerText = ltSets;
             if(vEl) vEl.innerText = formatVol(ltVol);
         }
-        
+
         initApp();
     </script>
 </body>
