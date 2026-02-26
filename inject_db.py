@@ -1,54 +1,54 @@
-import json
-import re
 import sys
 import os
+import re
 
-def inject_database(program_id):
-    json_file = f"{program_id}_database.json"
-    html_file = "index.html"
+def inject_program(program_name):
+    html_file = 'index.html'
+    json_file = f'{program_name}_database.json'
 
-    if not os.path.exists(json_file):
-        print(f"Error: {json_file} not found.")
-        return
+    # 1. Check if files exist
     if not os.path.exists(html_file):
-        print(f"Error: {html_file} not found.")
+        print(f"❌ Error: {html_file} not found.")
+        return
+    if not os.path.exists(json_file):
+        print(f"❌ Error: {json_file} not found.")
         return
 
-    with open(json_file, 'r', encoding='utf-8') as f:
-        db_content = f.read()
-
-    # Validate JSON before injecting
-    try:
-        json.loads(db_content)
-    except json.JSONDecodeError as e:
-        print(f"Error: {json_file} contains invalid JSON. {e}")
-        return
-
+    # 2. Read the HTML and JSON
     with open(html_file, 'r', encoding='utf-8') as f:
         html_content = f.read()
 
-    # Regex pattern to find the exact injection block
-    pattern = re.compile(
-        r'(/\*\s*' + re.escape(program_id) + r'_START\s*\*/\s*)(.*?)(\s*/\*\s*' + re.escape(program_id) + r'_END\s*\*/)',
-        re.DOTALL
-    )
+    with open(json_file, 'r', encoding='utf-8') as f:
+        json_content = f.read().strip()
 
+    # 3. Setup the Regex Pattern
+    # This looks for exactly: /* ProgramName_START */ [ANYTHING HERE] /* ProgramName_END */
+    start_marker = f"/* {program_name}_START */"
+    end_marker = f"/* {program_name}_END */"
+    
+    # re.DOTALL allows the (.*?) to match across multiple lines
+    pattern = re.compile(f"({re.escape(start_marker)})(.*?)({re.escape(end_marker)})", re.DOTALL)
+
+    # 4. Check if the markers actually exist in the HTML
     if not pattern.search(html_content):
-        print(f"Error: Injection markers for '{program_id}' not found in {html_file}.")
-        print(f"Looking for: /* {program_id}_START */ ... /* {program_id}_END */")
+        print(f"❌ Error: Could not find markers for {program_name} in {html_file}.")
+        print(f"Make sure you have exactly: /* {program_name}_START */ {{}} /* {program_name}_END */ in your HTML.")
         return
 
-    # Replace the content between the markers
-    new_html_content = pattern.sub(r'\g<1>' + db_content + r'\g<3>', html_content)
+    # 5. Overwrite everything between the markers with the new JSON
+    # \1 is the start marker, \3 is the end marker. We inject the new JSON in the middle.
+    new_html_content = pattern.sub(rf"\1\n{json_content}\n\3", html_content)
 
+    # 6. Save the changes back to index.html
     with open(html_file, 'w', encoding='utf-8') as f:
         f.write(new_html_content)
 
-    print(f"Successfully injected {json_file} into {html_file}!")
+    print(f"✅ Successfully injected/overwritten {program_name} into {html_file}!")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python inject_db.py <program_id>")
-        print("Example: python inject_db.py PPL")
+        print("Usage: python inject_db.py <program_name>")
     else:
-        inject_database(sys.argv[1])
+        # Grab the program name from the command line argument
+        program_name = sys.argv[1]
+        inject_program(program_name)
