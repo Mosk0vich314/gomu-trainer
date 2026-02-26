@@ -26,10 +26,10 @@
             --border: #3f3f46; 
         }
         
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 90px; overflow-x: hidden;}
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior-y: none; }
         
         /* App Screens */
-        .app-screen { display: none; padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden;}
+        .app-screen { display: none; padding: 20px; padding-bottom: 110px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden;}
         .app-screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
