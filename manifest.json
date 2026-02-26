@@ -1,6 +1,6 @@
 {
-  "name": "Gym Logger",
-  "short_name": "Gym Logger",
+  "name": "Gomu Trainer",
+  "short_name": "Gomu Trainer",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#09090b",
