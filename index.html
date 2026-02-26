@@ -64,11 +64,16 @@
         .progress-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease-out; border-radius: 4px; }
 
-        /* ANALYTICS BLOCKS */
-        .analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* ANALYTICS BLOCKS & STREAK */
+        .streak-container { display: flex; justify-content: space-between; margin-bottom: 25px; padding: 0 5px; }
+        .streak-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .s-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text-muted); transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .s-dot.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4); }
+
+        .analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .analytics-header { font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
-        .a-val { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+        .a-val { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; color: var(--teal); }
         .a-lbl { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700;}
 
         /* Stats Launch Button */
@@ -119,8 +124,8 @@
         .screen-title { color: var(--text-main); font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
 
         /* Navigation Pills */
-        .header-nav { display: flex; align-items: center; margin-bottom: 15px; }
-        .back-btn { background: transparent; color: var(--text-muted); border: none; font-size: 16px; font-weight: 600; padding: 5px 0; cursor: pointer; }
+        .header-nav { display: flex; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: transparent; color: var(--text-muted); border: none; font-size: 15px; font-weight: 600; padding: 5px 0; cursor: pointer; width: 80px; text-align: left; flex-shrink: 0; }
         
         .pill-scroll-container { margin-bottom: 20px; }
         .pill-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
@@ -133,7 +138,7 @@
         .pill .indicator-active { color: var(--accent); }
         .pill.active .indicator-active { color: #000; }
 
-        /* EXPANDABLE HISTORY CARDS */
+        /* EXPANDABLE HISTORY CARDS & CHARTS */
         .history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 15px; overflow: hidden; }
         .history-summary { padding: 20px; position: relative; cursor: pointer; display: flex; flex-direction: column; gap: 8px; list-style: none; }
         .history-summary::-webkit-details-marker { display: none; }
@@ -152,6 +157,8 @@
         .hd-set-row span:nth-child(2) { color: #fff; text-align: center; flex: 1; }
         .hd-set-row span:nth-child(3) { text-align: right; width: 60px; color: var(--accent); }
         .empty-history { text-align: center; color: var(--text-muted); padding: 40px 20px; font-style: italic; }
+
+        .chart-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 14px; font-family: 'Inter'; max-width: 150px; text-overflow: ellipsis; outline: none; }
 
         /* Sticky Banners */
         .floating-banner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--accent); color: #000; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 15px; text-align: center; display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); cursor: pointer; transition: 0.2s; border: 2px solid #fff;}
@@ -233,7 +240,7 @@
         .e1rm-btn { background: #121212; border: 1px solid #3f3f46; color: var(--text-muted); border-radius: 8px; padding: 6px 2px; cursor: pointer; width: 100%; box-sizing: border-box; transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; font-family: 'Inter', sans-serif;}
         .e1rm-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.5; }
         .e1rm-value { font-size: 15px; font-weight: 800; }
-        .e1rm-btn.ready { border-color: var(--accent); color: var(--accent); background: rgba(249, 115, 22, 0.08); box-shadow: none; cursor: pointer; }
+        .e1rm-btn.ready { border-color: var(--accent); color: var(--accent); background: rgba(249, 115, 22, 0.08); box-shadow: none; }
         .e1rm-btn.ready .e1rm-label { opacity: 1; }
         .e1rm-btn:active { transform: scale(0.95); }
         
@@ -253,7 +260,7 @@
         .reset-btn:active { background: rgba(255,255,255,0.05); }
         
         .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .stat-name { font-weight: 600; font-size: 16px; color: var(--text-main); }
+        .stat-name { font-weight: 600; font-size: 16px; color: var(--text-main); flex: 1;}
         .stat-value { color: var(--accent); font-size: 18px; font-weight: 800; }
 
         /* SUMMARY SCREEN UI */
@@ -360,7 +367,10 @@
             </div>
         </div>
 
-        <div class="analytics-card" id="lifetime-stats-card">
+        <div class="streak-container" id="streak-container">
+            </div>
+
+        <div class="analytics-card" id="lifetime-stats-card" style="margin-bottom: 30px;">
             <div class="analytics-header">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 Lifetime Stats
@@ -369,18 +379,6 @@
                 <div><div class="a-val" id="lt-workouts" style="color: var(--accent);">0</div><div class="a-lbl">Workouts</div></div>
                 <div><div class="a-val" id="lt-sets" style="color: var(--accent);">0</div><div class="a-lbl">Sets</div></div>
                 <div><div class="a-val" id="lt-vol" style="color: var(--accent);">0</div><div class="a-lbl">Lifted</div></div>
-            </div>
-        </div>
-
-        <div class="analytics-card" id="weekly-stats-card" style="margin-bottom: 30px;">
-            <div class="analytics-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                Past 7 Days
-            </div>
-            <div class="analytics-grid">
-                <div><div class="a-val" id="wk-workouts" style="color: var(--teal);">0</div><div class="a-lbl">Workouts</div></div>
-                <div><div class="a-val" id="wk-sets" style="color: var(--teal);">0</div><div class="a-lbl">Sets</div></div>
-                <div><div class="a-val" id="wk-vol" style="color: var(--teal);">0</div><div class="a-lbl">Lifted</div></div>
             </div>
         </div>
 
@@ -393,20 +391,7 @@
         <div class="screen-header">
             <h1 class="screen-title">Library</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your training programs.</p>
-        </div>
-
-        <details class="folder-card" open>
-            <summary class="folder-header">
-                <span>🛠️ Sandbox & Testing</span>
-                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
-            </summary>
-            <div class="folder-content">
-                <div class="program-card" data-program-id="dummy" style="border-color: #ef4444;" onclick="startProgram('dummy')">
-                    <h3 class="program-title">Complex Test Block</h3>
-                    <p class="program-desc">Tests multi-tier setups and myo-reps.</p>
-                </div>
-            </div>
-        </details>
+        </div>       
 
         <details class="folder-card">
             <summary class="folder-header">
@@ -434,6 +419,15 @@
         <div class="screen-header">
             <h1 class="screen-title">History</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your completed training sessions.</p>
+        </div>
+
+        <div class="history-card" style="padding: 20px 20px 25px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <span style="font-weight:800; font-size:16px; color: var(--text-main);">📈 Lift Progress</span>
+                <select id="chart-ex-select" class="chart-select" onchange="drawChart()"></select>
+            </div>
+            <div id="chart-container" style="position:relative; height: 140px; width: 100%;">
+                </div>
         </div>
         
         <div id="history-container">
@@ -483,9 +477,9 @@
     <div id="workout-screen" class="app-screen">
         
         <div class="header-nav">
-            <button class="back-btn" onclick="switchTab('home-screen')">◀ Dashboard</button>
-            <h2 id="workout-program-title" style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Workout</h2>
-            <div style="width: 80px;"></div>
+            <button class="back-btn" onclick="switchTab('home-screen')">◀ Back</button>
+            <h2 id="workout-program-title" style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 15px; line-height: 1.3; display: flex; align-items: center; justify-content: center; word-break: break-word;">Workout</h2>
+            <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
         
         <div class="pill-scroll-container">
@@ -527,54 +521,2492 @@
         const db = {
             "16week-3": { name: "16-Week Peak 3", weeks: /* 16week-3_START */ {} /* 16week-3_END */ },
             "dontCall_it_aComeback": { name: "Don't Call it a Comeback", weeks: /* dontCall_it_aComeback_START */ {} /* dontCall_it_aComeback_END */ },
-            "MaxEfficiency": { name: "Max Efficiency", weeks: /* MaxEfficiency_START */ {} /* MaxEfficiency_END */ },
-            
-            // COMPLEX DUMMY DATA FOR TESTING
-            "dummy": { 
-                name: "Complex Test Block (W1-W5)", 
-                weeks: {
-                    "1": {
-                        "1": [
-                            {
-                                "name": "Squat",
-                                "type": "main",
-                                "notes": null,
-                                "blocks": [
-                                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 5.5, "pct": 0.84 },
-                                    { "sets": 1, "reps": 8, "type": "backoff", "targetRpe": 7.0, "pct": 0.70 },
-                                    { "sets": 3, "reps": 8, "type": "backoff", "targetRpe": 6.0, "pct": 0.66 }
-                                ]
-                            },
-                            {
-                                "name": "Bench",
-                                "type": "main",
-                                "notes": null,
-                                "blocks": [
-                                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 5.5, "pct": 0.84 },
-                                    { "sets": 1, "reps": 8, "type": "backoff", "targetRpe": 7.0, "pct": 0.70 },
-                                    { "sets": 4, "reps": 8, "type": "backoff", "targetRpe": 6.0, "pct": 0.66 }
-                                ]
-                            },
-                            {
-                                "name": "Cable Biceps",
-                                "type": "acc",
-                                "notes": "Myo-reps: x15@9 -> x4@10. Start by finding a load.",
-                                "blocks": [
-                                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
-                                    { "sets": 3, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
-                                ]
-                            }
-                        ]
-                    }
-                } 
-            },
-
+            "MaxEfficiency": { name: "Max Efficiency", weeks: /* MaxEfficiency_START */ {} /* MaxEfficiency_END */ },                      
             "POP_1": { name: "Path of Powerlifting I", weeks: /* POP_1_START */ {} /* POP_1_END */ },
             "POP_2": { name: "Path of Powerlifting II", weeks: /* POP_2_START */ {} /* POP_2_END */ },
             "POP_3": { name: "Path of Powerlifting III", weeks: /* POP_3_START */ {} /* POP_3_END */ },
             "POP_4": { name: "Path of Powerlifting IV", weeks: /* POP_4_START */ {} /* POP_4_END */ },
             "Powerbuilding3": { name: "Powerbuilding 3", weeks: /* Powerbuilding3_START */ {} /* Powerbuilding3_END */ },
-            "PPL": { name: "Push Pull Legs", weeks: /* PPL_START */ {} /* PPL_END */ }
+            "PPL": { name: "Push Pull Legs", weeks: /* PPL_START */ {
+    "1": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 6.5, "pct": 0.86 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": 0.76 },
+                    { "sets": 3, "reps": 6, "type": "backoff", "targetRpe": 6.0, "pct": 0.70 }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9). Perform x15@9, then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Front Delt Raises",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 6.0, "pct": 0.84 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": 0.74 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 6.0, "pct": 0.70 }
+                ]
+            },
+            {
+                "name": "Close Grip Lat Pulldowns",
+                "type": "acc",
+                "notes": "Take ~5% off of your top set @8 for loading the final x8@8 set. // If you don't have a lat pulldown, then pull-ups or chin-ups would be a great substitution.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9).",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Preacher Cable Curls",
+                "type": "acc",
+                "notes": "If you don't have access to cables, any curl variation you like is fine here!",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "2ct Pause (deadlift)",
+                "type": "main",
+                "notes": "These should be performed as 2 cluster sets of 6. You'll warm up, then do 3 reps, rest 30 seconds, do the next 3, then take a full set rest (2-3 min). So choose the load appropriately for ~6 reps, not for triples. This session/movement is meant to be a lower stress day, so don't overdo it or push too hard here, you deadlifted yesterday, and you'll be comp squatting tomorrow!",
+                "blocks": [
+                    { "sets": 2, "reps": 6, "type": "work", "targetRpe": 6.0, "pct": 0.74 }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": "Ignore the (bench) part, this is just normal OHP with a barbell. Also, the suggested load here may be based off of your comp bench the first time you load it up, so just adjust the 1RM for your OHP and it will be fixed for the rest of the program.",
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 7.0, "pct": 0.83 },
+                    { "sets": 1, "reps": 6, "type": "backoff", "targetRpe": 8.0, "pct": 0.75 },
+                    { "sets": 2, "reps": 8, "type": "backoff", "targetRpe": 6.0, "pct": 0.66 }
+                ]
+            },
+            {
+                "name": "Lateral Delt Work",
+                "type": "acc",
+                "notes": "These can be dumbbell or cable, whichever you prefer. Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "type": "acc",
+                "notes": "Again, these can be dumbbell or cable.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "11 min core circuit. Open ended sets/reps. Choose 2-4 core exercises you like, and circuit through them for 11 min. Take short breaks and rests as necessary throughout, no need to absolutely blow yourself up cardio-wise. Some of my faves are: planks, deadbugs, and side bends.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 6.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": 0.76 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 6.0, "pct": 0.70 }
+                ]
+            },
+            {
+                "name": "Leg Press / Belt Squat / Hack Squat (squat)",
+                "type": "acc",
+                "notes": "If you don't have access to any of these machines, using a narrow stance highbar, or SSB would be a good substitute.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads on this one - they'll be taken from your comp bench until you set the 1RM for this *specific exercise* // I know its technically \"legs\" day but... we are powerlifters after all. // -5% load drop from @8 to @7 set",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.65 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.67 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 8.0, "pct": 0.69 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Stiff-Leg (deadlift)",
+                "type": "acc",
+                "notes": "If you don't have access to DB's, you can go ahead and use a barbell, just load light and try to find a good hamstring/glute",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "2": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.0, "pct": 0.87 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 8.0, "pct": 0.78 },
+                    { "sets": 3, "reps": 6, "type": "backoff", "targetRpe": 7.0, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Front Delt Raises",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 6.5, "pct": 0.86 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 8.0, "pct": 0.76 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 6.5, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Close Grip Lat Pulldowns",
+                "type": "acc",
+                "notes": "Take ~5% off of your top set @9 for loading the final x8@8 set.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Preacher Cable Curls",
+                "type": "acc",
+                "notes": "If you don't have access to cables, any curl variation you like is fine here!",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "2-Count Pause (squat)",
+                "type": "main",
+                "notes": "These should be performed as 2 cluster sets of 6. You'll warm up, then do 3 reps, rest 30 seconds, do the next 3, then take a full set rest (2-3 min).",
+                "blocks": [
+                    { "sets": 2, "reps": 6, "type": "work", "targetRpe": 6.0, "pct": 0.74 }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": "Ignore the (bench) part, this is just normal OHP with a barbell.",
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 8.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 6, "type": "backoff", "targetRpe": 8.5, "pct": 0.775 },
+                    { "sets": 2, "reps": 8, "type": "backoff", "targetRpe": 7.0, "pct": 0.68 }
+                ]
+            },
+            {
+                "name": "Lateral Delt Work",
+                "type": "acc",
+                "notes": "These can be dumbbell or cable, whichever you prefer. Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "type": "acc",
+                "notes": "Again, these can be dumbbell or cable.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "11 min core circuit. Open ended sets/reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.0, "pct": 0.87 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 8.0, "pct": 0.78 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 7.0, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Leg Press / Belt Squat / Hack Squat (squat)",
+                "type": "acc",
+                "notes": "If you don't have access to any of these machines, using a narrow stance highbar, or SSB would be a good substitute.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": "I know its technically \"legs\" day but... we are powerlifters after all.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 8.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Stiff-Leg (deadlift)",
+                "type": "acc",
+                "notes": "If you don't have access to DB's, you can go ahead and use a barbell, just load light.",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    },
+    "3": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.5, "pct": 0.89 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": 0.78 },
+                    { "sets": 3, "reps": 5, "type": "backoff", "targetRpe": 6.0, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Front Delt Raises",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.0, "pct": 0.87 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": 0.76 },
+                    { "sets": 2, "reps": 5, "type": "backoff", "targetRpe": 6.0, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Close Grip Lat Pulldowns",
+                "type": "acc",
+                "notes": "Take ~5% off of your top set @8 for loading the final x6@7 set.",
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Preacher Cable Curls",
+                "type": "acc",
+                "notes": "If you don't have access to cables, any curl variation you like is fine here!",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "2ct Pause (deadlift)",
+                "type": "main",
+                "notes": "These should be performed as 2 cluster sets of 4. You'll warm up, then do 2 reps, rest 30 seconds, do the next 2, then take a full set rest (2-3 min).",
+                "blocks": [
+                    { "sets": 2, "reps": 6, "type": "work", "targetRpe": 6.5, "pct": 0.755 }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": "Ignore the (bench) part, this is just normal OHP with a barbell.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.0, "pct": 0.87 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 8.0, "pct": 0.775 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 6.0, "pct": 0.68 }
+                ]
+            },
+            {
+                "name": "Lateral Delt Work",
+                "type": "acc",
+                "notes": "These can be dumbbell or cable, whichever you prefer. Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "type": "acc",
+                "notes": "Again, these can be dumbbell or cable.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "11 min core circuit. Open ended sets/reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.5, "pct": 0.89 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": 0.78 },
+                    { "sets": 2, "reps": 5, "type": "backoff", "targetRpe": 6.0, "pct": 0.72 }
+                ]
+            },
+            {
+                "name": "Leg Press / Belt Squat / Hack Squat (squat)",
+                "type": "acc",
+                "notes": "If you don't have access to any of these machines, using a narrow stance highbar, or SSB would be a good substitute.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Stiff-Leg (deadlift)",
+                "type": "acc",
+                "notes": "If you don't have access to DB's, you can go ahead and use a barbell, just load light.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "4": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 8.0, "pct": 0.92 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 3, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": 0.74 }
+                ]
+            },
+            {
+                "name": "Dumbbell Overhead Press",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Tricep Pushdowns",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Front Delt Raises",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 7.5, "pct": 0.89 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": 0.775 },
+                    { "sets": 2, "reps": 5, "type": "backoff", "targetRpe": 6.5, "pct": 0.74 }
+                ]
+            },
+            {
+                "name": "Close Grip Lat Pulldowns",
+                "type": "acc",
+                "notes": "Take ~5% off of your top set @9 for loading the final x6@7 set.",
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Preacher Cable Curls",
+                "type": "acc",
+                "notes": "If you don't have access to cables, any curl variation you like is fine here!",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "2-Count Pause (squat)",
+                "type": "main",
+                "notes": "These should be performed as 2 cluster sets of 4. You'll warm up, then do 2 reps, rest 30 seconds, do the next 2, then take a full set rest (2-3 min).",
+                "blocks": [
+                    { "sets": 2, "reps": 6, "type": "work", "targetRpe": 6.5, "pct": 0.755 }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": "Ignore the (bench) part, this is just normal OHP with a barbell.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 8.0, "pct": 0.89 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 8.0, "pct": 0.79 },
+                    { "sets": 2, "reps": 6, "type": "backoff", "targetRpe": 6.0, "pct": 0.70 }
+                ]
+            },
+            {
+                "name": "Lateral Delt Work",
+                "type": "acc",
+                "notes": "These can be dumbbell or cable, whichever you prefer. Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "type": "acc",
+                "notes": "Again, these can be dumbbell or cable.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "11 min core circuit. Open ended sets/reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "top", "targetRpe": 8.0, "pct": 0.92 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 2, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": 0.74 }
+                ]
+            },
+            {
+                "name": "Leg Press / Belt Squat / Hack Squat (squat)",
+                "type": "acc",
+                "notes": "If you don't have access to any of these machines, using a narrow stance highbar, or SSB would be a good substitute.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 8.5, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Stiff-Leg (deadlift)",
+                "type": "acc",
+                "notes": "If you don't have access to DB's, you can go ahead and use a barbell, just load light.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    },
+    "5": {
+        "1": [
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 6.0, "pct": 0.58 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 7.0, "pct": 0.60 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 8.0, "pct": 0.62 }
+                ]
+            },
+            {
+                "name": "5-3-0 Tempo Feet-Up (bench)",
+                "type": "main",
+                "notes": "Tempo here is: 5ct eccentric/lowering phase. 3ct pause on chest. normal press.",
+                "blocks": [
+                    { "sets": 2, "reps": 5, "type": "work", "targetRpe": 6.0, "pct": 0.52 }
+                ]
+            },
+            {
+                "name": "Seated Overhead Press",
+                "type": "acc",
+                "notes": "You can choose either DB or BB here. Myo-reps: x20@9->x5@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 20, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 5, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Tricep Extensions",
+                "type": "acc",
+                "notes": "Again, if equipment limits you, just choose a different movement.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "notes": "Non-competition means: if you pull conventional normally then you would pull sumo here, and vise versa if you pull sumo normally. These 10's should be run as cluster sets of 5 reps / 30 sec rest / 5 reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 6.0, "pct": 0.60 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 7.0, "pct": 0.62 }
+                ]
+            },
+            {
+                "name": "5-3-0 Tempo (deadlift)",
+                "type": "main",
+                "notes": "Use the same alternate stance as the first exercise. The tempo here is: 5ct eccentric/lowering phase, 3ct pause/hover before the floor, then go to the floor.",
+                "blocks": [
+                    { "sets": 2, "reps": 5, "type": "work", "targetRpe": 5.0, "pct": 0.50 }
+                ]
+            },
+            {
+                "name": "Wide Grip Seated Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 5.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm DB Row",
+                "type": "acc",
+                "notes": "Myo-reps: x20@9->x5@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 20, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 5, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "6-0-0 Tempo Squat (squat)",
+                "type": "main",
+                "notes": "6ct eccentric/lowering phase. Keep this tempo even, don't go slow then dip into the bottom. Control throughout!",
+                "blocks": [
+                    { "sets": 2, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "6-0-0 Bench Press (bench)",
+                "type": "main",
+                "notes": "6ct eccentric tempo. Use barbell for this movement.",
+                "blocks": [
+                    { "sets": 3, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.77 }
+                ]
+            },
+            {
+                "name": "Lateral Delt Work",
+                "type": "acc",
+                "notes": "1 arm at a time, just for some novelty. Myo-reps: x20@9->x5@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 20, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 5, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Face Pulls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 20, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 20, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "6-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "6ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Close Grip Incline (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 6.0, "pct": 0.62 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 7.0, "pct": 0.65 }
+                ]
+            },
+            {
+                "name": "Hamstring Curls",
+                "type": "acc",
+                "notes": "If you don't have access to this machine, you can hook a band under something and do these standing.",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Slow Steady State Cardio of Choice",
+                "type": "acc",
+                "notes": "Go for a walk, or low pace steady state cardio of your choice.",
+                "blocks": [
+                    { "sets": 1, "reps": 25, "type": "acc", "targetRpe": null, "pct": null }
+                ]
+            }
+        ]
+    },
+    "6": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise. It will grab the 1RM from your comp bench and likely overprescribe. If you know your 1RM for incline, set it. If not, just go by RPE and then set it afterwards using the E1RM button.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 6.0, "pct": 0.62 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 7.0, "pct": 0.64 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 8.0, "pct": 0.66 }
+                ]
+            },
+            {
+                "name": "2-Arm Triceps Movement of Choice",
+                "type": "acc",
+                "notes": "Rest = RPE-5. For each set, you'll keep the same weight, but adjust your rest period accordingly. If the set is RPE6, then you have 1 minute. If it's 8, then you have 3 minutes. Expect RPE to climb throughout the sets.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands if you can set them up to give enough resistance.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Wide Grip Seated Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm DB Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9). Perform x15@9, then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "2-Arm Bicep Movement of Choice",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise. It will grab the 1RM from your comp bench and likely overprescribe. If you know your 1RM for incline, set it. If not, just go by RPE and then set it afterwards using the E1RM button.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.72 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.735 }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8 to final backoff set @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.0, "pct": 0.675 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.0, "pct": 0.70 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.0, "pct": 0.725 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Flat (bench)",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9), then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Face Pulls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 5.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit. Just adding 1 minute from last block! Open ended sets/reps. Choose 2-4 core exercises you like, and circuit through them for 11 min. Take short breaks and rests as necessary throughout, no need to absolutely blow yourself up cardio-wise. Some of my faves are: planks, deadbugs, and side bends.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.75 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Close Grip 3-0-0 Tempo (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads on this one - they'll be taken from your comp bench until you set the 1RM for this *specific exercise* // -5% load drop from @8 to @7 set",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.0, "pct": 0.675 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.0, "pct": 0.70 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.0, "pct": 0.725 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell RDL (deadlift)",
+                "type": "acc",
+                "notes": "Again, if you don't have DB's, you can go ahead and use a barbell, just load light and try to find a good hamstring/glute",
+                "blocks": [
+                    { "sets": 2, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "7": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.82 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 6.5, "pct": 0.63 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 7.5, "pct": 0.65 },
+                    { "sets": 1, "reps": 10, "type": "work", "targetRpe": 8.5, "pct": 0.67 }
+                ]
+            },
+            {
+                "name": "2-Arm Triceps Movement of Choice",
+                "type": "acc",
+                "notes": "Rest = RPE-5. For each set, you'll keep the same weight, but adjust your rest period accordingly. If the set is RPE6, then you have 1 minute. If it's 8, then you have 3 minutes. Expect RPE to climb throughout the sets.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands if you can set them up to give enough resistance.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.815 }
+                ]
+            },
+            {
+                "name": "Wide Grip Seated Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm DB Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "2-Arm Bicep Movement of Choice",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise. It will grab the 1RM from your comp bench and likely overprescribe. If you know your 1RM for incline, set it. If not, just go by RPE and then set it afterwards using the E1RM button.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.72 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.735 }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8 to final backoff set @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.5, "pct": 0.70 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.5, "pct": 0.78 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Flat (bench)",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Face Pulls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 5.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.815 }
+                ]
+            },
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Close Grip 3-0-0 Tempo (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads on this one... // -5% load drop from @8.5 to @7.5 set",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.5, "pct": 0.70 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.5, "pct": 0.725 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell RDL (deadlift)",
+                "type": "acc",
+                "notes": "Again, if you don't have DB's, you can go ahead and use a barbell, just ensure you're treating this as a lighter, more movement/pump focused slot.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    },
+    "8": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.82 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.64 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.66 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 8.0, "pct": 0.68 }
+                ]
+            },
+            {
+                "name": "2-Arm Triceps Movement of Choice",
+                "type": "acc",
+                "notes": "Rest = RPE-5. Expect RPE to climb throughout the sets.",
+                "blocks": [
+                    { "sets": 1, "reps": 13, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands if you can set them up to give enough resistance.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.82 }
+                ]
+            },
+            {
+                "name": "Wide Grip Seated Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm DB Row",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "2-Arm Bicep Movement of Choice",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Stiff Leg (deadlift)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.5, "pct": 0.735 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.5, "pct": 0.755 }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8 to final backoff set @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.74 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Flat (bench)",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Face Pulls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 5.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Close Grip 3-0-0 Tempo (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads... // -5% load drop from @8 to @7 set",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell RDL (deadlift)",
+                "type": "acc",
+                "notes": "Again, if you don't have DB's, you can use a barbell.",
+                "blocks": [
+                    { "sets": 2, "reps": 8, "type": "acc", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "9": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.82 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.84 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Overhead Press (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.5, "pct": 0.65 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.5, "pct": 0.67 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 8.5, "pct": 0.69 }
+                ]
+            },
+            {
+                "name": "2-Arm Triceps Movement of Choice",
+                "type": "acc",
+                "notes": "Rest = RPE-5.",
+                "blocks": [
+                    { "sets": 1, "reps": 13, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.815 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.835 }
+                ]
+            },
+            {
+                "name": "Wide Grip Seated Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm DB Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "2-Arm Bicep Movement of Choice",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 2, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "High Bar (squat)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads...",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.5, "pct": 0.735 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.5, "pct": 0.755 }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8.5 to final backoff set @7.5.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.755 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell Flat (bench)",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Face Pulls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 5.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.78 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.82 }
+                ]
+            },
+            {
+                "name": "Bulgarian Split Squats (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Close Grip 3-0-0 Tempo (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads... // -5% load drop from @8.5 to @7.5 set",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.815 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dumbbell RDL (deadlift)",
+                "type": "acc",
+                "notes": "Again, if you don't have DB's, you can use a barbell.",
+                "blocks": [
+                    { "sets": 2, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    },
+    "10": {
+        "1": [
+            {
+                "name": "Feet-Up (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.60 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.62 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 8.0, "pct": 0.64 }
+                ]
+            },
+            {
+                "name": "5-3-0 Tempo Feet-Up (bench)",
+                "type": "main",
+                "notes": "Tempo here is: 5ct eccentric/lowering phase. 3ct pause on chest. normal press.",
+                "blocks": [
+                    { "sets": 2, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.54 }
+                ]
+            },
+            {
+                "name": "Seated Overhead Press",
+                "type": "acc",
+                "notes": "You can choose either DB or BB here. Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9). Perform x15@9, then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "1-Arm Triceps Movement of Choice",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Non competition (deadlift)",
+                "type": "main",
+                "notes": "Non-competition means: if you pull conventional normally then you would pull sumo here, and vise versa if you pull sumo normally. These 10's should be run as cluster sets of 5 reps / 30 sec rest / 5 reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.62 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.64 }
+                ]
+            },
+            {
+                "name": "5-3-0 Tempo (deadlift)",
+                "type": "main",
+                "notes": "Use the same alternate stance as the first exercise. The tempo here is: 5ct eccentric/lowering phase, 3ct pause/hover before the floor, then go to the floor.",
+                "blocks": [
+                    { "sets": 2, "reps": 4, "type": "work", "targetRpe": 5.0, "pct": 0.52 }
+                ]
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 5.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Vertical Pull of Choice",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9). Perform x15@9, then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "4-0-0 Tempo Squat (squat)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 2, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "4-0-0 Tempo (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 3, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.77 }
+                ]
+            },
+            {
+                "name": "DB Lateral Raise",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation. Choose a weight that will give you parameter 1 (x15@9). Perform x15@9, then take 5-6 breaths rest. Keep the same weight and do x4. Repeat 5-6 breath rest and x4 set until x4 is @10 RPE. That's 1 activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Rear Dumbbell Delt Raises",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "4-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "4ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Incline (bench)",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 6.0, "pct": 0.67 },
+                    { "sets": 1, "reps": 8, "type": "work", "targetRpe": 7.0, "pct": 0.69 }
+                ]
+            },
+            {
+                "name": "Hamstring Curls",
+                "type": "acc",
+                "notes": "If you don't have access to this machine, you can hook a band under something and do these standing.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Slow Steady State Cardio of Choice",
+                "type": "acc",
+                "notes": "Go for a walk, or low pace steady state cardio of your choice. Honestly, you could/should probably do this 3+ times per week.",
+                "blocks": [
+                    { "sets": 1, "reps": 30, "type": "acc", "targetRpe": null, "pct": null }
+                ]
+            }
+        ]
+    },
+    "11": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.5.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.825 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.85 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Dips",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Barbell Tricep Extension",
+                "type": "acc",
+                "notes": "Rest = RPE-5. For each set, you'll keep the same weight, but adjust your rest period accordingly. If the set is RPE6, then you have 1 minute. Expect RPE to climb throughout the sets.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands if you can set them up to give enough resistance.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.825 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.85 }
+                ]
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Hammer Curls",
+                "type": "acc",
+                "notes": "If for any reason hammer curls bother your elbow or wrist, feel free to sub with a different variation!",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 3, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Romanian (deadlift)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise. It will grab the 1RM from your comp bench and likely overprescribe.",
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 6.0, "pct": 0.73 },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8 to final backoff set @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Incline Bench",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Band Pull Aparts",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 3, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit. Just adding 1 minute from last block! Open ended sets/reps.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 }
+                ]
+            },
+            {
+                "name": "Front Foot Elevated Split (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads on this one... // -5% load drop from @8 to @7 set",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.0, "pct": 0.74 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "3-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "3ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "work", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "12": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @8.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.825 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 8.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 9.0, "pct": 0.875 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dips",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Barbell Tricep Extension",
+                "type": "acc",
+                "notes": "Rest = RPE-5.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands.",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 3, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.825 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 8.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 9.0, "pct": 0.875 }
+                ]
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Hammer Curls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 3, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads day 1 if we have never adjusted the 1RM for this exercise.",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.75 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.775 }
+                ]
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8.5 to final backoff set @7.5.",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.5, "pct": 0.76 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.5, "pct": 0.78 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Incline Bench",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Band Pull Aparts",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 3, "reps": 15, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.815 }
+                ]
+            },
+            {
+                "name": "Front Foot Elevated Split (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads... // -5% load drop from @8.5 to @7.5 set",
+                "blocks": [
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 6.5, "pct": 0.755 },
+                    { "sets": 1, "reps": 5, "type": "work", "targetRpe": 7.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 5, "type": "top", "targetRpe": 8.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 5, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "3-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "3ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 10, "type": "work", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    },
+    "13": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.825 },
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 7.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 8.0, "pct": 0.875 },
+                    { "sets": 1, "reps": 2, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dips",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Barbell Tricep Extension",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Cable Chest Flys",
+                "type": "acc",
+                "notes": "Myo-reps: x15@9->x4@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 6.0, "pct": 0.825 },
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 7.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 8.0, "pct": 0.875 }
+                ]
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Hammer Curls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "Romanian (deadlift)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads...",
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 6.5, "pct": 0.75 },
+                    { "sets": 1, "reps": 6, "type": "work", "targetRpe": 7.5, "pct": 0.765 }
+                ]
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8 to final backoff set @7.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.775 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.795 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.815 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Incline Bench",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 1 Activation.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Band Pull Aparts",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 3, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.825 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.85 }
+                ]
+            },
+            {
+                "name": "Front Foot Elevated Split (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads... // -5% load drop from @8 to @7 set",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.0, "pct": 0.76 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "3-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "3ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": null }
+                ]
+            }
+        ]
+    },
+    "14": {
+        "1": [
+            {
+                "name": "Bench",
+                "type": "main",
+                "notes": "-5% from top set to final backoff @8.",
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 7.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 8.0, "pct": 0.875 },
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 9.0, "pct": 0.90 },
+                    { "sets": 1, "reps": 2, "type": "backoff", "targetRpe": 8.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Dips",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Barbell Tricep Extension",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 2 Activations.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Incline Cable Chest Flys",
+                "type": "acc",
+                "notes": "If you don't have cables, you can use DB's here, or even bands. Myo-reps: x15@9->x4@10. 2 Activations.",
+                "blocks": [
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null },
+                    { "sets": 1, "reps": 15, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 4, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            }
+        ],
+        "2": [
+            {
+                "name": "Deadlift",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 7.0, "pct": 0.85 },
+                    { "sets": 1, "reps": 2, "type": "work", "targetRpe": 8.0, "pct": 0.875 },
+                    { "sets": 1, "reps": 2, "type": "top", "targetRpe": 9.0, "pct": 0.90 }
+                ]
+            },
+            {
+                "name": "Close Grip Seated Cable Row",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 6.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 8.0, "pct": null },
+                    { "sets": 1, "reps": 6, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Meadows Row",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 2 Activations.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Hammer Curls",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 7.5, "pct": null },
+                    { "sets": 1, "reps": 8, "type": "acc", "targetRpe": 8.5, "pct": null }
+                ]
+            },
+            {
+                "name": "Low Back Extension",
+                "type": "acc",
+                "notes": "If you don't have a back extension, light Jefferson curls with either a barbell or DB's will work here.",
+                "blocks": [
+                    { "sets": 3, "reps": 10, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ],
+        "3": [
+            {
+                "name": "3-0-0 Tempo (squat)",
+                "type": "main",
+                "notes": "Be wary of the suggested loads...",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.765 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.785 }
+                ]
+            },
+            {
+                "name": "Close Grip (bench)",
+                "type": "main",
+                "notes": "-5% load drop from top set @8.5 to final backoff set @7.5.",
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.5, "pct": 0.79 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.5, "pct": 0.81 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.5, "pct": 0.83 },
+                    { "sets": 1, "reps": 3, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "DB Incline Bench",
+                "type": "acc",
+                "notes": "Myo-reps: x12@9->x3@10. 2 Activations.",
+                "blocks": [
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null },
+                    { "sets": 1, "reps": 12, "type": "acc", "targetRpe": 9.0, "pct": null },
+                    { "sets": 1, "reps": 3, "type": "acc", "targetRpe": 10.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Band Pull Aparts",
+                "type": "acc",
+                "notes": null,
+                "blocks": [
+                    { "sets": 3, "reps": 12, "type": "acc", "targetRpe": 7.0, "pct": null }
+                ]
+            },
+            {
+                "name": "Core of Choice",
+                "type": "acc",
+                "notes": "12 min core circuit.",
+                "blocks": [
+                    { "sets": 1, "reps": 1, "type": "acc", "targetRpe": 8.0, "pct": null }
+                ]
+            }
+        ],
+        "4": [
+            {
+                "name": "Squat",
+                "type": "main",
+                "notes": null,
+                "blocks": [
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 6.0, "pct": 0.78 },
+                    { "sets": 1, "reps": 3, "type": "work", "targetRpe": 7.0, "pct": 0.80 },
+                    { "sets": 1, "reps": 3, "type": "top", "targetRpe": 8.0, "pct": 0.82 }
+                ]
+            },
+            {
+                "name": "Front Foot Elevated Split (squat)",
+                "type": "acc",
+                "notes": "**reps per leg**",
+                "blocks": [
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 6.5, "pct": null },
+                    { "sets": 1, "reps": 10, "type": "acc", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "3-Count Pause Bench (bench)",
+                "type": "main",
+                "notes": "Watch the suggested loads... // -5% load drop from @8.5 to @7.5 set",
+                "blocks": [
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 6.5, "pct": 0.775 },
+                    { "sets": 1, "reps": 4, "type": "work", "targetRpe": 7.5, "pct": 0.795 },
+                    { "sets": 1, "reps": 4, "type": "top", "targetRpe": 8.5, "pct": 0.815 },
+                    { "sets": 1, "reps": 4, "type": "backoff", "targetRpe": 7.5, "pct": null }
+                ]
+            },
+            {
+                "name": "3-0-0 Tempo Stiff-Leg (deadlift)",
+                "type": "main",
+                "notes": "3ct tempo is on the eccentric/lowering phase of the movement.",
+                "blocks": [
+                    { "sets": 2, "reps": 4, "type": "work", "targetRpe": 7.0, "pct": null }
+                ]
+            }
+        ]
+    }
+} /* PPL_END */ }
         };
 
         function safeParse(key, fallback) {
@@ -668,40 +3100,51 @@
             if(tabId === 'history-screen') {
                 document.getElementById('nav-history').classList.add('active');
                 renderHistory();
+                initChartSelect(); 
             }
             if(tabId === 'stats-screen') renderStats(); 
             
             updateBanners();
         }
 
-        // --- NEW UPDATE ANALYTICS FUNCTION ---
-        function updateAnalytics() {
+        // --- WEEKLY STREAK & LIFETIME ANALYTICS ---
+        function renderStreak() {
+            const container = document.getElementById('streak-container');
             let history = safeParse('workoutHistory', []);
+            let workoutDates = history.map(h => {
+                let d = new Date(h.date);
+                d.setHours(0,0,0,0);
+                return d.getTime();
+            });
             
+            let html = '';
+            for(let i=6; i>=0; i--) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dayChar = d.toLocaleDateString('en-US', {weekday: 'short'}).charAt(0);
+                
+                d.setHours(0,0,0,0);
+                let isDone = workoutDates.includes(d.getTime());
+                
+                let cls = isDone ? 's-dot active' : 's-dot';
+                let content = isDone ? '✓' : dayChar;
+                
+                html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateAnalytics() {
+            renderStreak();
+            
+            let history = safeParse('workoutHistory', []);
             let ltWorkouts = history.length;
             let ltSets = 0;
             let ltVol = 0;
             
-            let wkWorkouts = 0;
-            let wkSets = 0;
-            let wkVol = 0;
-            
-            const now = new Date();
-            now.setHours(23, 59, 59, 999); 
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(now.getDate() - 7);
-            sevenDaysAgo.setHours(0, 0, 0, 0); 
-            
             history.forEach(log => {
                 ltSets += (log.sets || 0);
                 ltVol += (log.volume || 0);
-                
-                const logDate = new Date(log.date);
-                if (logDate >= sevenDaysAgo && logDate <= now) {
-                    wkWorkouts++;
-                    wkSets += (log.sets || 0);
-                    wkVol += (log.volume || 0);
-                }
             });
             
             const formatVol = (v) => {
@@ -713,10 +3156,6 @@
             document.getElementById('lt-workouts').innerText = ltWorkouts;
             document.getElementById('lt-sets').innerText = ltSets;
             document.getElementById('lt-vol').innerText = formatVol(ltVol);
-            
-            document.getElementById('wk-workouts').innerText = wkWorkouts;
-            document.getElementById('wk-sets').innerText = wkSets;
-            document.getElementById('wk-vol').innerText = formatVol(wkVol);
         }
 
         function updateLibraryUI() {
@@ -1074,6 +3513,84 @@
             document.getElementById('summary-screen').classList.add('active');
         }
 
+        // --- HISTORY PLOT LOGIC ---
+        function initChartSelect() {
+            let history = safeParse('workoutHistory', []);
+            let exSet = new Set();
+            history.forEach(log => log.details.forEach(e => exSet.add(e.name)));
+            
+            let select = document.getElementById('chart-ex-select');
+            let options = Array.from(exSet).sort();
+            
+            if(options.length === 0) {
+                select.innerHTML = '<option value="">No Data</option>';
+                drawChart();
+                return;
+            }
+            
+            let curr = select.value;
+            select.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
+            if(options.includes(curr)) select.value = curr;
+            else select.value = options.includes('Squat') ? 'Squat' : options[0];
+            
+            drawChart();
+        }
+
+        window.drawChart = function() {
+            const select = document.getElementById('chart-ex-select');
+            const container = document.getElementById('chart-container');
+            if(!select.value) { 
+                container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size: 13px; font-style: italic;">Complete a workout to see your progress here.</div>'; 
+                return; 
+            }
+
+            let exName = select.value;
+            let history = safeParse('workoutHistory', []).slice().reverse(); 
+            let data = [];
+            
+            history.forEach(log => {
+                let exMatch = log.details.find(e => e.name === exName);
+                if(exMatch) {
+                    let maxW = Math.max(...exMatch.sets.map(s => s.load));
+                    if(maxW > 0) data.push({ date: log.date, weight: maxW });
+                }
+            });
+
+            if(data.length < 2) {
+                container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding-top:60px; font-size:13px; font-style: italic;">Need at least 2 sessions of this lift to plot progress. Keep lifting!</div>`;
+                return;
+            }
+
+            let w = container.clientWidth;
+            let h = 140;
+            let padding = 20; 
+            
+            let minW = Math.min(...data.map(d => d.weight));
+            let maxW = Math.max(...data.map(d => d.weight));
+            let range = maxW - minW;
+            if(range === 0) range = 10; 
+
+            let points = data.map((d, i) => {
+                let x = (i / (data.length - 1)) * (w - 20) + 10; 
+                let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
+                return `${x},${y}`;
+            }).join(' ');
+
+            let circles = data.map((d, i) => {
+                let x = (i / (data.length - 1)) * (w - 20) + 10;
+                let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
+                return `<circle cx="${x}" cy="${y}" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
+                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.weight}</text>`;
+            }).join('');
+
+            container.innerHTML = `
+                <svg width="100%" height="${h}">
+                    <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    ${circles}
+                </svg>
+            `;
+        };
+
         function renderHistory() {
             const historyContainer = document.getElementById('history-container');
             let history = safeParse('workoutHistory', []);
@@ -1146,11 +3663,12 @@
                 renderHistory();
                 updateDashboard();
                 renderDayPills(); 
+                initChartSelect();
             }
         }
 
         // --- PROGRAM MANAGEMENT FUNCTIONS ---
-        async function stopProgram() {
+        window.stopProgram = async function() {
             const confirmed = await showConfirm(
                 "Stop Program?",
                 "This will exit the program and remove it from your Active status. Your history is safe.",
@@ -1167,9 +3685,9 @@
                 switchTab('home-screen');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        }
+        };
 
-        async function clearCurrentDay() {
+        window.clearCurrentDay = async function() {
             const confirmed = await showConfirm(
                 "Reset Day?",
                 "This will clear all weights, RPEs, and checkmarks for this specific workout.",
@@ -1192,9 +3710,9 @@
                 closeTimer();
                 updateDashboard();
             }
-        }
+        };
 
-        async function clearCurrentWeek() {
+        window.clearCurrentWeek = async function() {
             const confirmed = await showConfirm(
                 "Reset Week?",
                 "This will clear all weights and checkmarks for ALL days in Week " + selectedWeek + ".",
@@ -1218,9 +3736,9 @@
                 renderWorkout();
                 updateDashboard();
             }
-        }
+        };
 
-        async function clearCurrentProgram() {
+        window.clearCurrentProgram = async function() {
             const confirmed = await showConfirm(
                 "Reset Entire Program?",
                 "This will wipe all progress for this entire program block. You will start fresh from Week 1.",
@@ -1248,9 +3766,9 @@
                 renderWorkout();
                 updateDashboard();
             }
-        }
+        };
 
-        async function clearAllPRs() {
+        window.clearAllPRs = async function() {
             const confirmed = await showConfirm(
                 "Factory Reset?",
                 "This will wipe absolutely everything: history, PRs, active programs, and all data. This cannot be undone.",
@@ -1271,7 +3789,7 @@
                 updateDashboard();
                 updateLibraryUI();
             }
-        }
+        };
 
         window.updateManual1RM = function(exName, val) {
             let global1RMs = safeParse('global1RMs', {});
@@ -1284,6 +3802,23 @@
             localStorage.setItem('global1RMs', JSON.stringify(global1RMs));
         };
 
+        // --- SELECTIVE EXERCISE RESET ---
+        window.resetSpecificLift = async function(exName) {
+            const confirmed = await showConfirm(
+                "Reset Lift?",
+                `This will permanently erase your 1RM and All-Time Best records for ${exName}.`,
+                "Reset Lift",
+                "Cancel",
+                true
+            );
+            if (confirmed) {
+                let r = safeParse('global1RMs', {}); delete r[exName]; localStorage.setItem('global1RMs', JSON.stringify(r));
+                let b = safeParse('actualBests', {}); delete b[exName]; localStorage.setItem('actualBests', JSON.stringify(b));
+                let w = safeParse('lastUsedWeights', {}); delete w[exName]; localStorage.setItem('lastUsedWeights', JSON.stringify(w));
+                renderStats();
+            }
+        };
+
         function renderStats() {
             const statsContainer = document.getElementById('stats-container');
             let global1RMs = safeParse('global1RMs', {});
@@ -1294,7 +3829,7 @@
             if (!global1RMs['Deadlift']) global1RMs['Deadlift'] = 0;
 
             let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current 1RM (Editable)</h3>';
-            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These values drive your percentage-based targets. They auto-update when you click an e1RM button, or you can manually adjust them here.</p>';
+            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These values drive your percentage-based targets.</p>';
 
             const sorted1RMs = Object.keys(global1RMs).sort();
             sorted1RMs.forEach(ex => {
@@ -1304,6 +3839,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM('${ex}', this.value)" inputmode="decimal">
                         <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
+                        <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0 0 0 5px; font-size:16px; cursor:pointer;" title="Reset this lift">🗑️</button>
                     </div>
                 </div>`;
             });
@@ -1316,7 +3852,14 @@
             } else {
                 bestKeys.forEach(ex => {
                     const b = actualBests[ex];
-                    html += `<div class="stat-card"><span class="stat-name">${ex}</span><span class="stat-value" style="color: var(--teal);">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span></div>`;
+                    html += `
+                    <div class="stat-card" style="padding: 16px 18px;">
+                        <span class="stat-name">${ex}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stat-value" style="color: var(--teal);">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
+                            <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0; font-size:16px; cursor:pointer;">🗑️</button>
+                        </div>
+                    </div>`;
                 });
             }
 
@@ -1367,35 +3910,6 @@
             };
             reader.readAsText(file);
         }
-
-        window.openWarmupGenerator = function(exId, exName) {
-            const firstLoadInput = document.querySelector(`input[id$="_load"][data-exid="${exId}"]`);
-            const targetWeight = parseFloat(firstLoadInput.value);
-            
-            if (!targetWeight || targetWeight <= 20) {
-                alert("⚠️ Please enter your working weight in the first set block before generating warmups!");
-                return;
-            }
-            
-            document.getElementById('warmup-title').innerText = `${exName} Warm-up`;
-            
-            let html = `
-                <tr><th>Set</th><th>Load</th><th>Reps</th></tr>
-                <tr><td>1</td><td>Empty Bar (20)</td><td>10</td></tr>
-                <tr><td>2</td><td>${Math.round((targetWeight * 0.4) / 2.5) * 2.5} kg</td><td>5</td></tr>
-                <tr><td>3</td><td>${Math.round((targetWeight * 0.6) / 2.5) * 2.5} kg</td><td>3</td></tr>
-                <tr><td>4</td><td>${Math.round((targetWeight * 0.75) / 2.5) * 2.5} kg</td><td>2</td></tr>
-                <tr><td>5</td><td>${Math.round((targetWeight * 0.85) / 2.5) * 2.5} kg</td><td>1</td></tr>
-                <tr><td>Work</td><td>${targetWeight} kg</td><td>Target</td></tr>
-            `;
-            
-            document.getElementById('warmup-table-body').innerHTML = html;
-            document.getElementById('warmup-modal').style.display = 'flex';
-        };
-
-        window.closeWarmupModal = function(e) {
-            if (e.target.id === 'warmup-modal') e.target.style.display = 'none';
-        };
 
         function renderWorkout() {
             const container = document.getElementById('workout-container');
@@ -1560,272 +4074,6 @@
             container.innerHTML = html;
             attachListeners();
             if (isActive) setupSlider(); 
-        }
-
-        function setupSlider() {
-            const thumb = document.getElementById('slider-thumb');
-            const track = document.getElementById('slider-track');
-            const container = document.getElementById('finish-slider');
-            if(!thumb || !container) return;
-
-            let isDragging = false;
-            let startX = 0;
-            let maxSlide = container.offsetWidth - 76; 
-
-            const onStart = (e) => {
-                isDragging = true;
-                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                thumb.style.transition = 'none';
-                track.style.transition = 'none';
-            };
-
-            const onMove = (e) => {
-                if (!isDragging) return;
-                if(e.cancelable) e.preventDefault(); 
-                
-                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                let diff = currentX - startX;
-                
-                if (diff < 0) diff = 0;
-                if (diff > maxSlide) diff = maxSlide;
-                
-                thumb.style.transform = `translateX(${diff}px)`;
-                track.style.width = `${diff + 38}px`; 
-                
-                const text = container.querySelector('.slider-text');
-                text.style.opacity = 1 - (diff / maxSlide);
-
-                if (diff >= maxSlide - 5) {
-                    isDragging = false;
-                    toggleWorkoutState('finish');
-                }
-            };
-
-            const onEnd = () => {
-                if (!isDragging) return;
-                isDragging = false;
-                thumb.style.transition = 'transform 0.3s ease';
-                track.style.transition = 'width 0.3s ease';
-                thumb.style.transform = `translateX(0px)`;
-                track.style.width = `0%`;
-                container.querySelector('.slider-text').style.opacity = 1;
-            };
-
-            thumb.addEventListener('mousedown', onStart);
-            document.addEventListener('mousemove', onMove, {passive: false});
-            document.addEventListener('mouseup', onEnd);
-            
-            thumb.addEventListener('touchstart', onStart, {passive: true});
-            document.addEventListener('touchmove', onMove, {passive: false});
-            document.addEventListener('touchend', onEnd);
-        }
-
-        function startTimer(seconds) {
-            const banner = document.getElementById('rest-timer-banner');
-            banner.classList.remove('finished');
-            
-            timeLeft = seconds;
-            updateTimerDisplay();
-            banner.classList.add('active');
-            
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    completeTimer();
-                } else {
-                    updateTimerDisplay();
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${m}:${s}`;
-        }
-
-        function adjustTimer(seconds) {
-            timeLeft += seconds;
-            if (timeLeft < 0) timeLeft = 0;
-            updateTimerDisplay();
-        }
-
-        function closeTimer() {
-            clearInterval(timerInterval);
-            document.getElementById('rest-timer-banner').classList.remove('active');
-        }
-
-        function completeTimer() {
-            const banner = document.getElementById('rest-timer-banner');
-            document.getElementById('timer-display').innerText = "00:00";
-            banner.classList.add('finished');
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
-            setTimeout(() => closeTimer(), 4000);
-        }
-
-        // --- SMART CASCADE AUTO-FILL AND LOCK ---
-        window.toggleCheck = function(el) {
-            el.classList.toggle('checked');
-            const isChecked = el.classList.contains('checked');
-            saveSessionState(el.id, isChecked);
-            
-            const baseId = el.id.replace('_check', '');
-            const loadInput = document.getElementById(baseId + '_load');
-            const rpeInput = document.getElementById(baseId + '_rpe');
-            
-            if (isChecked) {
-                if (loadInput) loadInput.disabled = true;
-                if (rpeInput) rpeInput.disabled = true;
-
-                if (loadInput && loadInput.value) {
-                    const val = parseFloat(loadInput.value);
-                    saveSessionState(loadInput.id, loadInput.value);
-                    
-                    const exName = loadInput.dataset.exname;
-                    let lastUsed = safeParse('lastUsedWeights', {});
-                    lastUsed[exName] = loadInput.value;
-                    localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
-
-                    if (!isNaN(val)) {
-                        let actualBests = safeParse('actualBests', {});
-                        const reps = parseFloat(loadInput.dataset.reps) || 0;
-                        if (!actualBests[exName] || val > actualBests[exName].weight || (val === actualBests[exName].weight && reps > actualBests[exName].reps)) {
-                            actualBests[exName] = { weight: val, reps: reps };
-                            localStorage.setItem('actualBests', JSON.stringify(actualBests));
-                        }
-                    }
-                }
-                if (rpeInput && rpeInput.value) {
-                    saveSessionState(rpeInput.id, rpeInput.value);
-                }
-
-                const match = baseId.match(/(ex-\d+_b\d+)_s(\d+)/);
-                if (match) {
-                    const blockPrefix = match[1];
-                    let currentSet = parseInt(match[2]);
-                    const currentLoad = loadInput ? loadInput.value : '';
-                    const currentRpe = rpeInput ? rpeInput.value : '';
-
-                    let nextSet = currentSet + 1;
-                    while(true) {
-                        const nextCheck = document.getElementById(`${blockPrefix}_s${nextSet}_check`);
-                        if (!nextCheck) break; 
-
-                        if (!nextCheck.classList.contains('checked')) {
-                            const nextLoad = document.getElementById(`${blockPrefix}_s${nextSet}_load`);
-                            const nextRpe = document.getElementById(`${blockPrefix}_s${nextSet}_rpe`);
-
-                            if (nextLoad && currentLoad !== '') {
-                                nextLoad.value = currentLoad;
-                                saveSessionState(nextLoad.id, currentLoad);
-                            }
-                            if (nextRpe && currentRpe !== '') {
-                                nextRpe.value = currentRpe;
-                                saveSessionState(nextRpe.id, currentRpe);
-                            }
-                            
-                            if(nextLoad) nextLoad.dispatchEvent(new Event('input', {bubbles: true}));
-                        }
-                        nextSet++;
-                    }
-                }
-
-                const restSeconds = parseInt(el.dataset.rest) || 90; 
-                startTimer(restSeconds);
-            } else {
-                if (loadInput) loadInput.disabled = false;
-                if (rpeInput) rpeInput.disabled = false;
-            }
-        };
-
-        function saveSessionState(key, value) {
-            const workoutKey = getWorkoutKey();
-            let savedSession = safeParse(workoutKey, {});
-            savedSession[key] = value;
-            localStorage.setItem(workoutKey, JSON.stringify(savedSession));
-        }
-
-        function attachListeners() {
-            document.querySelectorAll('.saveable').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    saveSessionState(e.target.id, e.target.value);
-                    if(e.target.id.includes('_load') && e.target.value) {
-                        let lastUsed = safeParse('lastUsedWeights', {});
-                        lastUsed[e.target.dataset.exname] = e.target.value;
-                        localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
-                    }
-                });
-            });
-
-            const calculateTrigger = (e) => {
-                const input = e.target;
-                const rowId = input.dataset.rowid;
-                if (!rowId) return;
-                
-                const loadInput = document.getElementById(`${rowId}_load`);
-                const rpeInput = document.getElementById(`${rowId}_rpe`);
-                const btn = document.getElementById(`e1rm-btn-${rowId}`);
-                
-                if(!loadInput || !rpeInput || !btn) return;
-
-                const weight = parseFloat(loadInput.value);
-                const rpe = parseFloat(rpeInput.value);
-                const reps = parseFloat(input.dataset.reps);
-
-                if (weight > 0 && rpe > 0) {
-                    const e1rm = weight * (1 + (reps + (10 - rpe)) / 30);
-                    btn.innerHTML = `<span class="e1rm-label">e1RM</span><span class="e1rm-value">${e1rm.toFixed(1)}</span>`;
-                    btn.dataset.e1rm = e1rm; 
-                    btn.classList.add('ready');
-                } else {
-                    btn.innerHTML = `<span class="e1rm-label">Calc</span><span class="e1rm-value">--</span>`;
-                    btn.dataset.e1rm = "0"; 
-                    btn.classList.remove('ready');
-                }
-            };
-
-            document.querySelectorAll('.calc-trigger').forEach(input => {
-                input.addEventListener('input', calculateTrigger);
-                if(input.value) calculateTrigger({target: input}); 
-            });
-
-            document.querySelectorAll('.e1rm-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const currentBtn = e.currentTarget;
-                    const exId = currentBtn.dataset.exid;
-                    const exName = currentBtn.dataset.exname;
-                    const e1rm = parseFloat(currentBtn.dataset.e1rm);
-                    
-                    if (e1rm > 0) {
-                        let saved1RMs = safeParse('global1RMs', {});
-                        saved1RMs[exName] = e1rm;
-                        localStorage.setItem('global1RMs', JSON.stringify(saved1RMs));
-                        
-                        const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
-                        if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${e1rm.toFixed(1)}kg`;
-
-                        document.querySelectorAll(`.main-load[data-exid="${exId}"]`).forEach(loadInput => {
-                            const targetRowId = loadInput.dataset.rowid;
-                            const checkCircle = document.getElementById(`${targetRowId}_check`);
-                            
-                            if (checkCircle && checkCircle.classList.contains('checked')) {
-                                return; 
-                            }
-                            
-                            const pct = parseFloat(loadInput.dataset.pct);
-                            if (pct) {
-                                const targetWeight = Math.round((e1rm * pct) / 2.5) * 2.5;
-                                loadInput.value = targetWeight;
-                                saveSessionState(loadInput.id, targetWeight); 
-                            }
-                        });
-                        
-                        updateDashboard(); 
-                    }
-                });
-            });
         }
 
         initApp();
