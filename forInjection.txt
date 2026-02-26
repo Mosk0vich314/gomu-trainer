@@ -1,0 +1,11 @@
+python inject_db.py POP_1
+python inject_db.py POP_2
+python inject_db.py POP_3
+python inject_db.py POP_4
+python inject_db.py MaxEfficiency
+python inject_db.py dontCall_it_aComeback
+python inject_db.py Full_Force
+python inject_db.py PPL
+python inject_db.py 16week-3
+python inject_db.py Powerbuilding3
+
