@@ -173,14 +173,14 @@
             bottom: 90px; 
             left: 50%; 
             transform: translateX(-50%); 
-            width: 90%; 
+            width: calc(100% - 40px); /* Ensures it stays exactly 20px away from the screen edges */
             max-width: 400px; 
             background: rgba(24, 24, 27, 0.95); 
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             color: var(--text-main); 
             padding: 12px 20px; 
-            border-radius: 100px; /* Sleek pill shape */
+            border-radius: 100px; 
             display: none; 
             align-items: center; 
             justify-content: space-between;
@@ -188,6 +188,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--accent); 
             cursor: pointer; 
             transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-sizing: border-box; /* This prevents padding from blowing out the width */
         }
         .floating-banner:active { transform: translateX(-50%) scale(0.96); }
 
@@ -480,24 +481,23 @@
                 <div class="program-card" data-program-id="16week-3" onclick="startProgram('16week-3')"><h3 class="program-title">16-Week Peak 3</h3><p class="program-desc">Competition Prep</p></div>
                 <div class="program-card" data-program-id="dontCall_it_aComeback" onclick="startProgram('dontCall_it_aComeback')"><h3 class="program-title">Don't Call it a Comeback</h3><p class="program-desc">Return to Lifting</p></div>
                 <div class="program-card" data-program-id="MaxEfficiency" onclick="startProgram('MaxEfficiency')"><h3 class="program-title">Max Efficiency</h3><p class="program-desc">Time-Optimized Training</p></div>
+                <div class="program-card" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
+                <div class="program-card" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
                 
-                <details style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 10px;">
-                    <summary class="folder-header" style="padding: 12px; font-size: 15px;">
+                <details style="background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
+                    <summary class="folder-header" style="padding: 12px 14px; font-size: 15px; border-bottom: none;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span>📁 Path of Powerlifting</span>
+                            <span style="font-weight: 700; color: var(--text-main);">Path of Powerlifting</span>
                         </div>
                         <span style="color: var(--text-muted); font-size: 12px;">▼</span>
                     </summary>
-                    <div class="folder-content" style="padding: 10px; padding-top: 0;">
+                    <div class="folder-content" style="padding: 10px; padding-top: 0; border-top: 1px solid rgba(255, 255, 255, 0.05);">
                         <div class="program-card" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">POP I</h3><p class="program-desc">Foundation Block</p></div>
                         <div class="program-card" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">POP II</h3><p class="program-desc">Development Block</p></div>
                         <div class="program-card" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">POP III</h3><p class="program-desc">Accumulation Block</p></div>
                         <div class="program-card" data-program-id="POP_4" onclick="startProgram('POP_4')"><h3 class="program-title">POP IV</h3><p class="program-desc">Realization Block</p></div>
                     </div>
                 </details>
-
-                <div class="program-card" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
-                <div class="program-card" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
             </div>
         </details>
     </div>
@@ -20880,15 +20880,20 @@
                         <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
                     </div>`;
             } else if (isActive) {
-                bottomActionUI = `
-                <div class="slider-container" id="finish-slider">
+            bottomActionUI = `
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px;">
+                <div class="slider-container" id="finish-slider" style="flex: 1; margin: 0;">
                     <div class="slider-track" id="slider-track"></div>
                     <div class="slider-thumb" id="slider-thumb">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                     </div>
                     <div class="slider-text">Slide to Finish</div>
-                </div>`;
-            } else {
+                </div>
+                <button onclick="cancelActiveWorkout()" style="flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); transition: 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(0.95)'" ontouchend="this.style.transform='scale(1)'">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
+                </button>
+            </div>`;
+        } else {
                 topActionUI = `<button class="action-btn btn-start" onclick="toggleWorkoutState('start')">▶ Start Workout</button>`;
             }
 
@@ -21345,6 +21350,27 @@
             if(vEl) vEl.innerText = formatVol(ltVol);
         }
 
+        async function cancelActiveWorkout() {
+            const confirmed = await showConfirm(
+                "Stop Workout?",
+                "Are you sure you want to cancel this active session? Your entered data for today will be cleared.",
+                "Stop Workout",
+                "Keep Lifting",
+                true
+            );
+            if (confirmed) {
+                const key = getWorkoutKey();
+                localStorage.removeItem(key); // Clear the session state
+                activeWorkout = null;
+                localStorage.removeItem('activeWorkout');
+                renderDayPills();
+                renderWorkout();
+                updateBanners();
+                closeTimer();
+                updateDashboard();
+            }
+        }
+        
         initApp();
     </script>
 </body>
