@@ -20677,18 +20677,21 @@
                 "Cancel",
                 true
             );
-
             if (confirmed) {
-                localStorage.clear(); 
+                localStorage.clear();
                 completedDays = {};
                 activeWorkout = null;
-                currentProgram = null; 
+                currentProgram = null;
                 selectedWeek = null;
                 selectedDay = null;
                 renderStats();
-                checkOnboarding(); 
+                checkOnboarding();
                 updateDashboard();
                 updateLibraryUI();
+                
+                // Add these two lines to instantly clear the history tab UI
+                renderHistory();
+                renderChart();
             }
         }
 
