@@ -168,8 +168,60 @@
         .custom-option:last-child { border-bottom: none; }
         .custom-option:hover, .custom-option:active { background: #27272a; color: var(--accent); }
         /* Sticky Banners */
-        .floating-banner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--accent); color: #000; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 15px; text-align: center; display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); cursor: pointer; transition: 0.2s; border: 2px solid #fff;}
+        .floating-banner { 
+            position: fixed; 
+            bottom: 90px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 400px; 
+            background: rgba(24, 24, 27, 0.95); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-main); 
+            padding: 12px 20px; 
+            border-radius: 100px; /* Sleek pill shape */
+            display: none; 
+            align-items: center; 
+            justify-content: space-between;
+            z-index: 1000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--accent); 
+            cursor: pointer; 
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
         .floating-banner:active { transform: translateX(-50%) scale(0.96); }
+
+        .fb-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--accent);
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .fb-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            overflow: hidden;
+        }
+        .fb-title { font-weight: 800; font-size: 14px; color: var(--text-main); line-height: 1.2; }
+        .fb-subtitle { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .fb-action {
+            color: var(--accent);
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding-left: 15px;
+        }
 
         .rest-timer-banner { position: fixed; bottom: -120px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1e1e20; border: 2px solid var(--accent); border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1001; box-shadow: 0 -8px 25px rgba(0,0,0,0.5); transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-sizing: border-box;}
         .rest-timer-banner.active { bottom: 90px; }
@@ -20195,8 +20247,20 @@
             
             if (activeWorkout && currentTabId !== 'workout-screen' && currentTabId !== 'home-screen' && currentTabId !== 'summary-screen') {
                 const pName = db[activeWorkout.program]?.name || activeWorkout.program;
-                banner.innerHTML = `🟢 Resume: ${pName} - W${activeWorkout.week} D${activeWorkout.day}`;
-                banner.style.display = 'block';
+                
+                banner.innerHTML = `
+                    <div style="display:flex; align-items:center; flex:1; overflow: hidden;">
+                        <div class="fb-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </div>
+                        <div class="fb-text">
+                            <div class="fb-title">Workout in Progress</div>
+                            <div class="fb-subtitle">${pName} • W${activeWorkout.week} D${activeWorkout.day}</div>
+                        </div>
+                    </div>
+                    <div class="fb-action">Resume</div>
+                `;
+                banner.style.display = 'flex'; // Uses flex instead of block for the new layout
             } else {
                 banner.style.display = 'none';
             }
