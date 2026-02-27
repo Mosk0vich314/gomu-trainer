@@ -400,7 +400,7 @@
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your training programs.</p>
         </div>
 
-        <details class="folder-card" open>
+        <details class="folder-card">
             <summary class="folder-header">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="./panash_logo.jpg" alt="Panash" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
@@ -428,10 +428,22 @@
                 <div class="program-card" data-program-id="16week-3" onclick="startProgram('16week-3')"><h3 class="program-title">16-Week Peak 3</h3><p class="program-desc">Competition Prep</p></div>
                 <div class="program-card" data-program-id="dontCall_it_aComeback" onclick="startProgram('dontCall_it_aComeback')"><h3 class="program-title">Don't Call it a Comeback</h3><p class="program-desc">Return to Lifting</p></div>
                 <div class="program-card" data-program-id="MaxEfficiency" onclick="startProgram('MaxEfficiency')"><h3 class="program-title">Max Efficiency</h3><p class="program-desc">Time-Optimized Training</p></div>
-                <div class="program-card" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">Path of Powerlifting I</h3><p class="program-desc">Foundation Block</p></div>
-                <div class="program-card" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">Path of Powerlifting II</h3><p class="program-desc">Development Block</p></div>
-                <div class="program-card" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">Path of Powerlifting III</h3><p class="program-desc">Accumulation Block</p></div>
-                <div class="program-card" data-program-id="POP_4" onclick="startProgram('POP_4')"><h3 class="program-title">Path of Powerlifting IV</h3><p class="program-desc">Realization Block</p></div>
+                
+                <details style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 10px;">
+                    <summary class="folder-header" style="padding: 12px; font-size: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span>📁 Path of Powerlifting</span>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 12px;">▼</span>
+                    </summary>
+                    <div class="folder-content" style="padding: 10px; padding-top: 0;">
+                        <div class="program-card" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">POP I</h3><p class="program-desc">Foundation Block</p></div>
+                        <div class="program-card" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">POP II</h3><p class="program-desc">Development Block</p></div>
+                        <div class="program-card" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">POP III</h3><p class="program-desc">Accumulation Block</p></div>
+                        <div class="program-card" data-program-id="POP_4" onclick="startProgram('POP_4')"><h3 class="program-title">POP IV</h3><p class="program-desc">Realization Block</p></div>
+                    </div>
+                </details>
+
                 <div class="program-card" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
                 <div class="program-card" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
             </div>
@@ -504,7 +516,7 @@
     <div id="workout-screen" class="app-screen">
         
         <div class="header-nav">
-            <button class="back-btn" onclick="switchTab('home-screen')">◀ Dashboard</button>
+            <button class="back-btn" onclick="switchTab('library-screen')">◀ Library</button>
             <h2 id="workout-program-title" style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 15px; line-height: 1.3; display: flex; align-items: center; justify-content: center; word-break: break-word;">Workout</h2>
             <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
