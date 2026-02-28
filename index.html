@@ -309,13 +309,92 @@
         .check-circle.checked { background-color: var(--accent); border-color: var(--accent); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4); }
         .check-circle.checked::after { color: #000; }
 
-        /* Warm-Up & Stats UI */
-        .warmup-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .warmup-summary { padding: 18px; font-weight: 600; color: var(--accent); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-        .warmup-summary::-webkit-details-marker { display: none; }
-        .warmup-content { padding: 0 18px 18px 18px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
-        .warmup-content strong { color: var(--text-main); font-weight: 600; }
+        /* --- Standard Warm-Up / DETAILS CARD OVERHAUL --- */
+        .warmup-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+            transition: all 0.2s ease; 
+        }
         
+        .warmup-summary { 
+            padding: 18px; 
+            font-weight: 800; 
+            color: var(--accent); 
+            cursor: pointer; 
+            list-style: none; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .warmup-summary::-webkit-details-marker { display: none; }
+        
+        /* RESTORED: Default padding for Program Management */
+        .warmup-content { 
+            padding: 0 18px 18px 18px; 
+            color: var(--text-muted); 
+            font-size: 14px; 
+            line-height: 1.6; 
+        }
+
+        /* NEW: Remove padding ONLY for the standard warmup card so the image goes edge-to-edge */
+        #standard-warmup-card .warmup-content {
+            padding: 0;
+        }
+        
+        #standard-warmup-card[open] .warmup-summary {
+            background-color: var(--card); 
+            border-bottom: 1px solid var(--border); 
+        }
+        
+        /* --- The Specific Image Header --- */
+        .warmup-image-header {
+            background-size: cover;
+            background-position: center;
+            height: 220px; /* INCREASED from 140px so you can see the image */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; 
+            padding: 15px 20px; /* Added horizontal padding to align with text */
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+        .warmup-image-header em {
+            font-size: 11px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+        .warmup-image-header h3 {
+            margin: 3px 0 0 0;
+            font-size: 16px;
+            font-weight: 900;
+        }
+        
+        /* --- The New Charcoal Container --- */
+        .warmup-charcoal-box {
+            background-color: #1e1e1e; 
+            padding: 20px;
+            margin: 15px; 
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05); 
+        }
+        
+        .warmup-instruction-list {
+            padding-left: 20px;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            color: rgba(255,255,255,0.9);
+        }
+        .warmup-instruction-list strong {
+            color: #ffffff;
+            font-weight: 700;
+            margin-right: 4px;
+        }
         .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 12px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s;}
         .reset-btn:active { background: rgba(255,255,255,0.05); }
         
@@ -396,7 +475,7 @@
         <div class="timer-controls">
             <button onclick="adjustTimer(-30)">-30s</button>
             <button onclick="adjustTimer(30)">+30s</button>
-            <button onclick="closeTimer()" style="background: var(--text-muted); color: #000;">Skip</button>
+            <button id="timer-action-btn" onclick="closeTimer()" style="background: var(--text-muted); color: #000;">Skip</button>
         </div>
     </div>
 
@@ -540,9 +619,9 @@
 
     <div id="stats-screen" class="app-screen">
         <div class="header-nav">
-            <button class="back-btn" onclick="switchTab('home-screen')">◀ Dashboard</button>
-            <h2 style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 18px;">Trophy Room</h2>
-            <div style="width: 80px;"></div>
+            <button class="back-btn" onclick="switchTab('home-screen')">◀ Back</button>
+            <h2 style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 18px;">Stats</h2>
+            <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
         
         <div id="stats-container" style="margin-top: 20px;"></div>
@@ -554,10 +633,10 @@
             <p style="color: var(--text-muted); font-size: 15px;">Incredible work today. Here are your stats:</p>
             
             <div class="summary-stats">
+                <div class="s-stat"><span>Time</span><strong id="sum-time">00:00</strong></div>
                 <div class="s-stat"><span>Volume</span><strong id="sum-vol">0 kg</strong></div>
                 <div class="s-stat"><span>Sets</span><strong id="sum-sets">0</strong></div>
-                <div class="s-stat"><span>Heaviest Lift</span><strong id="sum-max">0 kg</strong></div>
-                <div class="s-stat"><span>Exercises</span><strong id="sum-ex">0</strong></div>
+                <div class="s-stat"><span>Heaviest</span><strong id="sum-max">0 kg</strong></div>
             </div>
             
             <button class="action-btn" style="background: var(--accent); color: #000;" onclick="switchTab('home-screen')">Return to Dashboard</button>
@@ -568,7 +647,10 @@
         
         <div class="header-nav">
             <button class="back-btn" onclick="switchTab('library-screen')">◀ Library</button>
-            <h2 id="workout-program-title" style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 15px; line-height: 1.3; display: flex; align-items: center; justify-content: center; word-break: break-word;">Workout</h2>
+            <div style="flex:1; text-align:center;">
+                <h2 id="workout-program-title" style="margin:0; color: var(--text-main); font-size: 15px; line-height: 1.3; display: flex; align-items: center; justify-content: center; word-break: break-word;">Workout</h2>
+                <div id="workout-duration" style="font-size: 13px; color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; display: none;">00:00</div>
+            </div>
             <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
         
@@ -579,23 +661,32 @@
             <div class="pill-scroll" id="day-pills"></div>
         </div>
 
-        <details class="warmup-card">
-            <summary class="warmup-summary"><span>🔥 Standard Warm-Up Routine</span><span>▼</span></summary>
+        <details class="warmup-card" id="standard-warmup-card">
+            <summary class="warmup-summary">
+                <span>🔥 Standard Warm-Up Routine</span>
+                <span class="warmup-arrow">▼</span>
+            </summary>
+            
             <div class="warmup-content">
-                <p style="margin-top: 0; font-size: 13px; margin-bottom: 15px; color: var(--text-muted); line-height: 1.4;">
-                    <em>Taylor Shadgett's 10-year comprehensive routine. Goal: Get huffing, puffing, and ready to lift pain-free.</em>
-                </p>
-                <ol style="padding-left: 20px; margin-bottom: 0; display: flex; flex-direction: column; gap: 10px;">
-                    <li><strong>Calf Raises:</strong> Warm up foot muscles; address ankle mobility.</li>
-                    <li><strong>Dead Bugs:</strong> Engage core; perfect breathing and bracing techniques.</li>
-                    <li><strong>90/90 Stretch + Rotation:</strong> "Secret sauce" for hip mobility and pelvic neutrality.</li>
-                    <li><strong>Push-ups:</strong> Hold a strong plank, push floor away for scapular movement, pause at bottom.</li>
-                    <li><strong>KB Single-Leg DLs:</strong> Target hip stability and balance.</li>
-                    <li><strong>KB Single-Arm Rows:</strong> 2-point stance focusing on upper back strength and arm length.</li>
-                    <li><strong>Elevated Reverse Lunges:</strong> Stretch hips/glutes; prepare knees for deep flexion under light load.</li>
-                    <li><strong>Band Dislocates:</strong> Stretch pecs and shoulders while maintaining a neutral spine.</li>
-                    <li><strong>Band Y's & Pull-aparts:</strong> Target overall shoulder health and stability.</li>
-                </ol>
+                <div class="warmup-image-header" 
+                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
+                            url('warmup.jpg');">
+                    <h3>Huff, puff, and lift pain-free.</h3>
+                </div>
+                
+                <div class="warmup-charcoal-box">
+                    <ol class="warmup-instruction-list">
+                        <li><strong>Calf Raises:</strong> Stand tall, rise onto balls of feet, squeeze at top.</li>
+                        <li><strong>Dead Bugs:</strong> Lie on back, lower back pressed hard into floor, extend opposite arm/leg.</li>
+                        <li><strong>90/90 Stretch + Rotation:</strong> Sit with both knees at 90°, switch sides, add active breathing.</li>
+                        <li><strong>Push-ups:</strong> Full plank, chest to floor, push through, pause at bottom.</li>
+                        <li><strong>KB Single-Leg DLs:</strong> Hinge at hip, keep back flat, focus on balance, switch legs.</li>
+                        <li><strong>KB Single-Arm Rows:</strong> Hinge forward, one arm for support, row, focus on shoulder blade.</li>
+                        <li><strong>Elevated Reverse Lunges:</strong> Stepping backwards from a step, controlled descent, deep knee bend.</li>
+                        <li><strong>Band Dislocates:</strong> Band overhead with wide grip, pass forward and back with straight arms.</li>
+                        <li><strong>Band Y's & Pull-aparts:</strong> Target upper back and rear delts, squeeze shoulder blades.</li>
+                    </ol>
+                </div>
             </div>
         </details>
 
@@ -19888,6 +19979,38 @@
         let timerInterval;
         let timeLeft = 0;
 
+        let workoutDurationInterval;
+
+        function startWorkoutTimer() {
+            clearInterval(workoutDurationInterval);
+            const timerEl = document.getElementById('workout-duration');
+            if (!timerEl) return;
+
+            if (activeWorkout) {
+                // Retroactive fix: if you had a workout active before the update, give it a start time NOW
+                if (!activeWorkout.startTime) {
+                    activeWorkout.startTime = Date.now();
+                    localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
+                }
+                
+                timerEl.style.display = 'block';
+
+                const updateTimer = () => {
+                    const diffMs = Date.now() - activeWorkout.startTime;
+                    const totalSecs = Math.floor(diffMs / 1000);
+                    const h = Math.floor(totalSecs / 3600);
+                    const m = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
+                    const s = (totalSecs % 60).toString().padStart(2, '0');
+                    timerEl.innerText = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+                };
+
+                updateTimer(); 
+                workoutDurationInterval = setInterval(updateTimer, 1000);
+            } else {
+                timerEl.style.display = 'none';
+            }
+        }
+
         function showConfirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel', isDangerous = false) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('confirm-modal');
@@ -20267,7 +20390,7 @@
             return `${currentProgram}_w${selectedWeek}_d${selectedDay}`;
         }
 
-        async function toggleWorkoutState(action) {
+        window.toggleWorkoutState = async function(action) {
             const key = getWorkoutKey();
             
             if (action === 'start') {
@@ -20281,37 +20404,44 @@
                     );
                     if (!confirmed) return;
                 }
-                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay };
+                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
             
             } else if (action === 'finish') {
                 const keyForSummary = key; 
+                const durationMs = (activeWorkout && activeWorkout.startTime) ? (Date.now() - activeWorkout.startTime) : 0;
+                
                 completedDays[key] = true;
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
                 activeWorkout = null;
                 localStorage.removeItem('activeWorkout');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 closeTimer();
+                clearInterval(workoutDurationInterval);
                 
-                generateSummary(keyForSummary);
+                // SAFETY CHECK: Only hide the clock if it actually exists in the HTML
+                const timerEl = document.getElementById('workout-duration');
+                if (timerEl) timerEl.style.display = 'none';
+                
+                generateSummary(keyForSummary, durationMs);
                 updateDashboard();
                 return; 
                 
             } else if (action === 'restart') {
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay };
+                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
             }
             
             renderDayPills();
             renderWorkout();
             updateBanners();
-        }
+        };
 
-        function generateSummary(key) {
+        function generateSummary(key, durationMs = 0) {
             const savedSession = safeParse(key, {});
             const exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay] || [];
             
@@ -20347,7 +20477,6 @@
                         }
                     }
                     
-                    // NEW: Loop through the array of extra sets
                     const extrasKey = `extras_${exIndex}_${bIndex}`;
                     const extrasArray = savedSession[extrasKey] || [];
                     
@@ -20374,10 +20503,28 @@
                 if (exerciseLog.sets.length > 0) workoutDetails.push(exerciseLog);
             });
 
-            document.getElementById('sum-vol').innerText = `${totalVolume.toLocaleString()} kg`;
-            document.getElementById('sum-sets').innerText = completedSets;
-            document.getElementById('sum-max').innerText = `${maxLoad} kg`;
-            document.getElementById('sum-ex').innerText = exCount;
+            // --- SAFELY UPDATE UI ---
+            let timeString = "00:00";
+            if (durationMs > 0) {
+                const totalSecs = Math.floor(durationMs / 1000);
+                const h = Math.floor(totalSecs / 3600);
+                const m = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
+                const s = (totalSecs % 60).toString().padStart(2, '0');
+                timeString = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+            }
+            
+            const timeEl = document.getElementById('sum-time');
+            const volEl = document.getElementById('sum-vol');
+            const setsEl = document.getElementById('sum-sets');
+            const maxEl = document.getElementById('sum-max');
+            const exEl = document.getElementById('sum-ex');
+
+            if (timeEl) timeEl.innerText = timeString;
+            if (volEl) volEl.innerText = `${totalVolume.toLocaleString()} kg`;
+            if (setsEl) setsEl.innerText = completedSets;
+            if (maxEl) maxEl.innerText = `${maxLoad} kg`;
+            if (exEl) exEl.innerText = exCount;
+            // ------------------------
             
             const logEntry = {
                 id: Date.now().toString(),
@@ -20388,6 +20535,7 @@
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                 volume: totalVolume,
                 sets: completedSets,
+                duration: durationMs,
                 details: workoutDetails 
             };
             
@@ -20397,7 +20545,9 @@
 
             renderDayPills(); 
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-            document.getElementById('summary-screen').classList.add('active');
+            
+            const summaryScreen = document.getElementById('summary-screen');
+            if (summaryScreen) summaryScreen.classList.add('active');
         }
 
     let currentChartEx = '';
@@ -20970,15 +21120,25 @@
 
                 const resolved1RM = getResolved1RM(ex.name);
                 const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${resolved1RM.toFixed(1)}kg` : '1RM --';
-                const notesHtml = ex.notes ? `<div class="coach-notes">📝 ${ex.notes}</div>` : '';
+                
+                // Emoji removed from notesHtml
+                const notesHtml = ex.notes ? `<div class="coach-notes">${ex.notes}</div>` : ''; 
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
+                // Define the dynamic color and the asymmetrical flame SVG
+                const warmupColor = isMain ? 'var(--accent)' : 'var(--teal)';
+                const warmupSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+
                 html += `
                 <div class="exercise-container ${liftClass}" id="${exId}">
                     <div class="ex-title-container">
                         <div class="lift-logo">${logoSvg}</div>
                         <h2 class="ex-title">${ex.name}</h2>
-                        <button class="btn-warmup-icon" onclick="openWarmupGenerator('${exId}', '${ex.name.replace(/'/g, "\\'")}', ${isMain})">🔥</button>
+                        <button class="btn-warmup-icon" 
+                                style="border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
+                                onclick="openWarmupGenerator('${exId}', '${ex.name.replace(/'/g, "\\'")}', ${isMain})">
+                            ${warmupSvg}
+                        </button>
                     </div>
                     ${notesHtml}
                     ${isMain ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
@@ -21101,9 +21261,17 @@
             html += `</div>`; 
             html += bottomActionUI; 
             
+            // ... (bottom of renderWorkout)
             container.innerHTML = html;
             attachListeners();
-            if (isActive) setupSlider(); 
+            if (isActive) {
+                setupSlider(); 
+                if (typeof startWorkoutTimer === 'function') startWorkoutTimer();
+            } else {
+                if (typeof workoutDurationInterval !== 'undefined') clearInterval(workoutDurationInterval);
+                const timerEl = document.getElementById('workout-duration');
+                if (timerEl) timerEl.style.display = 'none';
+            }
         }
 
         function setupSlider() {
@@ -21164,9 +21332,36 @@
             document.addEventListener('touchend', onEnd);
         }
 
+        // NEW: Synthesizes a clean 'ding' sound without needing audio files
+        function playBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'sine'; // Smooth tone
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note (pleasant high pitch)
+                
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volume
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1); // Fade out
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 1);
+            } catch(e) { 
+                console.log("Audio API not supported in this browser"); 
+            }
+        }
+
         function startTimer(seconds) {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.remove('finished');
+            
+            // Reset button text back to Skip
+            const actionBtn = document.getElementById('timer-action-btn');
+            if (actionBtn) actionBtn.innerText = "Skip";
             
             timeLeft = seconds;
             updateTimerDisplay();
@@ -21201,12 +21396,17 @@
             document.getElementById('rest-timer-banner').classList.remove('active');
         }
 
-        function completeTimer() {
+                function completeTimer() {
             const banner = document.getElementById('rest-timer-banner');
             document.getElementById('timer-display').innerText = "00:00";
             banner.classList.add('finished');
+            
+            // Change button text to prompt the user to close it
+            const actionBtn = document.getElementById('timer-action-btn');
+            if (actionBtn) actionBtn.innerText = "Dismiss";
+
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
-            setTimeout(() => closeTimer(), 4000);
+            playBeep(); // Trigger the audio chime
         }
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
@@ -21351,20 +21551,24 @@
 
             // Did we undershoot?
             if (inputRpe < block.targetRpe) {
+                // Updated Coach's Custom RPE Chart (RPE 5 to 10)
                 const rtsChart = {
-                    10:   [1.000, 0.955, 0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.717, 0.696],
-                    9.5:  [0.978, 0.939, 0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.701, 0.680],
-                    9:    [0.955, 0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.685, 0.664],
-                    8.5:  [0.939, 0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.672, 0.651],
-                    8:    [0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.658, 0.638],
-                    7.5:  [0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.667, 0.645, 0.625],
-                    7:    [0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.653, 0.632, 0.613],
-                    6.5:  [0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.667, 0.640, 0.619, 0.600],
-                    6:    [0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.653, 0.626, 0.605, 0.586]
+                    10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                    9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                    9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                    8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                    8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                    7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                    7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                    6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                    6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                    5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                    5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
                 };
 
-                let rInputRpe = Math.max(6, Math.min(10, Math.round(inputRpe * 2) / 2));
-                let rTargetRpe = Math.max(6, Math.min(10, Math.round(block.targetRpe * 2) / 2));
+                // Updated Math.max from 6 down to 5
+                let rInputRpe = Math.max(5, Math.min(10, Math.round(inputRpe * 2) / 2));
+                let rTargetRpe = Math.max(5, Math.min(10, Math.round(block.targetRpe * 2) / 2));
                 let repIndex = Math.max(0, Math.min(11, reps - 1));
 
                 const currentPct = rtsChart[rInputRpe][repIndex];
@@ -21373,7 +21577,7 @@
                 const e1rm = weight / currentPct;
                 const newWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
 
-                // Slice array up to current index (cleans up future extras if user changes mind), then push new set
+                // Slice array up to current index... (keep the rest of the function the same)
                 extrasArray = extrasArray.slice(0, currentExtraIndex + 1);
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
                 
@@ -21420,17 +21624,22 @@
                 const rpe = parseFloat(rpeInput.value);
                 const reps = parseFloat(repsInput.value); 
 
-                if (weight > 0 && rpe >= 6 && rpe <= 10 && reps > 0) {
+                // Updated the condition to check if rpe >= 5 (instead of 6)
+                if (weight > 0 && rpe >= 5 && rpe <= 10 && reps > 0) {
+                    
+                    // Updated Coach's Custom RPE Chart (RPE 5 to 10)
                     const rtsChart = {
-                        10:   [1.000, 0.955, 0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.717, 0.696],
-                        9.5:  [0.978, 0.939, 0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.701, 0.680],
-                        9:    [0.955, 0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.685, 0.664],
-                        8.5:  [0.939, 0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.672, 0.651],
-                        8:    [0.922, 0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.658, 0.638],
-                        7.5:  [0.907, 0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.667, 0.645, 0.625],
-                        7:    [0.892, 0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.653, 0.632, 0.613],
-                        6.5:  [0.878, 0.850, 0.824, 0.799, 0.774, 0.751, 0.723, 0.694, 0.667, 0.640, 0.619, 0.600],
-                        6:    [0.863, 0.837, 0.811, 0.786, 0.762, 0.739, 0.707, 0.680, 0.653, 0.626, 0.605, 0.586]
+                        10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                        9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                        9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                        8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                        8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                        7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                        7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                        6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                        6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                        5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                        5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
                     };
 
                     let roundedRpe = Math.round(rpe * 2) / 2;
