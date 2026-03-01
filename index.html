@@ -168,12 +168,13 @@
         .custom-option:last-child { border-bottom: none; }
         .custom-option:hover, .custom-option:active { background: #27272a; color: var(--accent); }
         /* Sticky Banners */
+        /* Sticky Banners */
         .floating-banner { 
             position: fixed; 
-            bottom: 90px; 
+            bottom: 180px; /* Moved up to clear the rest timer */
             left: 50%; 
             transform: translateX(-50%); 
-            width: calc(100% - 40px); /* Ensures it stays exactly 20px away from the screen edges */
+            width: calc(100% - 40px); 
             max-width: 400px; 
             background: rgba(24, 24, 27, 0.95); 
             backdrop-filter: blur(10px);
@@ -184,11 +185,11 @@
             display: none; 
             align-items: center; 
             justify-content: space-between;
-            z-index: 1000; 
+            z-index: 1002; /* Bumped above the timer's 1001 */
             box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--accent); 
             cursor: pointer; 
             transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-sizing: border-box; /* This prevents padding from blowing out the width */
+            box-sizing: border-box; 
         }
         .floating-banner:active { transform: translateX(-50%) scale(0.96); }
 
@@ -450,6 +451,29 @@
             <p style="margin-bottom: 15px;">Pyramidal progression up to your working weight.</p>
             <div id="warmup-modal-content">
                 </div>
+        </div>
+    </div>
+
+    <div id="custom-timer-modal" class="modal-overlay" onclick="if(event.target.id === 'custom-timer-modal') this.style.display='none'">
+        <div class="modal-card" style="padding: 20px;">
+            <h2 style="margin-bottom: 5px;">Custom Rest</h2>
+            <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Select a preset or enter minutes.</p>
+            
+            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
+                <button class="pill" onclick="startTimer(60); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">1m</button>
+                <button class="pill" onclick="startTimer(120); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">2m</button>
+                <button class="pill" onclick="startTimer(180); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">3m</button>
+                <button class="pill" onclick="startTimer(300); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">5m</button>
+            </div>
+            
+            <div class="modal-input-group" style="margin-bottom: 20px;">
+                <input type="number" id="custom-timer-input" placeholder="Custom (e.g. 2.5)" inputmode="decimal" style="text-align: center;">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="document.getElementById('custom-timer-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="submitCustomTimer()">Start</button>
+            </div>
         </div>
     </div>
 
@@ -19978,8 +20002,36 @@
 
         let timerInterval;
         let timeLeft = 0;
+        let timerTargetMs = 0;
 
         let workoutDurationInterval;
+
+        // NEW: Forces the timer to sync instantly when you switch back to the app
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden && timerInterval) {
+                timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    completeTimer();
+                } else {
+                    updateTimerDisplay();
+                }
+            }
+        });
+
+        // MODAL FUNCTIONS
+        window.openCustomTimerModal = function() {
+            document.getElementById('custom-timer-input').value = '';
+            document.getElementById('custom-timer-modal').style.display = 'flex';
+        };
+
+        window.submitCustomTimer = function() {
+            const val = parseFloat(document.getElementById('custom-timer-input').value);
+            if (!isNaN(val) && val > 0) {
+                startTimer(Math.round(val * 60));
+                document.getElementById('custom-timer-modal').style.display = 'none';
+            }
+        };
 
         function startWorkoutTimer() {
             clearInterval(workoutDurationInterval);
@@ -20384,6 +20436,18 @@
             
             renderWorkout();
             updateBanners();
+
+            // NEW: Auto-scroll to the next available unchecked set
+            setTimeout(() => {
+                const nextSet = document.querySelector('#workout-container .check-circle:not(.checked)');
+                if (nextSet) {
+                    // Get the position and offset by 150px so it sits nicely below the sticky headers
+                    const y = nextSet.getBoundingClientRect().top + window.scrollY - 150;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 150); // Small 150ms delay to ensure the DOM has fully painted the workout
         }
 
         function getWorkoutKey() {
@@ -20893,8 +20957,8 @@
             sorted1RMs.forEach(ex => {
                 html += `
                 <div class="stat-card" style="padding: 12px 18px;">
-                    <span class="stat-name">${ex}</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM('${ex}', this.value)" inputmode="decimal">
                         <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
                         <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0 0 0 5px; font-size:16px; cursor:pointer;" title="Reset this lift">🗑️</button>
@@ -20912,9 +20976,9 @@
                     const b = actualBests[ex];
                     html += `
                     <div class="stat-card" style="padding: 16px 18px;">
-                        <span class="stat-name">${ex}</span>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="stat-value" style="color: var(--teal);">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
+                        <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; white-space: nowrap;">
+                            <span class="stat-value" style="color: var(--teal); white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
                             <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0; font-size:16px; cursor:pointer;">🗑️</button>
                         </div>
                     </div>`;
@@ -21121,19 +21185,25 @@
                 const resolved1RM = getResolved1RM(ex.name);
                 const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${resolved1RM.toFixed(1)}kg` : '1RM --';
                 
-                // Emoji removed from notesHtml
                 const notesHtml = ex.notes ? `<div class="coach-notes">${ex.notes}</div>` : ''; 
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
-                // Define the dynamic color and the asymmetrical flame SVG
+                // Define the dynamic color and SVGs
                 const warmupColor = isMain ? 'var(--accent)' : 'var(--teal)';
                 const warmupSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+                const timerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>`;
 
                 html += `
                 <div class="exercise-container ${liftClass}" id="${exId}">
                     <div class="ex-title-container">
-                        <div class="lift-logo">${logoSvg}</div>
+                        <button class="btn-warmup-icon" 
+                                style="left: 16px; right: auto; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
+                                onclick="openCustomTimerModal()">
+                            ${timerSvg}
+                        </button>
+                        
                         <h2 class="ex-title">${ex.name}</h2>
+                        
                         <button class="btn-warmup-icon" 
                                 style="border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
                                 onclick="openWarmupGenerator('${exId}', '${ex.name.replace(/'/g, "\\'")}', ${isMain})">
@@ -21355,21 +21425,25 @@
             }
         }
 
+        // UPGRADED START TIMER
         function startTimer(seconds) {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.remove('finished');
             
-            // Reset button text back to Skip
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Skip";
             
             timeLeft = seconds;
+            timerTargetMs = Date.now() + (seconds * 1000); // Anchor to real-time
+            
             updateTimerDisplay();
             banner.classList.add('active');
             
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                timeLeft--;
+                // Calculate time based on the clock, not the interval loop
+                timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+                
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     completeTimer();
@@ -21385,9 +21459,15 @@
             document.getElementById('timer-display').innerText = `${m}:${s}`;
         }
 
+        // UPGRADED ADJUST TIMER
         function adjustTimer(seconds) {
-            timeLeft += seconds;
-            if (timeLeft < 0) timeLeft = 0;
+            timerTargetMs += (seconds * 1000); // Shift the target timestamp
+            timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+            
+            if (timeLeft < 0) {
+                timeLeft = 0;
+                timerTargetMs = Date.now();
+            }
             updateTimerDisplay();
         }
 
