@@ -4558,7 +4558,7 @@
                 ]
             },
             {
-                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "name": "3-0-0 Tempo - Light Touch (bench)",
                 "type": "main",
                 "notes": "Touch and Go",
                 "blocks": [
@@ -4703,7 +4703,7 @@
                 ]
             },
             {
-                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "name": "3-0-0 Tempo - Light Touch (bench)",
                 "type": "main",
                 "notes": "Touch and Go",
                 "blocks": [
@@ -4848,7 +4848,7 @@
                 ]
             },
             {
-                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "name": "3-0-0 Tempo - Light Touch (bench)",
                 "type": "main",
                 "notes": "Touch and Go",
                 "blocks": [
@@ -4993,7 +4993,7 @@
                 ]
             },
             {
-                "name": "3-2-0 Tempo - Light Touch (bench)",
+                "name": "3-0-0 Tempo - Light Touch (bench)",
                 "type": "main",
                 "notes": "Touch and Go",
                 "blocks": [
@@ -20175,6 +20175,8 @@
             updateBanners();
         }
         function updateLibraryUI() {
+            const mainProgram = localStorage.getItem('activeProgram'); // The true active program
+            
             const isProgramFinished = (pid) => {
                 if (!db[pid] || !db[pid].weeks) return false;
                 let total = 0, completed = 0;
@@ -20194,7 +20196,8 @@
                 const existingBadge = title.querySelector('.active-badge');
                 if (existingBadge) existingBadge.remove();
 
-                if (pid === currentProgram && !isProgramFinished(pid)) {
+                // Check against the true main program
+                if (pid === mainProgram && !isProgramFinished(pid)) {
                     card.style.borderColor = 'var(--accent)';
                     title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(249, 115, 22, 0.1); border-radius: 4px;">ACTIVE</span>';
                 } else {
@@ -20207,14 +20210,46 @@
             const heroEmpty = document.getElementById('hero-empty');
             const heroResume = document.getElementById('hero-resume');
             
-            if (currentProgram && !activeWorkout) {
-                // Find next uncompleted day
+            const progContainer = document.getElementById('dash-progress-container');
+            const progFill = document.getElementById('dash-progress-fill');
+            const progText = document.getElementById('dash-progress-text');
+
+            // The True Active Program
+            let mainProgram = localStorage.getItem('activeProgram');
+            if (activeWorkout && activeWorkout.program) {
+                mainProgram = activeWorkout.program;
+            }
+
+            // --- PROGRESS BAR LOGIC ---
+            if (mainProgram && db[mainProgram]) {
+                let totalDays = 0;
+                let doneDays = 0;
+                Object.keys(db[mainProgram].weeks).forEach(w => {
+                    Object.keys(db[mainProgram].weeks[w]).forEach(d => {
+                        totalDays++;
+                        if (completedDays[`${mainProgram}_w${w}_d${d}`]) doneDays++;
+                    });
+                });
+                
+                if (totalDays > 0) {
+                    progContainer.style.display = 'block';
+                    progText.innerText = `${doneDays}/${totalDays} Workouts`;
+                    setTimeout(() => { progFill.style.width = `${(doneDays / totalDays) * 100}%`; }, 100);
+                } else {
+                    progContainer.style.display = 'none';
+                }
+            } else {
+                progContainer.style.display = 'none';
+            }
+
+            // --- HERO CARD LOGIC ---
+            if (mainProgram && !activeWorkout && db[mainProgram]) {
                 let nextW = null, nextD = null;
-                const weeks = Object.keys(db[currentProgram].weeks).sort((a,b) => a - b);
+                const weeks = Object.keys(db[mainProgram].weeks).sort((a,b) => a - b);
                 for (let w of weeks) {
-                    const days = Object.keys(db[currentProgram].weeks[w]).sort((a,b) => a - b);
+                    const days = Object.keys(db[mainProgram].weeks[w]).sort((a,b) => a - b);
                     for (let d of days) {
-                        if (!completedDays[`${currentProgram}_w${w}_d${d}`]) {
+                        if (!completedDays[`${mainProgram}_w${w}_d${d}`]) {
                             nextW = w;
                             nextD = d;
                             break;
@@ -20225,12 +20260,11 @@
                 
                 heroEmpty.style.display = 'none';
                 heroResume.style.display = 'block';
-                // Keep the active-state class so it animates and acts like a button
                 heroResume.classList.add('active-state'); 
                 heroResume.style.borderColor = 'var(--teal)';
                 heroResume.querySelector('span').innerText = 'UP NEXT';
                 heroResume.querySelector('span').style.color = 'var(--teal)';
-                document.getElementById('hero-program-name').innerText = db[currentProgram].name;
+                document.getElementById('hero-program-name').innerText = db[mainProgram].name;
                 
                 const btn = heroResume.querySelector('.hero-btn');
                 
@@ -20241,6 +20275,7 @@
                     btn.style.color = '#000';
                     
                     heroResume.onclick = () => {
+                        currentProgram = mainProgram; // Sync viewed program
                         selectedWeek = nextW;
                         selectedDay = nextD;
                         updateLibraryUI();
@@ -20249,17 +20284,27 @@
                         document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
                         document.getElementById('workout-screen').classList.add('active');
                         renderWorkout();
-                        window.scrollTo(0, 0);
+                        
+                        // Auto-scroll logic applied to "Up Next"
+                        setTimeout(() => {
+                            const nextSet = document.querySelector('#workout-container .check-circle:not(.checked)');
+                            if (nextSet) {
+                                const y = nextSet.getBoundingClientRect().top + window.scrollY - 150;
+                                window.scrollTo({ top: y, behavior: 'smooth' });
+                            } else {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        }, 150);
                     };
                 } else {
-                    // What happens when every single day is checked off
                     document.getElementById('hero-program-detail').innerText = `Program Completed 🏆`;
                     btn.innerText = 'Restart Program';
                     btn.style.background = 'var(--teal)';
                     btn.style.color = '#000';
                     
                     heroResume.onclick = () => {
-                        clearCurrentProgram(); // Asks to reset the block
+                        currentProgram = mainProgram;
+                        clearCurrentProgram(); 
                     };
                 }
                 
@@ -20333,7 +20378,7 @@
             }
 
             currentProgram = programId;
-            localStorage.setItem('activeProgram', programId);
+            // Removed the localStorage overwrite here!
             
             if (!selectedWeek || !programWeeks.includes(selectedWeek)) {
                 selectedWeek = programWeeks[0];
@@ -20454,7 +20499,7 @@
             return `${currentProgram}_w${selectedWeek}_d${selectedDay}`;
         }
 
-        window.toggleWorkoutState = async function(action) {
+        async function toggleWorkoutState(action) {
             const key = getWorkoutKey();
             
             if (action === 'start') {
@@ -20468,6 +20513,10 @@
                     );
                     if (!confirmed) return;
                 }
+                
+                // NEW: Make this the official active program ONLY when they start a workout
+                localStorage.setItem('activeProgram', currentProgram);
+                
                 activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
                 delete completedDays[key];
@@ -20475,7 +20524,7 @@
             
             } else if (action === 'finish') {
                 const keyForSummary = key; 
-                const durationMs = (activeWorkout && activeWorkout.startTime) ? (Date.now() - activeWorkout.startTime) : 0;
+                const durationMs = activeWorkout && activeWorkout.startTime ? (Date.now() - activeWorkout.startTime) : 0;
                 
                 completedDays[key] = true;
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
@@ -20484,12 +20533,10 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 closeTimer();
                 clearInterval(workoutDurationInterval);
-                
-                // SAFETY CHECK: Only hide the clock if it actually exists in the HTML
                 const timerEl = document.getElementById('workout-duration');
                 if (timerEl) timerEl.style.display = 'none';
                 
-                generateSummary(keyForSummary, durationMs);
+                generateSummary(keyForSummary, durationMs); 
                 updateDashboard();
                 return; 
                 
@@ -20503,7 +20550,7 @@
             renderDayPills();
             renderWorkout();
             updateBanners();
-        };
+        }
 
         function generateSummary(key, durationMs = 0) {
             const savedSession = safeParse(key, {});
@@ -21402,24 +21449,25 @@
             document.addEventListener('touchend', onEnd);
         }
 
-        // NEW: Synthesizes a clean 'ding' sound without needing audio files
+        // Original smooth 'ding' sound, but with max volume (1.0)
         function playBeep() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 
-                oscillator.type = 'sine'; // Smooth tone
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note (pleasant high pitch)
+                oscillator.type = 'sine'; // Restored the smooth, pleasant tone
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
                 
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volume
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1); // Fade out
+                // Cranked starting volume to 1.0 (max) instead of 0.1
+                gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime); 
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1.5); // Rings out for 1.5s
                 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 1);
+                oscillator.stop(audioCtx.currentTime + 1.5);
             } catch(e) { 
                 console.log("Audio API not supported in this browser"); 
             }
@@ -21562,7 +21610,21 @@
                     }
                 }
 
-                const restSeconds = parseInt(el.dataset.rest) || 90; 
+                let restSeconds = parseInt(el.dataset.rest) || 90; 
+
+                // NEW: Dynamic RPE-Based Rest Timer for Main Lifts (Orange)
+                if (loadInput && loadInput.classList.contains('main-load') && rpeInput && rpeInput.value !== '') {
+                    const rpeVal = parseFloat(rpeInput.value);
+                    if (!isNaN(rpeVal)) {
+                        if (rpeVal >= 9) restSeconds = 300;        // RPE 9-10: 5 mins
+                        else if (rpeVal >= 8) restSeconds = 240;   // RPE 8-8.5: 4 mins
+                        else if (rpeVal >= 7) restSeconds = 180;   // RPE 7-7.5: 3 mins
+                        else if (rpeVal >= 6) restSeconds = 150;   // RPE 6-6.5: 2.5 mins
+                        else if (rpeVal >= 5) restSeconds = 120;   // RPE 5-5.5: 2 mins
+                        else restSeconds = 90;                     // RPE < 5: 1.5 mins
+                    }
+                }
+
                 startTimer(restSeconds);
                 if (rpeInput && repsInput && loadInput) {
                 const weight = parseFloat(loadInput.value);
