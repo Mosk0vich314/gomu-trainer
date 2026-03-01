@@ -19982,7 +19982,64 @@
 /* PPL_END */ }
         };
 
+        // --- INDEXED DB ENGINE (Unlimited Storage) ---
+        const DB_NAME = 'GomuTrainerDB';
+        const STORE_NAME = 'appData';
+        let workoutHistoryCache = []; // Lightning-fast synchronous memory cache
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    if (!e.target.result.objectStoreNames.contains(STORE_NAME)) {
+                        e.target.result.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function setDB(key, value) {
+            const db = await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).put(value, key);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function getDB(key, fallback = null) {
+            const db = await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const request = tx.objectStore(STORE_NAME).get(key);
+                request.onsuccess = () => resolve(request.result !== undefined ? request.result : fallback);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function bootDatabase() {
+            let dbHistory = await getDB('workoutHistory');
+            // Migration: Move old localStorage data to IndexedDB
+            if (!dbHistory) {
+                const legacy = localStorage.getItem('workoutHistory');
+                if (legacy) {
+                    dbHistory = JSON.parse(legacy);
+                    await setDB('workoutHistory', dbHistory);
+                    localStorage.removeItem('workoutHistory'); 
+                } else {
+                    dbHistory = [];
+                }
+            }
+            workoutHistoryCache = dbHistory;
+        }
+
+        // --- UPDATED SAFEPARSE (Hijacks history reads to use memory cache) ---
         function safeParse(key, fallback) {
+            if (key === 'workoutHistory') return workoutHistoryCache;
+            
             try {
                 const item = localStorage.getItem(key);
                 if (!item) return fallback;
@@ -20095,7 +20152,9 @@
             });
         }
 
-        function initApp() {
+        async function initApp() {
+            await bootDatabase(); // CRITICAL: Wait for history to load into memory
+            
             const savedProgram = localStorage.getItem('activeProgram');
             if (savedProgram && db[savedProgram]) {
                 currentProgram = savedProgram;
@@ -20650,9 +20709,10 @@
                 details: workoutDetails 
             };
             
-            let history = safeParse('workoutHistory', []);
-            history.unshift(logEntry); 
-            localStorage.setItem('workoutHistory', JSON.stringify(history));
+            // ---> Replace the old history save lines with these 2 lines:
+            workoutHistoryCache.unshift(logEntry); 
+            setDB('workoutHistory', workoutHistoryCache); // Saves silently in background
+            // -----------------------------------------------------------
 
             renderDayPills(); 
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
@@ -20814,13 +20874,12 @@
             );
             
             if (confirmed) {
-                let history = safeParse('workoutHistory', []);
-                history = history.filter(h => h.id !== id);
-                localStorage.setItem('workoutHistory', JSON.stringify(history));
+                // Update Cache and DB
+                workoutHistoryCache = workoutHistoryCache.filter(h => h.id !== id);
+                setDB('workoutHistory', workoutHistoryCache);
 
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                
                 localStorage.removeItem(key);
 
                 if (activeWorkout && activeWorkout.key === key) {
@@ -20945,6 +21004,9 @@
             );
             if (confirmed) {
                 localStorage.clear();
+                workoutHistoryCache = [];
+                await setDB('workoutHistory', []); // Clear DB
+                
                 completedDays = {};
                 activeWorkout = null;
                 currentProgram = null;
@@ -20955,9 +21017,8 @@
                 updateDashboard();
                 updateLibraryUI();
                 
-                // Add these two lines to instantly clear the history tab UI
                 renderHistory();
-                renderChart();
+                if (typeof drawChart === 'function') drawChart();
             }
         }
 
@@ -21060,7 +21121,7 @@
             if (!file) return;
             
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (data.activeWorkout) localStorage.setItem('activeWorkout', JSON.stringify(data.activeWorkout));
@@ -21068,8 +21129,12 @@
                     if (data.global1RMs) localStorage.setItem('global1RMs', JSON.stringify(data.global1RMs));
                     if (data.actualBests) localStorage.setItem('actualBests', JSON.stringify(data.actualBests));
                     if (data.lastUsedWeights) localStorage.setItem('lastUsedWeights', JSON.stringify(data.lastUsedWeights));
-                    if (data.workoutHistory) localStorage.setItem('workoutHistory', JSON.stringify(data.workoutHistory));
                     if (data.activeProgram) localStorage.setItem('activeProgram', data.activeProgram);
+                    
+                    if (data.workoutHistory) {
+                        workoutHistoryCache = data.workoutHistory;
+                        await setDB('workoutHistory', workoutHistoryCache);
+                    }
                     
                     alert("Backup imported successfully! The app will now refresh.");
                     location.reload();
