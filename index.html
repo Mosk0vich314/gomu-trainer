@@ -21096,24 +21096,47 @@
             statsContainer.innerHTML = html;
         }
 
-        function exportData() {
+        async function exportData() {
+            // 1. Gather all the data (including the new infinite memory cache)
             const backup = {
                 activeWorkout: safeParse('activeWorkout', null),
                 completedDays: safeParse('completedDays', {}),
                 global1RMs: safeParse('global1RMs', {}),
                 actualBests: safeParse('actualBests', {}),
                 lastUsedWeights: safeParse('lastUsedWeights', {}),
-                workoutHistory: safeParse('workoutHistory', []),
+                workoutHistory: workoutHistoryCache, // Grabs from the new DB cache
                 activeProgram: localStorage.getItem('activeProgram')
             };
             
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const jsonString = JSON.stringify(backup, null, 2);
+            const fileName = `gomu_trainer_backup_${new Date().toISOString().split('T')[0]}.json`;
+
+            try {
+                // 2. The Mobile/PWA Fix: Try to open the native Share/Save menu
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([jsonString], fileName, { type: 'application/json' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Gomu Trainer Backup',
+                        });
+                        return; // Success! Exit the function.
+                    }
+                }
+            } catch (err) {
+                console.log("Share menu cancelled or failed, falling back to direct download...");
+            }
+
+            // 3. The Desktop Fallback: Standard Blob Download
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
             const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", "gym_logger_backup.json");
+            downloadAnchorNode.href = url;
+            downloadAnchorNode.download = fileName;
             document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            document.body.removeChild(downloadAnchorNode);
+            URL.revokeObjectURL(url); // Clean up memory
         }
 
         function importData(event) {
