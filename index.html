@@ -695,7 +695,6 @@
                 <div class="warmup-image-header" 
                         style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
                             url('warmup.jpg');">
-                    <h3>Huff, puff, and lift pain-free.</h3>
                 </div>
                 
                 <div class="warmup-charcoal-box">
@@ -714,13 +713,24 @@
             </div>
         </details>
 
-        <details class="warmup-card" style="margin-bottom: 25px; border-color: var(--border);">
-            <summary class="warmup-summary" style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px;"><span>⚙️ Program Management</span><span>▼</span></summary>
-            <div class="warmup-content" style="display: flex; flex-direction: column; gap: 10px; padding-top: 10px;">
-                <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()">⏹ Stop & Exit Program</button>
-                <button class="reset-btn" onclick="clearCurrentDay()">↻ Reset This Day</button>
-                <button class="reset-btn" onclick="clearCurrentWeek()">↻ Reset This Week</button>
-                <button class="reset-btn" style="border-color: var(--danger); color: var(--danger);" onclick="clearCurrentProgram()">⚠️ Reset Entire Program</button>
+        <details class="warmup-card" style="margin-bottom: 25px;">
+            <summary class="warmup-summary" style="color: var(--text-muted);">
+                <span>⚙️ Program Management</span>
+                <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
+            </summary>
+            
+            <div class="warmup-content">
+                <div class="warmup-image-header" 
+                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
+                               url('management.jpg');">
+                </div>
+                
+                <div class="warmup-charcoal-box" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()">⏹ Stop & Exit Program</button>
+                    <button class="reset-btn" onclick="clearCurrentDay()">↻ Reset This Day</button>
+                    <button class="reset-btn" onclick="clearCurrentWeek()">↻ Reset This Week</button>
+                    <button class="reset-btn" style="border-color: var(--danger); color: var(--danger);" onclick="clearCurrentProgram()">⚠️ Reset Entire Program</button>
+                </div>
             </div>
         </details>
 
