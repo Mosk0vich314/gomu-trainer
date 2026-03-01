@@ -21342,25 +21342,33 @@
                 const warmupSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
                 const timerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>`;
 
+                // NEW: Scan the exercise name to see if it's just a non-lifting block
+                const isNonExercise = /rest|information|info|note/i.test(ex.name);
+
                 html += `
                 <div class="exercise-container ${liftClass}" id="${exId}">
                     <div class="ex-title-container">
+                        
+                        ${isNonExercise ? '' : `
                         <button class="btn-warmup-icon" 
                                 style="left: 16px; right: auto; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
                                 onclick="openCustomTimerModal()">
                             ${timerSvg}
                         </button>
+                        `}
                         
-                        <h2 class="ex-title">${ex.name}</h2>
+                        <h2 class="ex-title" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : ''}">${ex.name}</h2>
                         
+                        ${isNonExercise ? '' : `
                         <button class="btn-warmup-icon" 
                                 style="border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
                                 onclick="openWarmupGenerator('${exId}', '${ex.name.replace(/'/g, "\\'")}', ${isMain})">
                             ${warmupSvg}
                         </button>
+                        `}
                     </div>
                     ${notesHtml}
-                    ${isMain ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
+                    ${isMain && !isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
                 `;
 
                 const numBlocks = ex.blocks.length;
