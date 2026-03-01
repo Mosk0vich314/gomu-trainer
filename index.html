@@ -21097,14 +21097,13 @@
         }
 
         async function exportData() {
-            // 1. Gather all the data (including the new infinite memory cache)
             const backup = {
                 activeWorkout: safeParse('activeWorkout', null),
                 completedDays: safeParse('completedDays', {}),
                 global1RMs: safeParse('global1RMs', {}),
                 actualBests: safeParse('actualBests', {}),
                 lastUsedWeights: safeParse('lastUsedWeights', {}),
-                workoutHistory: workoutHistoryCache, // Grabs from the new DB cache
+                workoutHistory: workoutHistoryCache, // Pulls from the new infinite DB
                 activeProgram: localStorage.getItem('activeProgram')
             };
             
@@ -21112,22 +21111,24 @@
             const fileName = `gomu_trainer_backup_${new Date().toISOString().split('T')[0]}.json`;
 
             try {
-                // 2. The Mobile/PWA Fix: Try to open the native Share/Save menu
-                if (navigator.share && navigator.canShare) {
-                    const file = new File([jsonString], fileName, { type: 'application/json' });
-                    if (navigator.canShare({ files: [file] })) {
+                // Try to trigger the Android Share menu (great for saving to Google Drive)
+                if (navigator.share) {
+                    const file = new File([jsonString], fileName, { type: 'text/plain' });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             files: [file],
-                            title: 'Gomu Trainer Backup',
+                            title: 'Gomu Trainer Backup'
                         });
-                        return; // Success! Exit the function.
+                        return; // Success! Exit before the direct download triggers.
                     }
                 }
             } catch (err) {
-                console.log("Share menu cancelled or failed, falling back to direct download...");
+                // If you manually close the Share menu, stop the function.
+                if (err.name === 'AbortError') return; 
             }
 
-            // 3. The Desktop Fallback: Standard Blob Download
+            // Standard Android Direct Download
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const downloadAnchorNode = document.createElement('a');
@@ -21136,7 +21137,10 @@
             document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
             document.body.removeChild(downloadAnchorNode);
-            URL.revokeObjectURL(url); // Clean up memory
+            URL.revokeObjectURL(url);
+
+            // Alert the user so it doesn't happen silently
+            alert("Backup saved! Check your device's 'Downloads' folder.");
         }
 
         function importData(event) {
