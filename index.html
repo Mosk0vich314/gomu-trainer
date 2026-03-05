@@ -20087,10 +20087,15 @@
 
         // NEW: Forces the timer to sync instantly when you switch back to the app
         document.addEventListener("visibilitychange", () => {
-            if (!document.hidden && timerInterval) {
+            const banner = document.getElementById('rest-timer-banner');
+            // Only trigger the sync if the timer UI is actively running
+            const isTimerRunning = banner && banner.classList.contains('active') && !banner.classList.contains('finished');
+            
+            if (!document.hidden && isTimerRunning) {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    timerInterval = null; // Wipe the memory
                     completeTimer();
                 } else {
                     updateTimerDisplay();
@@ -21640,6 +21645,7 @@
 
         function closeTimer() {
             clearInterval(timerInterval);
+            timerInterval = null; // Completely clear the variable from memory
             document.getElementById('rest-timer-banner').classList.remove('active');
         }
 
