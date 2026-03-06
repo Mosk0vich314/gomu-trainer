@@ -509,8 +509,8 @@
     <div id="rest-timer-banner" class="rest-timer-banner">
         <div class="timer-display" id="timer-display">03:00</div>
         <div class="timer-controls">
-            <button onclick="adjustTimer(-30)">-30s</button>
-            <button onclick="adjustTimer(30)">+30s</button>
+            <button onclick="adjustTimer(-15)">-15s</button>
+            <button onclick="adjustTimer(15)">+15s</button>
             <button id="timer-action-btn" onclick="closeTimer()" style="background: var(--text-muted); color: #000;">Skip</button>
         </div>
     </div>
@@ -697,35 +697,7 @@
             <div class="pill-scroll" id="day-pills"></div>
         </div>
 
-        <details class="warmup-card" id="standard-warmup-card">
-            <summary class="warmup-summary">
-                <span>🔥 Standard Warm-Up Routine</span>
-                <span class="warmup-arrow">▼</span>
-            </summary>
-            
-            <div class="warmup-content">
-                <div class="warmup-image-header" 
-                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
-                            url('warmup.jpg');">
-                </div>
-                
-                <div class="warmup-charcoal-box">
-                    <ol class="warmup-instruction-list">
-                        <li><strong>Calf Raises:</strong> Stand tall,  squeeze at top.</li>
-                        <li><strong>Dead Bugs, Side Planks, Bird-Dog</strong></li>
-                        <li><strong>90/90 Stretch + Rotation:</strong> Sit with both knees at 90°, switch sides, add active breathing.</li>
-                        <li><strong>Push-ups:</strong> Full plank, chest to floor, push through, pause at bottom.</li>
-                        <li><strong>KB Single-Leg DLs:</strong> Hinge at hip, keep back flat, focus on balance, switch legs.</li>
-                        <li><strong>KB Single-Arm Rows:</strong> Hinge forward, one arm for support, row, focus on shoulder blade.</li>
-                        <li><strong>Elevated Reverse Lunges:</strong> Stepping backwards from a step, controlled descent, deep knee bend.</li>
-                        <li><strong>Band Dislocates:</strong> Band overhead with wide grip, pass forward and back with straight arms.</li>
-                        <li><strong>Band Y's & Pull-aparts:</strong> Target upper back and rear delts, squeeze shoulder blades.</li>
-                    </ol>
-                </div>
-            </div>
-        </details>
-
-        <details class="warmup-card" style="margin-bottom: 25px;">
+        <details class="warmup-card" style="margin-bottom: 20px;">
             <summary class="warmup-summary" style="color: var(--text-muted);">
                 <span>⚙️ Program Management</span>
                 <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
@@ -742,6 +714,34 @@
                     <button class="reset-btn" onclick="clearCurrentDay()">↻ Reset This Day</button>
                     <button class="reset-btn" onclick="clearCurrentWeek()">↻ Reset This Week</button>
                     <button class="reset-btn" style="border-color: var(--danger); color: var(--danger);" onclick="clearCurrentProgram()">⚠️ Reset Entire Program</button>
+                </div>
+            </div>
+        </details>
+
+        <details class="warmup-card" id="standard-warmup-card" style="margin-bottom: 25px;">
+            <summary class="warmup-summary">
+                <span>🔥 Standard Warm-Up Routine</span>
+                <span class="warmup-arrow">▼</span>
+            </summary>
+            
+            <div class="warmup-content">
+                <div class="warmup-image-header" 
+                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
+                            url('warmup.jpg');">
+                </div>
+                
+                <div class="warmup-charcoal-box">
+                    <ol class="warmup-instruction-list">
+                        <li><strong>Calf Raises</strong></li>
+                        <li><strong>Dead Bugs, Side Planks, Bird-Dog</strong></li>
+                        <li><strong>90/90 Stretch + Rotation/Pec Stretch</strong></li>
+                        <li><strong>Plank and Push-Ups</strong></li>
+                        <li><strong>KB Single-Leg DLs</strong></li>
+                        <li><strong>KB Single-Arm Rows</strong></li>
+                        <li><strong>Elevated Reverse Lunges</strong></li>
+                        <li><strong>Band Dislocates</strong></li>
+                        <li><strong>Band Y's & Pull-aparts</strong></li>
+                    </ol>
                 </div>
             </div>
         </details>
@@ -20088,18 +20088,19 @@
         // NEW: Forces the timer to sync instantly when you switch back to the app
         document.addEventListener("visibilitychange", () => {
             const banner = document.getElementById('rest-timer-banner');
-            // Only trigger the sync if the timer UI is actively running
-            const isTimerRunning = banner && banner.classList.contains('active') && !banner.classList.contains('finished');
+            // Keep syncing as long as the timer is visible on screen, even if finished
+            const isTimerRunning = banner && banner.classList.contains('active');
             
             if (!document.hidden && isTimerRunning) {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    timerInterval = null; // Wipe the memory
-                    completeTimer();
-                } else {
-                    updateTimerDisplay();
+                
+                // Only trigger the "complete" events if it hasn't already been marked finished
+                if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                    const isVeryLate = timeLeft < -2; 
+                    completeTimer(!isVeryLate);
                 }
+                
+                updateTimerDisplay(); // Will now display negative time!
             }
         });
 
@@ -20371,15 +20372,9 @@
                         document.getElementById('workout-screen').classList.add('active');
                         renderWorkout();
                         
-                        // Auto-scroll logic applied to "Up Next"
+                        // FIX: Scroll to top for fresh workouts so you see the Warm-Up routine!
                         setTimeout(() => {
-                            const nextSet = document.querySelector('#workout-container .check-circle:not(.checked)');
-                            if (nextSet) {
-                                const y = nextSet.getBoundingClientRect().top + window.scrollY - 150;
-                                window.scrollTo({ top: y, behavior: 'smooth' });
-                            } else {
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
                         }, 150);
                     };
                 } else {
@@ -21270,10 +21265,9 @@
             document.getElementById('warmup-modal').style.display = 'flex';
         };
 
-        // Add this tiny function right underneath to handle the "Done" click
         window.completeWarmup = function() {
             document.getElementById('warmup-modal').style.display = 'none';
-            startTimer(180); // Starts the 3 minute rest
+            startTimer(120); // Starts the 2 minute rest
         };
 
         window.closeWarmupModal = function(e) {
@@ -21573,25 +21567,28 @@
             document.addEventListener('touchend', onEnd);
         }
 
-        // Original smooth 'ding' sound, but with max volume (1.0)
+        // Upgraded 3-Beep Countdown Sound
         function playBeep() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
                 
-                oscillator.type = 'sine'; // Restored the smooth, pleasant tone
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-                
-                // Cranked starting volume to 1.0 (max) instead of 0.1
-                gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime); 
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1.5); // Rings out for 1.5s
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 1.5);
+                // Play 3 distinct beeps, spaced 0.4 seconds apart
+                for (let i = 0; i < 3; i++) {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.type = 'sine'; 
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + (i * 0.4)); 
+                    
+                    gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime + (i * 0.4)); 
+                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + (i * 0.4) + 0.3);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.start(audioCtx.currentTime + (i * 0.4));
+                    oscillator.stop(audioCtx.currentTime + (i * 0.4) + 0.3);
+                }
             } catch(e) { 
                 console.log("Audio API not supported in this browser"); 
             }
@@ -21616,19 +21613,23 @@
                 // Calculate time based on the clock, not the interval loop
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    completeTimer();
-                } else {
-                    updateTimerDisplay();
+                if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                    const isVeryLate = timeLeft < -2;
+                    completeTimer(!isVeryLate);
                 }
+                
+                // Always update display so it dynamically counts into the negatives!
+                updateTimerDisplay();
+                
             }, 1000);
         }
 
         function updateTimerDisplay() {
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${m}:${s}`;
+            const absTime = Math.abs(timeLeft);
+            const m = Math.floor(absTime / 60).toString().padStart(2, '0');
+            const s = (absTime % 60).toString().padStart(2, '0');
+            const sign = timeLeft < 0 ? "-" : "";
+            document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
         }
 
         // UPGRADED ADJUST TIMER
@@ -21636,10 +21637,15 @@
             timerTargetMs += (seconds * 1000); // Shift the target timestamp
             timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
             
-            if (timeLeft < 0) {
-                timeLeft = 0;
-                timerTargetMs = Date.now();
+            const banner = document.getElementById('rest-timer-banner');
+            
+            // If you add time to a finished timer and push it back above 0, it un-finishes!
+            if (timeLeft > 0 && banner.classList.contains('finished')) {
+                banner.classList.remove('finished');
+                const actionBtn = document.getElementById('timer-action-btn');
+                if (actionBtn) actionBtn.innerText = "Skip";
             }
+            
             updateTimerDisplay();
         }
 
@@ -21649,18 +21655,21 @@
             document.getElementById('rest-timer-banner').classList.remove('active');
         }
 
-                function completeTimer() {
+        function completeTimer(playAudio = true) {
             const banner = document.getElementById('rest-timer-banner');
-            document.getElementById('timer-display').innerText = "00:00";
             banner.classList.add('finished');
             
             // Change button text to prompt the user to close it
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
-            playBeep(); // Trigger the audio chime
+            // Vibrate and beep if allowed (muted if returning from background too late)
+            if (playAudio) {
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+                playBeep(); 
+            }
         }
+
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
@@ -21734,16 +21743,25 @@
 
                 let restSeconds = parseInt(el.dataset.rest) || 90; 
 
-                // NEW: Dynamic RPE-Based Rest Timer for Main Lifts (Orange)
-                if (loadInput && loadInput.classList.contains('main-load') && rpeInput && rpeInput.value !== '') {
+                // UPGRADED: Dynamic RPE-Based Rest Timer for ALL Lifts
+                if (loadInput && rpeInput && rpeInput.value !== '') {
                     const rpeVal = parseFloat(rpeInput.value);
                     if (!isNaN(rpeVal)) {
-                        if (rpeVal >= 9) restSeconds = 300;        // RPE 9-10: 5 mins
-                        else if (rpeVal >= 8) restSeconds = 240;   // RPE 8-8.5: 4 mins
-                        else if (rpeVal >= 7) restSeconds = 180;   // RPE 7-7.5: 3 mins
-                        else if (rpeVal >= 6) restSeconds = 150;   // RPE 6-6.5: 2.5 mins
-                        else if (rpeVal >= 5) restSeconds = 120;   // RPE 5-5.5: 2 mins
-                        else restSeconds = 90;                     // RPE < 5: 1.5 mins
+                        if (loadInput.classList.contains('main-load')) {
+                            // Main Lifts Scale (Orange)
+                            if (rpeVal >= 9) restSeconds = 300;        // RPE 9-10: 5 mins
+                            else if (rpeVal >= 8) restSeconds = 240;   // RPE 8-8.5: 4 mins
+                            else if (rpeVal >= 7) restSeconds = 180;   // RPE 7-7.5: 3 mins
+                            else if (rpeVal >= 6) restSeconds = 150;   // RPE 6-6.5: 2.5 mins
+                            else if (rpeVal >= 5) restSeconds = 120;   // RPE 5-5.5: 2 mins
+                            else restSeconds = 90;                     // RPE < 5: 1.5 mins
+                        } else {
+                            // Accessory Lifts Scale (Teal)
+                            if (rpeVal >= 9) restSeconds = 180;        // RPE 9-10: 3 mins
+                            else if (rpeVal >= 8) restSeconds = 150;   // RPE 8-8.5: 2.5 mins
+                            else if (rpeVal >= 7) restSeconds = 120;   // RPE 7-7.5: 2 mins
+                            else restSeconds = 90;                     // RPE < 7: 1.5 mins
+                        }
                     }
                 }
 
@@ -21815,12 +21833,19 @@
                     5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
                 };
 
-                let rInputRpe = Math.max(5, Math.min(10, Math.round(inputRpe * 2) / 2));
-                let rTargetRpe = Math.max(5, Math.min(10, Math.round(block.targetRpe * 2) / 2));
+                // Unlocked to allow RPE down to 0
+                let rInputRpe = Math.max(0, Math.min(10, Math.round(inputRpe * 2) / 2));
+                let rTargetRpe = Math.max(0, Math.min(10, Math.round(block.targetRpe * 2) / 2));
                 let repIndex = Math.max(0, Math.min(11, reps - 1));
 
-                const currentPct = rtsChart[rInputRpe][repIndex];
-                const targetPct = rtsChart[rTargetRpe][repIndex];
+                // NEW: Dynamic Extrapolator for RPE < 5 (Subtracts 2.5% per RPE point dropped)
+                const getPct = (rpe, rIdx) => {
+                    if (rpe >= 5) return rtsChart[rpe][rIdx];
+                    return Math.max(0.1, rtsChart[5][rIdx] - ((5 - rpe) * 0.025));
+                };
+
+                const currentPct = getPct(rInputRpe, repIndex);
+                const targetPct = getPct(rTargetRpe, repIndex);
 
                 const e1rm = weight / currentPct;
                 const newWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
@@ -21829,6 +21854,20 @@
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
                 
                 savedSession[extrasKey] = extrasArray;
+
+                // --- NEW: Auto-update the rest of the standard sets in this block ---
+                const baseSetNum = parseInt(setIdentifier.replace('s', ''));
+                for (let sNum = baseSetNum + 1; sNum <= block.sets; sNum++) {
+                    const upcomingCheckId = `ex-${exIndex}_b${bIndex}_s${sNum}_check`;
+                    const upcomingLoadId = `ex-${exIndex}_b${bIndex}_s${sNum}_load`;
+                    
+                    // Only update future sets if they haven't been completed yet
+                    if (!savedSession[upcomingCheckId]) {
+                        savedSession[upcomingLoadId] = newWeight;
+                    }
+                }
+                // --------------------------------------------------------------------
+
                 localStorage.setItem(workoutKey, JSON.stringify(savedSession));
                 renderWorkout();
 
@@ -21872,9 +21911,9 @@
                 const reps = parseFloat(repsInput.value); 
 
                 // Updated the condition to check if rpe >= 5 (instead of 6)
-                if (weight > 0 && rpe >= 5 && rpe <= 10 && reps > 0) {
+                // Unlocked to allow rpe >= 0
+                if (weight > 0 && rpe >= 0 && rpe <= 10 && reps > 0) {
                     
-                    // Updated Coach's Custom RPE Chart (RPE 5 to 10)
                     const rtsChart = {
                         10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
                         9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
@@ -21890,11 +21929,16 @@
                     };
 
                     let roundedRpe = Math.round(rpe * 2) / 2;
-                    let repIndex = reps - 1;
-                    if (repIndex < 0) repIndex = 0;
-                    if (repIndex > 11) repIndex = 11; 
+                    let repIndex = Math.max(0, Math.min(11, reps - 1));
 
-                    const percentage = rtsChart[roundedRpe][repIndex];
+                    // NEW: Calculate percentage with extrapolation
+                    let percentage = 0;
+                    if (roundedRpe >= 5) {
+                        percentage = rtsChart[roundedRpe][repIndex];
+                    } else {
+                        percentage = Math.max(0.1, rtsChart[5][repIndex] - ((5 - roundedRpe) * 0.025));
+                    }
+                    
                     const e1rm = weight / percentage;
 
                     btn.innerHTML = `<span class="e1rm-label">e1RM</span><span class="e1rm-value">${e1rm.toFixed(1)}</span>`;
@@ -21920,7 +21964,6 @@
                     const e1rm = parseFloat(currentBtn.dataset.e1rm);
                     const clickedRowId = currentBtn.dataset.rowid;
                     
-                    // Grab the actual weight that was lifted on the row you clicked
                     const clickedLoadInput = document.getElementById(`${clickedRowId}_load`);
                     const clickedWeight = clickedLoadInput ? parseFloat(clickedLoadInput.value) : 0;
                     
@@ -21932,7 +21975,6 @@
                         const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
                         if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${e1rm.toFixed(1)}kg`;
 
-                        // Identify WHICH block this button belongs to
                         const clickedBlockMatch = clickedRowId.match(/_b(\d+)_/);
                         const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
 
@@ -21944,24 +21986,61 @@
                                 return; 
                             }
                             
-                            // Identify the block of the upcoming set
                             const targetBlockMatch = targetRowId.match(/_b(\d+)_/);
                             const targetBlockIdx = targetBlockMatch ? targetBlockMatch[1] : null;
                             const pct = parseFloat(loadInput.dataset.pct);
                             
                             if (clickedBlockIdx !== null && clickedBlockIdx === targetBlockIdx) {
-                                // SAME BLOCK: Override the rigid percentage. Cascade the absolute working weight!
+                                // SAME BLOCK: Cascade absolute working weight
                                 if (clickedWeight > 0) {
                                     loadInput.value = clickedWeight;
                                     saveSessionState(loadInput.id, clickedWeight);
-                                    loadInput.dispatchEvent(new Event('input', {bubbles: true})); // Force e1RM buttons to update
+                                    loadInput.dispatchEvent(new Event('input', {bubbles: true})); 
                                 }
-                            } else if (pct) {
-                                // DIFFERENT BLOCK (e.g., Backoffs): Recalculate using the % and the new e1RM
-                                const targetWeight = Math.round((e1rm * pct) / 2.5) * 2.5;
-                                loadInput.value = targetWeight;
-                                saveSessionState(loadInput.id, targetWeight); 
-                                loadInput.dispatchEvent(new Event('input', {bubbles: true}));
+                            } else {
+                                // DIFFERENT BLOCK: Prioritize true Auto-Regulation (RPE) over rigid percentage
+                                const targetRepsInput = document.getElementById(`${targetRowId}_reps`);
+                                const targetRpeInput = document.getElementById(`${targetRowId}_rpe`);
+                                
+                                let targetPct = pct || 0; // Fallback to programmed percent
+                                
+                                if (targetRepsInput && targetRpeInput && targetRpeInput.value) {
+                                    const trReps = parseFloat(targetRepsInput.value);
+                                    const trRpe = parseFloat(targetRpeInput.value);
+                                    
+                                    // Unlocked to allow trRpe >= 0
+                                    if (trReps > 0 && trRpe >= 0 && trRpe <= 10) {
+                                        const rtsChart = {
+                                            10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                                            9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                                            9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                                            8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                                            8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                                            7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                                            7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                                            6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                                            6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                                            5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                                            5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                                        };
+                                        let rRoundedRpe = Math.round(trRpe * 2) / 2;
+                                        let rRepIndex = Math.max(0, Math.min(11, trReps - 1));
+                                        
+                                        // NEW: Apply extrapolation here too
+                                        if (rRoundedRpe >= 5) {
+                                            targetPct = rtsChart[rRoundedRpe][rRepIndex];
+                                        } else {
+                                            targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
+                                        }
+                                    }
+                                }
+
+                                if (targetPct > 0) {
+                                    const targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                                    loadInput.value = targetWeight;
+                                    saveSessionState(loadInput.id, targetWeight); 
+                                    loadInput.dispatchEvent(new Event('input', {bubbles: true}));
+                                }
                             }
                         });
                         
