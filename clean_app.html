@@ -266,8 +266,16 @@
         .coach-notes { text-align: center; color: var(--text-muted); font-size: 14px; font-style: italic; padding: 0 20px 20px 20px; margin: 0; }
         .global-e1rm { text-align: center; color: var(--accent); font-weight: 800; font-size: 14px; padding: 12px 0; background: rgba(249, 115, 22, 0.08); text-transform: uppercase; letter-spacing: 1px; }
         
-        .exercise-container.main-lift { border-top: 4px solid var(--accent); } 
-        .exercise-container.acc-lift { border-top: 4px solid var(--teal); } 
+        .exercise-container.main-lift { 
+            border-top: 4px solid var(--accent); 
+            --theme-color: var(--accent); 
+            --theme-glow: rgba(249, 115, 22, 0.4); 
+        } 
+        .exercise-container.acc-lift { 
+            border-top: 4px solid var(--teal); 
+            --theme-color: var(--teal); 
+            --theme-glow: rgba(20, 184, 166, 0.4); 
+        }
         .exercise-container.main-lift .ex-title-container { background: linear-gradient(to right, rgba(249, 115, 22, 0.15), transparent); }
         .exercise-container.acc-lift .ex-title-container { background: linear-gradient(to right, rgba(20, 184, 166, 0.15), transparent); }
         
@@ -280,7 +288,7 @@
         
         .input-box { background: #121212; border: 1px solid var(--border); color: white; border-radius: 8px; padding: 12px 4px; width: 100%; text-align: center; font-size: 16px; font-weight: 700; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
         .input-box:focus { outline: none; border-color: var(--accent); background: #18181b; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
-        .input-rpe { color: var(--accent); }
+        .input-rpe { color: var(--theme-color, var(--accent)); }
         
         /* DISABLED INPUT STATE STYLING */
         .input-box:disabled {
@@ -292,9 +300,9 @@
             -webkit-text-fill-color: var(--text-muted);
         }
         .input-rpe:disabled {
-            color: var(--accent);
+            color: var(--theme-color, var(--accent));
             opacity: 0.6;
-            -webkit-text-fill-color: var(--accent);
+            -webkit-text-fill-color: var(--theme-color, var(--accent));
         }
 
         /* e1RM PILL DESIGN */
@@ -307,7 +315,11 @@
         
         .check-circle { width: 30px; height: 30px; border: 2px solid #52525b; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0 auto; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); background: #18181b; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
         .check-circle::after { content: '✓'; color: transparent; font-size: 18px; font-weight: 800; transition: 0.2s; }
-        .check-circle.checked { background-color: var(--accent); border-color: var(--accent); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4); }
+        .check-circle.checked { 
+            background-color: var(--theme-color, var(--accent)); 
+            border-color: var(--theme-color, var(--accent)); 
+            box-shadow: 0 4px 12px var(--theme-glow, rgba(249, 115, 22, 0.4)); 
+        }        
         .check-circle.checked::after { color: #000; }
 
         /* --- Standard Warm-Up / DETAILS CARD OVERHAUL --- */
@@ -824,10 +836,15 @@
 
         // NEW: Forces the timer to sync instantly when you switch back to the app
         document.addEventListener("visibilitychange", () => {
-            if (!document.hidden && timerInterval) {
+            const banner = document.getElementById('rest-timer-banner');
+            // Only trigger the sync if the timer UI is actively running
+            const isTimerRunning = banner && banner.classList.contains('active') && !banner.classList.contains('finished');
+            
+            if (!document.hidden && isTimerRunning) {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    timerInterval = null; // Wipe the memory
                     completeTimer();
                 } else {
                     updateTimerDisplay();
@@ -1404,29 +1421,30 @@
                             
                             exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe });
                         }
-                    }
-                    
-                    const extrasKey = `extras_${exIndex}_${bIndex}`;
-                    const extrasArray = savedSession[extrasKey] || [];
-                    
-                    extrasArray.forEach((extraData, eIdx) => {
-                        const extraRowId = `${exId}_b${bIndex}_extra_${eIdx}`;
-                        const extraCheckId = `${extraRowId}_check`;
                         
-                        if (savedSession[extraCheckId]) { 
-                            completedSets++;
-                            const load = parseFloat(savedSession[`${extraRowId}_load`]) || 0;
-                            const rpe = savedSession[`${extraRowId}_rpe`] || '';
+                        // Process extras tied directly to Set 's'
+                        const extrasKey = `extras_${exIndex}_${bIndex}_s${s}`;
+                        const extrasArray = savedSession[extrasKey] || [];
+                        
+                        extrasArray.forEach((extraData, eIdx) => {
+                            const extraRowId = `${rowId}_extra_${eIdx}`;
+                            const extraCheckId = `${extraRowId}_check`;
                             
-                            let actualReps = parseFloat(savedSession[`${extraRowId}_reps`]);
-                            if (isNaN(actualReps)) actualReps = extraData.reps;
-                            
-                            totalVolume += (load * actualReps);
-                            if (load > maxLoad) maxLoad = load;
-                            
-                            exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe, isTargetSet: true });
-                        }
-                    });
+                            if (savedSession[extraCheckId]) { 
+                                completedSets++;
+                                const load = parseFloat(savedSession[`${extraRowId}_load`]) || 0;
+                                const rpe = savedSession[`${extraRowId}_rpe`] || '';
+                                
+                                let actualReps = parseFloat(savedSession[`${extraRowId}_reps`]);
+                                if (isNaN(actualReps)) actualReps = extraData.reps;
+                                
+                                totalVolume += (load * actualReps);
+                                if (load > maxLoad) maxLoad = load;
+                                
+                                exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe, isTargetSet: true });
+                            }
+                        });
+                    }
                 });
                 
                 if (exerciseLog.sets.length > 0) workoutDetails.push(exerciseLog);
@@ -1468,10 +1486,8 @@
                 details: workoutDetails 
             };
             
-            // ---> Replace the old history save lines with these 2 lines:
             workoutHistoryCache.unshift(logEntry); 
-            setDB('workoutHistory', workoutHistoryCache); // Saves silently in background
-            // -----------------------------------------------------------
+            setDB('workoutHistory', workoutHistoryCache);
 
             renderDayPills(); 
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
@@ -2086,12 +2102,10 @@
                 const notesHtml = ex.notes ? `<div class="coach-notes">${ex.notes}</div>` : ''; 
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
-                // Define the dynamic color and SVGs
                 const warmupColor = isMain ? 'var(--accent)' : 'var(--teal)';
                 const warmupSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
                 const timerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>`;
 
-                // NEW: Scan the exercise name to see if it's just a non-lifting block
                 const isNonExercise = /rest|information|info|note/i.test(ex.name);
 
                 html += `
@@ -2163,7 +2177,7 @@
                         restSeconds = 90; 
                     }
 
-                    // --- DRAW STANDARD SETS ---
+                    // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
                         const rowId = `${exId}_b${bIndex}_s${s}`;
                         const repsInputId = `${rowId}_reps`; 
@@ -2197,39 +2211,41 @@
                             <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
                         </div>
                         `;
+
+                        // NEW: Immediately draw any extra target sets spawned by THIS specific set
+                        const extrasKey = `extras_${exIndex}_${bIndex}_s${s}`;
+                        const extrasArray = savedSession[extrasKey] || [];
+                        
+                        extrasArray.forEach((extraData, eIdx) => {
+                            const extraRowId = `${rowId}_extra_${eIdx}`;
+                            const eRepsValue = savedSession[`${extraRowId}_reps`] || extraData.reps;
+                            const eRpeValue = savedSession[`${extraRowId}_rpe`] || extraData.rpe;
+                            const eLoadValue = savedSession[`${extraRowId}_load`] || extraData.weight;
+                            const eIsChecked = savedSession[`${extraRowId}_check`] ? 'checked' : '';
+                            const eDisabledAttr = eIsChecked ? 'disabled' : '';
+                            
+                            const themeColor = isMain ? 'var(--accent)' : 'var(--teal)';
+
+                            const isLatestExtra = (eIdx === extrasArray.length - 1);
+                            const setLabel = isLatestExtra ? 
+                                `<span style="color: ${themeColor}; font-size: 11px; line-height: 1; text-align: center; font-weight:800;">TARGET<br>SET</span>` : 
+                                `<span>${s}.${eIdx + 1}</span>`;
+                                
+                            const borderStyle = isLatestExtra ? `border: 1px dashed ${themeColor};` : `border: 1px solid transparent;`;
+
+                            html += `
+                            <div class="set-row" style="${borderStyle} margin-top: 8px; ${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.6fr 0.8fr;' : ''}">
+                                ${setLabel}
+                                <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
+                                <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
+                                <span><input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" ${eDisabledAttr}></span>
+                                ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
+                            </div>`;
+                        });
                     }
                     
-                    // --- DRAW DYNAMIC EXTRA TARGET SETS ---
-                    const extrasKey = `extras_${exIndex}_${bIndex}`;
-                    const extrasArray = savedSession[extrasKey] || [];
-                    
-                    extrasArray.forEach((extraData, eIdx) => {
-                        const extraRowId = `${exId}_b${bIndex}_extra_${eIdx}`;
-                        const repsValue = savedSession[`${extraRowId}_reps`] || extraData.reps;
-                        const rpeValue = savedSession[`${extraRowId}_rpe`] || extraData.rpe;
-                        const loadValue = savedSession[`${extraRowId}_load`] || extraData.weight;
-                        const isChecked = savedSession[`${extraRowId}_check`] ? 'checked' : '';
-                        const disabledAttr = isChecked ? 'disabled' : '';
-                        
-                        const isLatestExtra = (eIdx === extrasArray.length - 1);
-                        const setLabel = isLatestExtra ? 
-                            `<span style="color: var(--accent); font-size: 11px; line-height: 1; text-align: center; font-weight:800;">TARGET<br>SET</span>` : 
-                            `<span>${block.sets + eIdx + 1}</span>`;
-                            
-                        const borderStyle = isLatestExtra ? `border: 1px dashed var(--accent);` : `border: 1px solid transparent;`;
-
-                        html += `
-                        <div class="set-row" style="${borderStyle} margin-top: 8px; ${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.6fr 0.8fr;' : ''}">
-                            ${setLabel}
-                            <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
-                            <span><input type="number" id="${extraRowId}_rpe" class="input-box input-rpe saveable calc-trigger" data-rowid="${extraRowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
-                            <span><input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" ${disabledAttr}></span>
-                            ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
-                            <span class="check-circle ${isChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
-                        </div>`;
-                    });
-                    
-                    html += `</div>`; 
+                    html += `</div>`; // Close block-container
                 });
                 html += `</div>`;
             });
@@ -2237,7 +2253,6 @@
             html += `</div>`; 
             html += bottomActionUI; 
             
-            // ... (bottom of renderWorkout)
             container.innerHTML = html;
             attachListeners();
             if (isActive) {
@@ -2255,7 +2270,6 @@
             const track = document.getElementById('slider-track');
             const container = document.getElementById('finish-slider');
             if(!thumb || !container) return;
-
             let isDragging = false;
             let startX = 0;
             let maxSlide = container.offsetWidth - 76; 
@@ -2380,6 +2394,7 @@
 
         function closeTimer() {
             clearInterval(timerInterval);
+            timerInterval = null; // Completely clear the variable from memory
             document.getElementById('rest-timer-banner').classList.remove('active');
         }
 
@@ -2438,12 +2453,12 @@
                 }
 
                 // Cascade load and RPE to next sets (but NOT reps, to keep target as default)
+                // Cascade ONLY load to next sets (keep target RPE and reps as default)
                 const match = baseId.match(/(ex-\d+_b\d+)_s(\d+)/);
                 if (match) {
                     const blockPrefix = match[1];
                     let currentSet = parseInt(match[2]);
                     const currentLoad = loadInput ? loadInput.value : '';
-                    const currentRpe = rpeInput ? rpeInput.value : '';
 
                     let nextSet = currentSet + 1;
                     while(true) {
@@ -2452,18 +2467,15 @@
 
                         if (!nextCheck.classList.contains('checked')) {
                             const nextLoad = document.getElementById(`${blockPrefix}_s${nextSet}_load`);
-                            const nextRpe = document.getElementById(`${blockPrefix}_s${nextSet}_rpe`);
 
                             if (nextLoad && currentLoad !== '') {
                                 nextLoad.value = currentLoad;
                                 saveSessionState(nextLoad.id, currentLoad);
+                                
+                                // This triggers the e1RM button on this future set to recalculate 
+                                // using the cascaded weight + its original untouched RPE!
+                                nextLoad.dispatchEvent(new Event('input', {bubbles: true}));
                             }
-                            if (nextRpe && currentRpe !== '') {
-                                nextRpe.value = currentRpe;
-                                saveSessionState(nextRpe.id, currentRpe);
-                            }
-                            
-                            if(nextLoad) nextLoad.dispatchEvent(new Event('input', {bubbles: true}));
                         }
                         nextSet++;
                     }
@@ -2510,44 +2522,29 @@
         }
 
         function checkAndAddTargetRpeSet(rowId, weight, inputRpe, reps) {
-            // Match standard set (s1) or an extra set (extra_0, extra_1, etc.)
-            const match = rowId.match(/ex-(\d+)_b(\d+)_(s\d+|extra_\d+)/);
+            // Match standard set (s1) or an extra set attached to it (s1_extra_0)
+            const match = rowId.match(/ex-(\d+)_b(\d+)_(s\d+)(?:_extra_(\d+))?/);
             if (!match) return;
 
             const exIndex = parseInt(match[1]);
             const bIndex = parseInt(match[2]);
-            const setIdentifier = match[3];
+            const setIdentifier = match[3]; // e.g., 's1', 's2'
+            const extraIdxStr = match[4]; // e.g., undefined, '0', '1'
 
             const ex = db[currentProgram].weeks[selectedWeek][selectedDay][exIndex];
             const block = ex.blocks[bIndex];
 
+            // If the block has no target RPE, we don't calculate anything
             if (!block.targetRpe) return;
-
-            // Identify the Top Block
-            let topBlockIndex = ex.blocks.findIndex(b => b.type === 'top');
-            if (topBlockIndex === -1) {
-                let maxVal = -1;
-                ex.blocks.forEach((blk, idx) => {
-                    let val = blk.targetRpe ? blk.targetRpe : (blk.pct ? blk.pct * 10 : 0);
-                    if (val > maxVal) { maxVal = val; topBlockIndex = idx; }
-                });
-            }
-
-            if (bIndex !== topBlockIndex) return;
             
             // Determine the index of the extra set we are currently evaluating
-            let currentExtraIndex = -1;
-            if (setIdentifier === 's1') {
-                currentExtraIndex = -1; // -1 means we are evaluating the base top set
-            } else if (setIdentifier.startsWith('extra_')) {
-                currentExtraIndex = parseInt(setIdentifier.split('_')[1]);
-            } else {
-                return; // We don't trigger off s2, s3, etc.
-            }
+            let currentExtraIndex = extraIdxStr !== undefined ? parseInt(extraIdxStr) : -1;
 
             const workoutKey = getWorkoutKey();
             let savedSession = safeParse(workoutKey, {});
-            const extrasKey = `extras_${exIndex}_${bIndex}`;
+            
+            // NEW: The memory key is now permanently tied to the specific base set
+            const extrasKey = `extras_${exIndex}_${bIndex}_${setIdentifier}`;
             let extrasArray = savedSession[extrasKey] || [];
 
             // Did we undershoot?
@@ -2567,7 +2564,6 @@
                     5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
                 };
 
-                // Updated Math.max from 6 down to 5
                 let rInputRpe = Math.max(5, Math.min(10, Math.round(inputRpe * 2) / 2));
                 let rTargetRpe = Math.max(5, Math.min(10, Math.round(block.targetRpe * 2) / 2));
                 let repIndex = Math.max(0, Math.min(11, reps - 1));
@@ -2578,7 +2574,6 @@
                 const e1rm = weight / currentPct;
                 const newWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
 
-                // Slice array up to current index... (keep the rest of the function the same)
                 extrasArray = extrasArray.slice(0, currentExtraIndex + 1);
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
                 
@@ -2672,6 +2667,11 @@
                     const exId = currentBtn.dataset.exid;
                     const exName = currentBtn.dataset.exname;
                     const e1rm = parseFloat(currentBtn.dataset.e1rm);
+                    const clickedRowId = currentBtn.dataset.rowid;
+                    
+                    // Grab the actual weight that was lifted on the row you clicked
+                    const clickedLoadInput = document.getElementById(`${clickedRowId}_load`);
+                    const clickedWeight = clickedLoadInput ? parseFloat(clickedLoadInput.value) : 0;
                     
                     if (e1rm > 0) {
                         let saved1RMs = safeParse('global1RMs', {});
@@ -2681,6 +2681,10 @@
                         const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
                         if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${e1rm.toFixed(1)}kg`;
 
+                        // Identify WHICH block this button belongs to
+                        const clickedBlockMatch = clickedRowId.match(/_b(\d+)_/);
+                        const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
+
                         document.querySelectorAll(`.main-load[data-exid="${exId}"]`).forEach(loadInput => {
                             const targetRowId = loadInput.dataset.rowid;
                             const checkCircle = document.getElementById(`${targetRowId}_check`);
@@ -2689,11 +2693,24 @@
                                 return; 
                             }
                             
+                            // Identify the block of the upcoming set
+                            const targetBlockMatch = targetRowId.match(/_b(\d+)_/);
+                            const targetBlockIdx = targetBlockMatch ? targetBlockMatch[1] : null;
                             const pct = parseFloat(loadInput.dataset.pct);
-                            if (pct) {
+                            
+                            if (clickedBlockIdx !== null && clickedBlockIdx === targetBlockIdx) {
+                                // SAME BLOCK: Override the rigid percentage. Cascade the absolute working weight!
+                                if (clickedWeight > 0) {
+                                    loadInput.value = clickedWeight;
+                                    saveSessionState(loadInput.id, clickedWeight);
+                                    loadInput.dispatchEvent(new Event('input', {bubbles: true})); // Force e1RM buttons to update
+                                }
+                            } else if (pct) {
+                                // DIFFERENT BLOCK (e.g., Backoffs): Recalculate using the % and the new e1RM
                                 const targetWeight = Math.round((e1rm * pct) / 2.5) * 2.5;
                                 loadInput.value = targetWeight;
                                 saveSessionState(loadInput.id, targetWeight); 
+                                loadInput.dispatchEvent(new Event('input', {bubbles: true}));
                             }
                         });
                         
