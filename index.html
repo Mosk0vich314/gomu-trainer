@@ -21766,25 +21766,44 @@
         function setupSwipeToDelete() {
             document.querySelectorAll('.exercise-container.swipable').forEach(el => {
                 let startX = 0;
+                let startY = 0;
                 let currentX = 0;
                 let isDragging = false;
+                let isScrolling = false; // NEW: Track if the user is vertically scrolling
 
                 const startDrag = (e) => {
-                    // Ignore swipes if you are clicking on inputs, buttons, or the timer icon
                     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
                     
                     startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; // Track vertical start
                     isDragging = true;
+                    isScrolling = false; // Reset scroll lock
                     el.classList.add('swiping');
                 };
 
                 const moveDrag = (e) => {
                     if (!isDragging) return;
+                    
                     let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    currentX = clientX - startX;
+                    let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    let diffX = clientX - startX;
+                    let diffY = Math.abs(clientY - startY);
+
+                    // NEW: If they move vertically (>10px) more than horizontally, lock it as a scroll!
+                    if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) {
+                        isScrolling = true;
+                    }
+
+                    // If they are scrolling down the page, completely ignore horizontal swipes
+                    if (isScrolling) return;
+
+                    currentX = diffX;
                     
                     // Only allow sliding left
                     if (currentX < 0) {
+                        // Prevent the screen from scrolling vertically while actively swiping left
+                        if (e.cancelable) e.preventDefault(); 
                         el.style.transform = `translateX(${currentX}px)`;
                     }
                 };
@@ -21794,23 +21813,22 @@
                     isDragging = false;
                     el.classList.remove('swiping');
                     
-                    // If swiped more than 100px left, lock it open and trigger delete
-                    if (currentX < -100) {
+                    // Only trigger the delete if they swiped far enough AND weren't scrolling
+                    if (!isScrolling && currentX < -100) {
                         el.style.transform = `translateX(-100%)`;
                         setTimeout(() => { deleteCustomExercise(parseInt(el.dataset.exindex)); }, 200);
                     } else {
-                        // Snap back into place
+                        // Snap back cleanly
                         el.style.transform = `translateX(0px)`;
                     }
                     currentX = 0;
                 };
 
-                // Mobile Touch Events
                 el.addEventListener('touchstart', startDrag, {passive: true});
-                el.addEventListener('touchmove', moveDrag, {passive: true});
+                // CHANGED: passive is now false so we can preventDefault() to freeze the screen while swiping sideways
+                el.addEventListener('touchmove', moveDrag, {passive: false});
                 el.addEventListener('touchend', endDrag);
                 
-                // PC Mouse Events (For Testing)
                 el.addEventListener('mousedown', startDrag);
                 el.addEventListener('mousemove', moveDrag);
                 el.addEventListener('mouseup', endDrag);
@@ -21852,30 +21870,16 @@
             renderWorkout(); 
         };
 
-        // Upgraded 3-Beep Countdown Sound
+        // Custom Audio File Sound
         function playBeep() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // Change 'ding.mp3' to match the exact name and extension of your file
+                const audio = new Audio('./ding.mp3'); 
                 
-                // Play 3 distinct beeps, spaced 0.4 seconds apart
-                for (let i = 0; i < 3; i++) {
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    oscillator.type = 'sine'; 
-                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + (i * 0.4)); 
-                    
-                    gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime + (i * 0.4)); 
-                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + (i * 0.4) + 0.3);
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    oscillator.start(audioCtx.currentTime + (i * 0.4));
-                    oscillator.stop(audioCtx.currentTime + (i * 0.4) + 0.3);
-                }
+                // Play the sound (catch prevents browser errors if the user hasn't interacted with the page yet)
+                audio.play().catch(e => console.log("Audio play blocked by browser:", e));
             } catch(e) { 
-                console.log("Audio API not supported in this browser"); 
+                console.log("Audio not supported", e); 
             }
         }
 
