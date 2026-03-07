@@ -22624,13 +22624,22 @@
                 localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 delete db[pid];
                 
+                // NEW: Safely cancel any active session tied to this deleted template
+                if (activeWorkout && activeWorkout.program === pid) {
+                    activeWorkout = null;
+                    localStorage.removeItem('activeWorkout');
+                    updateBanners();
+                }
+                
                 if (currentProgram === pid) {
                     currentProgram = null;
-                    localStorage.removeItem('activeProgram');
+                    // BUG FIX: Removed the line that was deleting your main activeProgram!
                     document.getElementById('library-screen').classList.add('active');
                     document.getElementById('workout-screen').classList.remove('active');
                 }
+                
                 updateLibraryUI();
+                updateDashboard(); // Refreshes the dashboard to keep it perfectly synced
             }
         };
 
