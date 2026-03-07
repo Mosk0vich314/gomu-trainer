@@ -20660,7 +20660,9 @@
             }
 
             currentProgram = activeWorkout.program;
-            localStorage.setItem('activeProgram', currentProgram);
+            if (!currentProgram.startsWith('Custom_')) {
+                localStorage.setItem('activeProgram', currentProgram);
+            }
             
             selectedWeek = activeWorkout.week;
             selectedDay = activeWorkout.day;
@@ -20727,8 +20729,10 @@
                     if (!confirmed) return;
                 }
                 
-                // NEW: Make this the official active program ONLY when they start a workout
-                localStorage.setItem('activeProgram', currentProgram);
+                // NEW: Make this the official active program ONLY if it is a real database program
+                if (!currentProgram.startsWith('Custom_')) {
+                    localStorage.setItem('activeProgram', currentProgram);
+                }
                 
                 activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
