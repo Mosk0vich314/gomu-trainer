@@ -676,6 +676,21 @@
                 </details>
             </div>
         </details>
+
+        <details class="folder-card">
+            <summary class="folder-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="./boostcamp_logo.jpg" alt="Boostcamp" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
+                    <span>Boostcamp</span>
+                </div>
+                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+            </summary>
+            <div class="folder-content" id="boostcamp-folder-content">
+                <div style="padding: 15px; color: var(--text-muted); font-size: 13px; font-style: italic; text-align: center;">
+                    Awaiting program injection...
+                </div>
+            </div>
+        </details>
     </div>
 
     <div id="history-screen" class="app-screen">
@@ -20316,6 +20331,7 @@
             }
             if(tabId === 'history-screen') {
                 document.getElementById('nav-history').classList.add('active');
+                window.historyDisplayLimit = 3; // NEW: Reset the list to 3 items when entering the tab
                 renderHistory();
                 if (typeof initChartSelect === 'function') initChartSelect(); 
             }
@@ -21046,7 +21062,11 @@
                 return;
             }
 
-            historyContainer.innerHTML = history.map(log => {
+            // Slice the array based on the current limit (defaults to 3)
+            const limit = window.historyDisplayLimit || 3;
+            const visibleHistory = history.slice(0, limit);
+
+            let html = visibleHistory.map(log => {
                 let detailsHtml = '';
                 if (log.details && log.details.length > 0) {
                     detailsHtml = `<div class="history-details">`;
@@ -21080,7 +21100,40 @@
                 </details>
                 `;
             }).join('');
+
+            // Render Clean Pagination Buttons
+            let buttonsHtml = '<div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; margin-bottom: 25px;">';
+            let showButtons = false;
+
+            // Show "Show Less" if expanded
+            if (limit > 3) {
+                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick="collapseHistory()">▲ Show Less</button>`;
+                showButtons = true;
+            }
+
+            // Show "See More" if there's more history
+            if (history.length > limit) {
+                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.08); color: var(--text-main);" onclick="loadMoreHistory()">▼ See More</button>`;
+                showButtons = true;
+            }
+
+            buttonsHtml += '</div>';
+
+            if (showButtons) html += buttonsHtml;
+
+            historyContainer.innerHTML = html;
         }
+
+        window.loadMoreHistory = function() {
+            window.historyDisplayLimit = (window.historyDisplayLimit || 3) + 5; 
+            renderHistory();
+        };
+
+        window.collapseHistory = function() {
+            window.historyDisplayLimit = 3; 
+            renderHistory();
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Smoothly snaps back to the top!
+        };
 
         async function deleteHistoryLog(id, key) {
             const confirmed = await showConfirm(
