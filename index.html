@@ -93,7 +93,11 @@
         .program-card:active { transform: scale(0.97); border-color: var(--accent); }
         .program-title { font-size: 17px; font-weight: 600; margin: 0 0 4px 0; }
         .program-desc { color: var(--text-muted); font-size: 13px; margin: 0; }
-        
+        /* SWIPE TO DELETE */
+        .swipe-wrapper { position: relative; margin-bottom: 30px; border-radius: 20px; background: var(--danger); overflow: hidden; box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
+        .swipe-delete-bg { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; font-size: 12px; pointer-events: none; }
+        .exercise-container.swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; margin-bottom: 0; box-shadow: none; border: 1px solid var(--border); }
+        .exercise-container.swiping { transition: none; }
         /* Modals (Onboarding & Warmups & Confirmation) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; backdrop-filter: blur(8px); }
         .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -104,8 +108,7 @@
         
         .modal-input-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; text-align: left; }
         .modal-input-group label { font-weight: 600; color: var(--text-muted); font-size: 14px; }
-        .modal-input-group input { background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 800; }
-        .modal-input-group input:focus { border-color: var(--accent); outline: none; }
+        .modal-input-group input { background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 800; width: 100%; box-sizing: border-box; }        .modal-input-group input:focus { border-color: var(--accent); outline: none; }
         
         .modal-actions { display: flex; gap: 10px; }
         .modal-btn { flex: 1; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; transition: 0.2s; }
@@ -432,6 +435,48 @@
     </style>
 </head>
 <body>
+    <div id="add-exercise-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 style="margin-bottom: 20px;">Add Exercise</h2>
+            <div class="modal-input-group">
+                <label>Exercise Name</label>
+                <input type="text" id="add-ex-name" placeholder="e.g. Incline Dumbbell Press">
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <div style="flex: 1;">
+                        <label>Sets</label>
+                        <input type="number" id="add-ex-sets" value="3" inputmode="numeric">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Reps</label>
+                        <input type="number" id="add-ex-reps" value="10" inputmode="numeric">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>RPE (Opt)</label>
+                        <input type="number" id="add-ex-rpe" placeholder="7.5" step="0.5" inputmode="decimal">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="document.getElementById('add-exercise-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="submitNewExercise()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-custom-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>Save Template?</h2>
+            <p>Give this on-the-fly workout a name to save it to your Library for next time.</p>
+            <div class="modal-input-group">
+                <input type="text" id="save-custom-name" placeholder="e.g. Heavy Push Day">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="skipSaveCustom()">Skip</button>
+                <button class="modal-btn confirm" onclick="confirmSaveCustom()">Save</button>
+            </div>
+        </div>
+    </div>
 
     <div id="onboarding-modal" class="modal-overlay">
         <div class="modal-card">
@@ -573,7 +618,17 @@
             <h1 class="screen-title">Library</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your training programs.</p>
         </div>
-
+        <details class="folder-card" id="custom-folder">
+            <summary class="folder-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 20px;">🛠️</span>
+                    <span>Custom</span>
+                </div>
+                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+            </summary>
+            <div class="folder-content" id="custom-folder-content">
+                </div>
+        </details>
         <details class="folder-card">
             <summary class="folder-header">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -704,7 +759,7 @@
             <div class="pill-scroll" id="day-pills"></div>
         </div>
 
-        <details class="warmup-card" style="margin-bottom: 20px;">
+        <details class="warmup-card" id="program-management-card" style="margin-bottom: 20px;">
             <summary class="warmup-summary" style="color: var(--text-muted);">
                 <span>⚙️ Program Management</span>
                 <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
@@ -20269,8 +20324,27 @@
             updateBanners();
         }
         function updateLibraryUI() {
-            const mainProgram = localStorage.getItem('activeProgram'); // The true active program
+            const mainProgram = localStorage.getItem('activeProgram'); 
             
+            // NEW: Inject Custom Programs dynamically
+            const customFolderContent = document.getElementById('custom-folder-content');
+            if (customFolderContent) {
+                const customProgs = safeParse('customPrograms', {});
+                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 15px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">+ Start Empty Workout</button>`;
+                
+                Object.keys(customProgs).forEach(pid => {
+                    html += `
+                    <div class="program-card" style="display: flex; justify-content: space-between; align-items: center;" onclick="startProgram('${pid}')">
+                        <div>
+                            <h3 class="program-title" style="margin-bottom: 4px;">${customProgs[pid].name}</h3>
+                            <p class="program-desc">Custom Template</p>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteCustomProgram('${pid}')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s;">🗑️</button>
+                    </div>`;
+                });
+                customFolderContent.innerHTML = html;
+            }
+
             const isProgramFinished = (pid) => {
                 if (!db[pid] || !db[pid].weeks) return false;
                 let total = 0, completed = 0;
@@ -20290,7 +20364,6 @@
                 const existingBadge = title.querySelector('.active-badge');
                 if (existingBadge) existingBadge.remove();
 
-                // Check against the true main program
                 if (pid === mainProgram && !isProgramFinished(pid)) {
                     card.style.borderColor = 'var(--accent)';
                     title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(249, 115, 22, 0.1); border-radius: 4px;">ACTIVE</span>';
@@ -20315,7 +20388,7 @@
             }
 
             // --- PROGRESS BAR LOGIC ---
-            if (mainProgram && db[mainProgram]) {
+            if (mainProgram && db[mainProgram] && !mainProgram.startsWith('Custom_')) {
                 let totalDays = 0;
                 let doneDays = 0;
                 Object.keys(db[mainProgram].weeks).forEach(w => {
@@ -20337,7 +20410,7 @@
             }
 
             // --- HERO CARD LOGIC ---
-            if (mainProgram && !activeWorkout && db[mainProgram]) {
+            if (mainProgram && !activeWorkout && db[mainProgram] && !mainProgram.startsWith('Custom_')) {
                 let nextW = null, nextD = null;
                 const weeks = Object.keys(db[mainProgram].weeks).sort((a,b) => a - b);
                 for (let w of weeks) {
@@ -20552,8 +20625,9 @@
             const banner = document.getElementById('floating-banner');
             const currentTabId = document.querySelector('.app-screen.active').id;
             
-            if (activeWorkout && currentTabId !== 'workout-screen' && currentTabId !== 'home-screen' && currentTabId !== 'summary-screen') {
-                const pName = db[activeWorkout.program]?.name || activeWorkout.program;
+            // ZOMBIE CHECK: Added db[activeWorkout.program] to ensure we only show banners for completely valid programs
+            if (activeWorkout && db[activeWorkout.program] && currentTabId !== 'workout-screen' && currentTabId !== 'home-screen' && currentTabId !== 'summary-screen') {
+                const pName = db[activeWorkout.program].name;
                 
                 banner.innerHTML = `
                     <div style="display:flex; align-items:center; flex:1; overflow: hidden;">
@@ -20567,7 +20641,7 @@
                     </div>
                     <div class="fb-action">Resume</div>
                 `;
-                banner.style.display = 'flex'; // Uses flex instead of block for the new layout
+                banner.style.display = 'flex'; 
             } else {
                 banner.style.display = 'none';
             }
@@ -20575,6 +20649,16 @@
 
         function resumeWorkout() {
             if (!activeWorkout) return;
+            
+            // NEW: Zombie Killer - If the program memory is corrupted or missing, silently destroy it and abort!
+            if (!db[activeWorkout.program]) {
+                activeWorkout = null;
+                localStorage.removeItem('activeWorkout');
+                updateBanners();
+                updateDashboard();
+                return;
+            }
+
             currentProgram = activeWorkout.program;
             localStorage.setItem('activeProgram', currentProgram);
             
@@ -20591,17 +20675,16 @@
             renderWorkout();
             updateBanners();
 
-            // NEW: Auto-scroll to the next available unchecked set
+            // Auto-scroll to the next available unchecked set
             setTimeout(() => {
                 const nextSet = document.querySelector('#workout-container .check-circle:not(.checked)');
                 if (nextSet) {
-                    // Get the position and offset by 150px so it sits nicely below the sticky headers
                     const y = nextSet.getBoundingClientRect().top + window.scrollY - 150;
                     window.scrollTo({ top: y, behavior: 'smooth' });
                 } else {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            }, 150); // Small 150ms delay to ensure the DOM has fully painted the workout
+            }, 150); 
         }
 
         function getWorkoutKey() {
@@ -21308,26 +21391,55 @@
             
             document.getElementById('workout-program-title').innerText = db[currentProgram]?.name || "Workout";
             
-            const exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay];
-            
-            if (!exercises) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Rest Day / No Data Available</div>';
-                return;
-            }
-
+            // 1. Define all our states FIRST so the app doesn't crash
             const currentKey = getWorkoutKey();
             const isCompleted = completedDays[currentKey];
             const isActive = activeWorkout && activeWorkout.key === currentKey;
             const isPreview = !isCompleted && !isActive;
 
+            // 2. DECLARED ONLY ONCE: Check if it is a Custom Program
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
+
+            // 3. Hide Program Management tab for Custom Workouts
+            const pmCard = document.getElementById('program-management-card');
+            if (pmCard) {
+                pmCard.style.display = isCustomProgram ? 'none' : 'block';
+            }
+
+            // 4. Hide Week/Day pills for Custom Workouts
+            document.querySelectorAll('.pill-scroll-container').forEach(pContainer => {
+                pContainer.style.display = isCustomProgram ? 'none' : 'block';
+            });
+
+            let exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay];
+            
+            // If it's a custom program but the array is missing, force it to be an empty array
+            if (isCustomProgram && !exercises) {
+                exercises = [];
+            }
+            
+            // 5. NOW we can safely check if we should show the empty state
+            if (!exercises || (exercises.length === 0 && !isCustomProgram)) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Rest Day / No Data Available</div>';
+                return;
+            }
+
             let topActionUI = '';
             let bottomActionUI = '';
 
             if (isCompleted) {
-                topActionUI = `
-                    <div class="status-header">
-                        <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
-                    </div>`;
+                if (isCustomProgram) {
+                    topActionUI = `
+                        <div class="status-header" style="flex-direction: column; gap: 15px;">
+                            <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
+                            <button class="action-btn" style="background: var(--teal); color: #000; margin: 0; padding: 12px;" onclick="restartCustomWorkout()">▶ Run Template Again</button>
+                        </div>`;
+                } else {
+                    topActionUI = `
+                        <div class="status-header">
+                            <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
+                        </div>`;
+                }
             } else if (isActive) {
             bottomActionUI = `
             <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px;">
@@ -21381,8 +21493,27 @@
 
                 const isNonExercise = /rest|information|info|note/i.test(ex.name);
 
+                // NEW: Swipe-to-delete wrapper for Custom Workouts
+                let wrapperStart = '';
+                let wrapperEnd = '';
+                let swipeClass = '';
+                let dataIdx = '';
+                
+                if (isCustomProgram && !isCompleted) {
+                    wrapperStart = `
+                    <div class="swipe-wrapper" id="swipe-wrapper-${exId}">
+                        <div class="swipe-delete-bg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            <span>DELETE</span>
+                        </div>`;
+                    wrapperEnd = `</div>`;
+                    swipeClass = 'swipable';
+                    dataIdx = `data-exindex="${exIndex}"`;
+                }
+
                 html += `
-                <div class="exercise-container ${liftClass}" id="${exId}">
+                ${wrapperStart}
+                <div class="exercise-container ${liftClass} ${swipeClass}" id="${exId}" ${dataIdx}>
                     <div class="ex-title-container">
                         
                         ${isNonExercise ? '' : `
@@ -21521,13 +21652,23 @@
                     html += `</div>`; // Close block-container
                 });
                 html += `</div>`;
+                html += wrapperEnd; // NEW: Close the swipe wrapper
             });
             
-            html += `</div>`; 
-            html += bottomActionUI; 
+            html += `</div>`; // CLOSE THE PREVIEW WRAPPER FIRST!
+            
+            // NEW: Render the "+ Add Exercise" button safely OUTSIDE the frozen preview box
+            if (!isCompleted && isCustomProgram) {
+                html += `<button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin-top: 20px; margin-bottom: 20px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add Exercise</button>`;
+            }
+            
+            html += bottomActionUI;
             
             container.innerHTML = html;
             attachListeners();
+            if (isCustomProgram && !isCompleted) {
+                setupSwipeToDelete();
+            }
             if (isActive) {
                 setupSlider(); 
                 if (typeof startWorkoutTimer === 'function') startWorkoutTimer();
@@ -21594,6 +21735,84 @@
             document.addEventListener('touchmove', onMove, {passive: false});
             document.addEventListener('touchend', onEnd);
         }
+
+        function setupSwipeToDelete() {
+            document.querySelectorAll('.exercise-container.swipable').forEach(el => {
+                let startX = 0;
+                let currentX = 0;
+                let isDragging = false;
+
+                const startDrag = (e) => {
+                    // Ignore swipes if you are clicking on inputs, buttons, or the timer icon
+                    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+                    
+                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    isDragging = true;
+                    el.classList.add('swiping');
+                };
+
+                const moveDrag = (e) => {
+                    if (!isDragging) return;
+                    let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    currentX = clientX - startX;
+                    
+                    // Only allow sliding left
+                    if (currentX < 0) {
+                        el.style.transform = `translateX(${currentX}px)`;
+                    }
+                };
+
+                const endDrag = (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    el.classList.remove('swiping');
+                    
+                    // If swiped more than 100px left, lock it open and trigger delete
+                    if (currentX < -100) {
+                        el.style.transform = `translateX(-100%)`;
+                        setTimeout(() => { deleteCustomExercise(parseInt(el.dataset.exindex)); }, 200);
+                    } else {
+                        // Snap back into place
+                        el.style.transform = `translateX(0px)`;
+                    }
+                    currentX = 0;
+                };
+
+                // Mobile Touch Events
+                el.addEventListener('touchstart', startDrag, {passive: true});
+                el.addEventListener('touchmove', moveDrag, {passive: true});
+                el.addEventListener('touchend', endDrag);
+                
+                // PC Mouse Events (For Testing)
+                el.addEventListener('mousedown', startDrag);
+                el.addEventListener('mousemove', moveDrag);
+                el.addEventListener('mouseup', endDrag);
+                el.addEventListener('mouseleave', endDrag);
+            });
+        }
+
+        window.deleteCustomExercise = async function(exIndex) {
+            const confirmed = await showConfirm(
+                "Delete Exercise?",
+                "Remove this exercise from your custom workout?",
+                "Delete",
+                "Cancel",
+                true
+            );
+            
+            if (confirmed) {
+                db[currentProgram].weeks[selectedWeek][selectedDay].splice(exIndex, 1);
+                
+                const customProgs = safeParse('customPrograms', {});
+                if (customProgs[currentProgram]) {
+                    customProgs[currentProgram] = db[currentProgram];
+                    localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                }
+            }
+            
+            // Re-render to either make it disappear, or snap it back if cancelled
+            renderWorkout(); 
+        };
 
         // Upgraded 3-Beep Countdown Sound
         function playBeep() {
@@ -22159,7 +22378,176 @@
                 updateDashboard();
             }
         }
+        // --- CUSTOM WORKOUT LOGIC ---
 
+        const originalInitApp = initApp;
+        initApp = async function() {
+            const customProgs = safeParse('customPrograms', {});
+            Object.keys(customProgs).forEach(k => { db[k] = customProgs[k]; });
+            await originalInitApp();
+        };
+
+        const originalToggleWorkoutState = toggleWorkoutState;
+        toggleWorkoutState = async function(action) {
+            const customProgs = safeParse('customPrograms', {});
+            const isCustom = !!customProgs[currentProgram];
+
+            // Only prompt for a name if it's a custom workout and hasn't been named yet!
+            if (action === 'finish' && isCustom && db[currentProgram].name === "On-the-Fly Workout") {
+                const keyForSummary = getWorkoutKey(); 
+                const durationMs = activeWorkout && activeWorkout.startTime ? (Date.now() - activeWorkout.startTime) : 0;
+                
+                document.getElementById('save-custom-modal').style.display = 'flex';
+                window.pendingFinishData = { key: keyForSummary, duration: durationMs };
+                return; // Pauses the finish process
+            }
+            return await originalToggleWorkoutState(action);
+        };
+
+        function executeFinish(key, durationMs) {
+            completedDays[key] = true;
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            activeWorkout = null;
+            localStorage.removeItem('activeWorkout');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeTimer();
+            if (typeof workoutDurationInterval !== 'undefined') clearInterval(workoutDurationInterval);
+            const timerEl = document.getElementById('workout-duration');
+            if (timerEl) timerEl.style.display = 'none';
+            generateSummary(key, durationMs); 
+            updateDashboard();
+        }
+
+        window.startCustomWorkout = async function() {
+            const customId = 'Custom_' + Date.now();
+            db[customId] = {
+                name: "On-the-Fly Workout",
+                weeks: { 1: { 1: [] } } 
+            };
+            
+            let customProgs = safeParse('customPrograms', {});
+            customProgs[customId] = db[customId];
+            localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            
+            currentProgram = customId;
+            selectedWeek = '1';
+            selectedDay = '1';
+            
+            // Note: We intentionally DO NOT set `activeWorkout` here so it acts purely as a preview 
+            // until you actually click "Start Workout"!
+            
+            updateLibraryUI();
+            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById('workout-screen').classList.add('active');
+            renderWeekPills();
+            renderDayPills();
+            renderWorkout();
+            updateBanners();
+        };
+
+        window.submitNewExercise = function() {
+            const name = document.getElementById('add-ex-name').value.trim() || "New Exercise";
+            const sets = parseInt(document.getElementById('add-ex-sets').value) || 3;
+            const reps = parseInt(document.getElementById('add-ex-reps').value) || 10;
+            const rpeVal = parseFloat(document.getElementById('add-ex-rpe').value);
+            
+            const isMain = name.toLowerCase().includes('squat') || name.toLowerCase().includes('bench') || name.toLowerCase().includes('deadlift');
+            const newBlock = { type: 'work', sets: sets, reps: reps, targetRpe: isNaN(rpeVal) ? null : rpeVal };
+            const dayExercises = db[currentProgram].weeks[selectedWeek][selectedDay];
+            
+            // NEW: Auto-Merge Block if the exercise name is identical to the last one!
+            if (dayExercises.length > 0 && dayExercises[dayExercises.length - 1].name.toLowerCase() === name.toLowerCase()) {
+                dayExercises[dayExercises.length - 1].blocks.push(newBlock);
+            } else {
+                const newEx = {
+                    name: name,
+                    type: isMain ? 'main' : 'accessory',
+                    blocks: [newBlock]
+                };
+                dayExercises.push(newEx);
+            }
+            
+            const customProgs = safeParse('customPrograms', {});
+            if (customProgs[currentProgram]) {
+                customProgs[currentProgram] = db[currentProgram];
+                localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            }
+            
+            document.getElementById('add-exercise-modal').style.display = 'none';
+            document.getElementById('add-ex-name').value = '';
+            document.getElementById('add-ex-rpe').value = '';
+            renderWorkout();
+        };
+
+        window.deleteCustomProgram = async function(pid) {
+            const confirmed = await showConfirm(
+                "Delete Custom Template?",
+                "Are you sure you want to delete this custom workout? Your logged history will remain safe.",
+                "Delete",
+                "Cancel",
+                true
+            );
+            if (confirmed) {
+                let customProgs = safeParse('customPrograms', {});
+                delete customProgs[pid];
+                localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                delete db[pid];
+                
+                if (currentProgram === pid) {
+                    currentProgram = null;
+                    localStorage.removeItem('activeProgram');
+                    document.getElementById('library-screen').classList.add('active');
+                    document.getElementById('workout-screen').classList.remove('active');
+                }
+                updateLibraryUI();
+            }
+        };
+
+        window.confirmSaveCustom = function() {
+            const name = document.getElementById('save-custom-name').value.trim() || "My Custom Workout";
+            db[currentProgram].name = name;
+            
+            let customProgs = safeParse('customPrograms', {});
+            customProgs[currentProgram] = db[currentProgram];
+            localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            
+            document.getElementById('save-custom-modal').style.display = 'none';
+            updateLibraryUI();
+            
+            if (window.pendingFinishData) {
+                executeFinish(window.pendingFinishData.key, window.pendingFinishData.duration);
+                window.pendingFinishData = null;
+            }
+        };
+
+        window.skipSaveCustom = function() {
+            document.getElementById('save-custom-modal').style.display = 'none';
+            if (window.pendingFinishData) {
+                executeFinish(window.pendingFinishData.key, window.pendingFinishData.duration);
+                window.pendingFinishData = null;
+            }
+        };
+        window.restartCustomWorkout = async function() {
+            const confirmed = await showConfirm(
+                "Run Template Again?",
+                "This will clear the checkmarks from your last session so you can run this workout fresh today. (Your past history logs are safe!)",
+                "Start Fresh",
+                "Cancel",
+                false
+            );
+            
+            if (confirmed) {
+                const key = getWorkoutKey();
+                
+                // Clear old checkmarks and session data so the boxes unlock
+                localStorage.removeItem(key); 
+                delete completedDays[key];
+                localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                
+                // Fire up the timer and start the workout immediately!
+                toggleWorkoutState('start');
+            }
+        };
         initApp();
     </script>
 </body>
