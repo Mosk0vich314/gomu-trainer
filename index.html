@@ -20691,6 +20691,27 @@
             return `${currentProgram}_w${selectedWeek}_d${selectedDay}`;
         }
 
+        function getActiveExercises(prog, w, d, key) {
+            let base = db[prog]?.weeks[w]?.[d] || [];
+            let exercises = JSON.parse(JSON.stringify(base)); // Deep copy the database so we don't mutate it
+            
+            let saved = safeParse(key, {});
+            
+            // Append temporary exercises
+            if (saved.addedExercises) {
+                exercises = exercises.concat(JSON.parse(JSON.stringify(saved.addedExercises)));
+            }
+            
+            // Mask out temporarily deleted exercises
+            if (saved.deletedIndices) {
+                saved.deletedIndices.forEach(idx => {
+                    if (exercises[idx]) exercises[idx].isDeleted = true;
+                });
+            }
+            
+            return exercises;
+        }
+
         async function toggleWorkoutState(action) {
             const key = getWorkoutKey();
             
@@ -20746,7 +20767,7 @@
 
         function generateSummary(key, durationMs = 0) {
             const savedSession = safeParse(key, {});
-            const exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay] || [];
+            const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
             
             let totalVolume = 0;
             let completedSets = 0;
@@ -20756,6 +20777,7 @@
             let workoutDetails = [];
 
             exercises.forEach((ex, exIndex) => {
+                if (ex.isDeleted) return; // NEW: Ignore deleted exercises in the summary log
                 const exId = `ex-${exIndex}`;
                 let exerciseLog = { name: ex.name, sets: [] };
 
@@ -21411,15 +21433,11 @@
                 pContainer.style.display = isCustomProgram ? 'none' : 'block';
             });
 
-            let exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay];
+            // 5. Handle Empty states & On-the-Fly modifications safely
+            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, currentKey);
+            const activeCount = exercises.filter(ex => !ex.isDeleted).length;
             
-            // If it's a custom program but the array is missing, force it to be an empty array
-            if (isCustomProgram && !exercises) {
-                exercises = [];
-            }
-            
-            // 5. NOW we can safely check if we should show the empty state
-            if (!exercises || (exercises.length === 0 && !isCustomProgram)) {
+            if (activeCount === 0 && !isCustomProgram) {
                 container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Rest Day / No Data Available</div>';
                 return;
             }
@@ -21464,6 +21482,8 @@
             const lastUsedWeights = safeParse('lastUsedWeights', {});
 
             exercises.forEach((ex, exIndex) => {
+                if (ex.isDeleted) return; // Skip rendering deleted exercises!
+                
                 const exId = `ex-${exIndex}`;
                 const isMain = ex.type === 'main';
                 const nameLower = ex.name.toLowerCase();
@@ -21499,7 +21519,7 @@
                 let swipeClass = '';
                 let dataIdx = '';
                 
-                if (isCustomProgram && !isCompleted) {
+                if (!isCompleted) {
                     wrapperStart = `
                     <div class="swipe-wrapper" id="swipe-wrapper-${exId}">
                         <div class="swipe-delete-bg">
@@ -21557,13 +21577,6 @@
                         </div>
                     `;
 
-                    let smartDefaultLoad = '';
-                    if (block.pct && resolved1RM > 0) {
-                        smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
-                    } else if (!block.pct && lastUsedWeights[ex.name]) {
-                        smartDefaultLoad = lastUsedWeights[ex.name]; 
-                    }
-
                     let restSeconds = 120;
                     if (isMain) {
                         if (block.type === 'top') {
@@ -21583,6 +21596,18 @@
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
+                        let smartDefaultLoad = '';
+                        if (block.pct && resolved1RM > 0) {
+                            smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
+                        } else if (!block.pct && lastUsedWeights[ex.name]) {
+                            // NEW: Smart look-up per set!
+                            if (typeof lastUsedWeights[ex.name] === 'object' && lastUsedWeights[ex.name] !== null) {
+                                smartDefaultLoad = lastUsedWeights[ex.name][`_b${bIndex}_s${s}`] || lastUsedWeights[ex.name].fallback || '';
+                            } else {
+                                smartDefaultLoad = lastUsedWeights[ex.name]; 
+                            }
+                        }
+
                         const rowId = `${exId}_b${bIndex}_s${s}`;
                         const repsInputId = `${rowId}_reps`; 
                         const rpeInputId = `${rowId}_rpe`;
@@ -21657,8 +21682,8 @@
             
             html += `</div>`; // CLOSE THE PREVIEW WRAPPER FIRST!
             
-            // NEW: Render the "+ Add Exercise" button safely OUTSIDE the frozen preview box
-            if (!isCompleted && isCustomProgram) {
+            // Show Add Exercise for ANY uncompleted workout
+            if (!isCompleted) {
                 html += `<button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin-top: 20px; margin-bottom: 20px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add Exercise</button>`;
             }
             
@@ -21666,7 +21691,9 @@
             
             container.innerHTML = html;
             attachListeners();
-            if (isCustomProgram && !isCompleted) {
+            
+            // Initialize swipe logic for ANY uncompleted workout
+            if (!isCompleted) {
                 setupSwipeToDelete();
             }
             if (isActive) {
@@ -21792,25 +21819,36 @@
         }
 
         window.deleteCustomExercise = async function(exIndex) {
-            const confirmed = await showConfirm(
-                "Delete Exercise?",
-                "Remove this exercise from your custom workout?",
-                "Delete",
-                "Cancel",
-                true
-            );
+            const confirmed = await showConfirm("Delete Exercise?", "Remove this exercise from your workout?", "Delete", "Cancel", true);
+            if (!confirmed) { renderWorkout(); return; } // The render will snap the swiped element back
             
-            if (confirmed) {
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
+            
+            if (isCustomProgram) {
+                // Permanently edit the custom template
                 db[currentProgram].weeks[selectedWeek][selectedDay].splice(exIndex, 1);
-                
                 const customProgs = safeParse('customPrograms', {});
                 if (customProgs[currentProgram]) {
                     customProgs[currentProgram] = db[currentProgram];
                     localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 }
+            } else {
+                // On-the-fly edit for rigid database programs
+                const key = getWorkoutKey();
+                let savedSession = safeParse(key, {});
+                const baseLen = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay]?.length || 0;
+                
+                if (exIndex >= baseLen) {
+                    // You deleted an exercise you temporarily added
+                    if (!savedSession.addedExercises) savedSession.addedExercises = [];
+                    savedSession.addedExercises[exIndex - baseLen].isDeleted = true;
+                } else {
+                    // You deleted a core database exercise
+                    if (!savedSession.deletedIndices) savedSession.deletedIndices = [];
+                    savedSession.deletedIndices.push(exIndex);
+                }
+                localStorage.setItem(key, JSON.stringify(savedSession));
             }
-            
-            // Re-render to either make it disappear, or snap it back if cancelled
             renderWorkout(); 
         };
 
@@ -21940,7 +21978,14 @@
                     
                     const exName = loadInput.dataset.exname;
                     let lastUsed = safeParse('lastUsedWeights', {});
-                    lastUsed[exName] = loadInput.value;
+                    
+                    // NEW: Convert old memory to object and save strictly by Set Number
+                    if (typeof lastUsed[exName] !== 'object' || lastUsed[exName] === null) {
+                        lastUsed[exName] = { fallback: lastUsed[exName] };
+                    }
+                    const suffixMatch = loadInput.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
+                    if (suffixMatch) lastUsed[exName][suffixMatch[0]] = loadInput.value;
+                    
                     localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
 
                     if (!isNaN(val)) {
@@ -22135,7 +22180,15 @@
                     saveSessionState(e.target.id, e.target.value);
                     if(e.target.id.includes('_load') && e.target.value) {
                         let lastUsed = safeParse('lastUsedWeights', {});
-                        lastUsed[e.target.dataset.exname] = e.target.value;
+                        const exName = e.target.dataset.exname;
+                        
+                        // NEW: Save strictly by Set Number when typing
+                        if (typeof lastUsed[exName] !== 'object' || lastUsed[exName] === null) {
+                            lastUsed[exName] = { fallback: lastUsed[exName] };
+                        }
+                        const suffixMatch = e.target.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
+                        if (suffixMatch) lastUsed[exName][suffixMatch[0]] = e.target.value;
+                        
                         localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
                     }
                 });
@@ -22450,27 +22503,37 @@
             const sets = parseInt(document.getElementById('add-ex-sets').value) || 3;
             const reps = parseInt(document.getElementById('add-ex-reps').value) || 10;
             const rpeVal = parseFloat(document.getElementById('add-ex-rpe').value);
-            
             const isMain = name.toLowerCase().includes('squat') || name.toLowerCase().includes('bench') || name.toLowerCase().includes('deadlift');
             const newBlock = { type: 'work', sets: sets, reps: reps, targetRpe: isNaN(rpeVal) ? null : rpeVal };
-            const dayExercises = db[currentProgram].weeks[selectedWeek][selectedDay];
             
-            // NEW: Auto-Merge Block if the exercise name is identical to the last one!
-            if (dayExercises.length > 0 && dayExercises[dayExercises.length - 1].name.toLowerCase() === name.toLowerCase()) {
-                dayExercises[dayExercises.length - 1].blocks.push(newBlock);
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
+            
+            if (isCustomProgram) {
+                // Permanently edit the custom template
+                const dayExercises = db[currentProgram].weeks[selectedWeek][selectedDay];
+                if (dayExercises.length > 0 && dayExercises[dayExercises.length - 1].name.toLowerCase() === name.toLowerCase()) {
+                    dayExercises[dayExercises.length - 1].blocks.push(newBlock);
+                } else {
+                    dayExercises.push({ name: name, type: isMain ? 'main' : 'accessory', blocks: [newBlock] });
+                }
+                const customProgs = safeParse('customPrograms', {});
+                if (customProgs[currentProgram]) {
+                    customProgs[currentProgram] = db[currentProgram];
+                    localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                }
             } else {
-                const newEx = {
-                    name: name,
-                    type: isMain ? 'main' : 'accessory',
-                    blocks: [newBlock]
-                };
-                dayExercises.push(newEx);
-            }
-            
-            const customProgs = safeParse('customPrograms', {});
-            if (customProgs[currentProgram]) {
-                customProgs[currentProgram] = db[currentProgram];
-                localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                // On-the-fly edit for rigid database programs (Saved to session memory only)
+                const key = getWorkoutKey();
+                let savedSession = safeParse(key, {});
+                if (!savedSession.addedExercises) savedSession.addedExercises = [];
+                
+                const lastAdded = savedSession.addedExercises[savedSession.addedExercises.length - 1];
+                if (lastAdded && !lastAdded.isDeleted && lastAdded.name.toLowerCase() === name.toLowerCase()) {
+                    lastAdded.blocks.push(newBlock);
+                } else {
+                    savedSession.addedExercises.push({ name: name, type: isMain ? 'main' : 'accessory', blocks: [newBlock] });
+                }
+                localStorage.setItem(key, JSON.stringify(savedSession));
             }
             
             document.getElementById('add-exercise-modal').style.display = 'none';
