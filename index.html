@@ -22280,20 +22280,26 @@
             renderWorkout(); 
         };
 
+        let activeAudio = null;
+        let audioTriggered = false; // Tracks if the 10s voice has played
+
         // Custom Audio File Sound
         function playBeep() {
             try {
-                // Change 'ding.mp3' to match the exact name and extension of your file
-                const audio = new Audio('./ding.mp3'); 
-                
-                // Play the sound (catch prevents browser errors if the user hasn't interacted with the page yet)
-                audio.play().catch(e => console.log("Audio play blocked by browser:", e));
+                // If audio is already playing (e.g. you clicked +15s), stop it before restarting
+                if (activeAudio) {
+                    activeAudio.pause();
+                    activeAudio.currentTime = 0;
+                }
+                // IMPORTANT: Ensure your file is named exactly 'ding.mp3' (or change the name here!)
+                activeAudio = new Audio('./ding.mp3'); 
+                activeAudio.play().catch(e => console.log("Audio play blocked by browser:", e));
             } catch(e) { 
                 console.log("Audio not supported", e); 
             }
         }
 
-        // UPGRADED START TIMER (With Web Worker & Notifications)
+        // UPGRADED START TIMER
         function startTimer(seconds) {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.remove('finished');
@@ -22303,29 +22309,27 @@
             
             timeLeft = seconds;
             timerTargetMs = Date.now() + (seconds * 1000); 
+            audioTriggered = false; // Reset the 10s voice flag for the new set
             
             updateTimerDisplay();
             banner.classList.add('active');
             
-            // Request Notification permission if they haven't granted it yet
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-            
-            // Start the background-proof worker instead of standard interval
-            timerWorker.postMessage('start');
-            
-            timerWorker.onmessage = function() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
+                // NEW: Trigger the audio exactly at 10 seconds remaining!
+                if (timeLeft <= 10 && timeLeft > 0 && !audioTriggered) {
+                    audioTriggered = true;
+                    playBeep(); // Starts the 10s countdown voice
+                }
+                
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    // It only counts as "very late" if they return and it's 10+ seconds past
-                    const isVeryLate = timeLeft < -10; 
-                    completeTimer(!isVeryLate);
+                    completeTimer();
                 }
                 
                 updateTimerDisplay();
-            };
+            }, 1000);
         }
 
         function updateTimerDisplay() {
@@ -22336,9 +22340,15 @@
             document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
         }
 
+        // UPGRADED ADJUST TIMER
         function adjustTimer(seconds) {
             timerTargetMs += (seconds * 1000); 
             timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+            
+            // If you add time and push the timer back above 10s, allow the voice to play again later!
+            if (timeLeft > 10) {
+                audioTriggered = false;
+            }
             
             const banner = document.getElementById('rest-timer-banner');
             if (timeLeft > 0 && banner.classList.contains('finished')) {
@@ -22346,35 +22356,31 @@
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
             }
+            
             updateTimerDisplay();
         }
 
         function closeTimer() {
-            timerWorker.postMessage('stop'); // Kill the worker loop
+            clearInterval(timerInterval);
+            timerInterval = null; 
             document.getElementById('rest-timer-banner').classList.remove('active');
+            
+            // NEW: Instantly cut off the voice if you click 'Skip' or 'Dismiss' while it's talking!
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio.currentTime = 0;
+            }
         }
 
-        function completeTimer(playAudio = true) {
+        function completeTimer() {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.add('finished');
             
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // If app is hidden in the background, send a Native System Notification!
-            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
-                try {
-                    new Notification("Rest Complete!", {
-                        body: "Time for your next set.",
-                        icon: "./logo.png"
-                    });
-                } catch (e) { console.log("Notification blocked", e); }
-            }
-
-            if (playAudio) {
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
-                playBeep(); 
-            }
+            // Vibrate ONLY (The audio was already handled at the 10-second mark)
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
 
