@@ -20441,6 +20441,20 @@
 
         let workoutDurationInterval;
 
+        // NEW: Background Web Worker to prevent mobile browsers from pausing the timer
+        const workerCode = `
+            let interval;
+            self.onmessage = function(e) {
+                if (e.data === 'start') {
+                    clearInterval(interval);
+                    interval = setInterval(() => self.postMessage('tick'), 1000);
+                } else if (e.data === 'stop') {
+                    clearInterval(interval);
+                }
+            };
+        `;
+        const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
+
         // NEW: Forces the timer to sync instantly when you switch back to the app
         document.addEventListener("visibilitychange", () => {
             const banner = document.getElementById('rest-timer-banner');
@@ -22279,7 +22293,7 @@
             }
         }
 
-        // UPGRADED START TIMER
+        // UPGRADED START TIMER (With Web Worker & Notifications)
         function startTimer(seconds) {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.remove('finished');
@@ -22288,25 +22302,30 @@
             if (actionBtn) actionBtn.innerText = "Skip";
             
             timeLeft = seconds;
-            timerTargetMs = Date.now() + (seconds * 1000); // Anchor to real-time
+            timerTargetMs = Date.now() + (seconds * 1000); 
             
             updateTimerDisplay();
             banner.classList.add('active');
             
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                // Calculate time based on the clock, not the interval loop
+            // Request Notification permission if they haven't granted it yet
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+            
+            // Start the background-proof worker instead of standard interval
+            timerWorker.postMessage('start');
+            
+            timerWorker.onmessage = function() {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    const isVeryLate = timeLeft < -2;
+                    // It only counts as "very late" if they return and it's 10+ seconds past
+                    const isVeryLate = timeLeft < -10; 
                     completeTimer(!isVeryLate);
                 }
                 
-                // Always update display so it dynamically counts into the negatives!
                 updateTimerDisplay();
-                
-            }, 1000);
+            };
         }
 
         function updateTimerDisplay() {
@@ -22317,26 +22336,21 @@
             document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
         }
 
-        // UPGRADED ADJUST TIMER
         function adjustTimer(seconds) {
-            timerTargetMs += (seconds * 1000); // Shift the target timestamp
+            timerTargetMs += (seconds * 1000); 
             timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
             
             const banner = document.getElementById('rest-timer-banner');
-            
-            // If you add time to a finished timer and push it back above 0, it un-finishes!
             if (timeLeft > 0 && banner.classList.contains('finished')) {
                 banner.classList.remove('finished');
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
             }
-            
             updateTimerDisplay();
         }
 
         function closeTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null; // Completely clear the variable from memory
+            timerWorker.postMessage('stop'); // Kill the worker loop
             document.getElementById('rest-timer-banner').classList.remove('active');
         }
 
@@ -22344,11 +22358,19 @@
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.add('finished');
             
-            // Change button text to prompt the user to close it
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // Vibrate and beep if allowed (muted if returning from background too late)
+            // If app is hidden in the background, send a Native System Notification!
+            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification("Rest Complete!", {
+                        body: "Time for your next set.",
+                        icon: "./logo.png"
+                    });
+                } catch (e) { console.log("Notification blocked", e); }
+            }
+
             if (playAudio) {
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
                 playBeep(); 
