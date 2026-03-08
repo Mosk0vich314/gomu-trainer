@@ -686,8 +686,9 @@
                 <span style="color: var(--text-muted); font-size: 14px;">▼</span>
             </summary>
             <div class="folder-content" id="boostcamp-folder-content">
-                <div style="padding: 15px; color: var(--text-muted); font-size: 13px; font-style: italic; text-align: center;">
-                    Awaiting program injection...
+                <div class="program-card" data-program-id="strongman_bromley" onclick="startProgram('strongman_bromley')">
+                    <h3 class="program-title">Bromley Strongman</h3>
+                    <p class="program-desc">12-Week Strongman for Beginners</p>
                 </div>
             </div>
         </details>
@@ -829,6 +830,284 @@
     <script>
         // THE DATABASE
         const db = {
+
+            "strongman_bromley": { 
+                name: "Bromley Strongman", 
+                weeks: /* Bromley_Strongman_START */
+{
+  "1": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.65 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.65 }] },
+      { "name": "Pause Front Squat", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 5 }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 2, "reps": 20, "targetRpe": 7 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.65 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 5 }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.65 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 5 }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 10, "targetRpe": 5 }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 2, "reps": 20, "targetRpe": 7 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 7 }] }
+    ]
+  },
+  "2": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.70 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.70 }] },
+      { "name": "Pause Front Squat", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 4, "reps": 15, "targetRpe": 7 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.70 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.70 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "notes": "Backoff Target: 6-8 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 10, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 6, "targetRpe": null }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 4, "reps": 15, "targetRpe": 7 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 7 }] }
+    ]
+  },
+  "3": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.75 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.75 }] },
+      { "name": "Pause Front Squat", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 3, "reps": 12, "targetRpe": 7 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.75 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.75 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 6, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 10, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 3, "reps": 12, "targetRpe": 7 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 7 }] }
+    ]
+  },
+  "4": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.70 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.70 }] },
+      { "name": "Pause Front Squat", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 4, "targetRpe": 5 }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 2, "reps": 20, "targetRpe": 9 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.70 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 4, "targetRpe": 5 }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.70 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 4, "targetRpe": 5 }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 5 }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 2, "reps": 20, "targetRpe": 9 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 12-15 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 12, "targetRpe": 9 }] }
+    ]
+  },
+  "5": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.75 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.75 }] },
+      { "name": "Pause Front Squat", "type": "main", "notes": "Backoff Target: 2-3 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 4, "reps": 15, "targetRpe": 9 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.75 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "notes": "Backoff Target: 2-3 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 5, "pct": 0.75 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "notes": "Backoff Target: 2-3 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "notes": "Backoff Target: 5-6 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 8, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 5, "targetRpe": null }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 4, "reps": 15, "targetRpe": 9 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 10-12 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 10, "targetRpe": 9 }] }
+    ]
+  },
+  "6": {
+    "1": [
+      { "name": "2\" Deficit Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.80 }] },
+      { "name": "Standard Height Deadlift", "type": "main", "notes": "AMRAP Set", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "pct": 0.80 }] },
+      { "name": "Pause Front Squat", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Hamstring Curl", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] },
+      { "name": "Back Extension (Weighted)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] },
+      { "name": "Kroc Row", "type": "accessory", "blocks": [{ "type": "work", "sets": 3, "reps": 12, "targetRpe": 9 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.80 }] },
+      { "name": "Floor Press (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Shoulder Press (Dumbbell)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] },
+      { "name": "Dips", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] },
+      { "name": "Skull Crusher", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] }
+    ],
+    "3": [
+      { "name": "High Bar Squat (Barbell)", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "pct": 0.80 }] },
+      { "name": "Barbell Clean And Press Each Rep", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 4, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Strict Bent Barbell Row", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 8, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Shrug (Dumbbell)", "type": "accessory", "blocks": [{ "type": "work", "sets": 3, "reps": 12, "targetRpe": 9 }] },
+      { "name": "Lat Pulldown (Close Grip)", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] },
+      { "name": "Hammer Curl", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 8, "targetRpe": 9 }] }
+    ]
+  },
+  "7": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 3, "targetRpe": 6 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "targetRpe": 5 }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 5 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 6 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "targetRpe": 5 }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 5 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 3, "targetRpe": 5 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 6 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 5, "targetRpe": 5 }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ]
+  },
+  "8": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 3, "targetRpe": 8 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 7 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 7 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 8 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 7 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 7 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 3, "targetRpe": 6 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 8 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "notes": "Backoff Target: 3-4 reps", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 7 }] }
+    ]
+  },
+  "9": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 3, "targetRpe": 9 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 8 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 4, "targetRpe": 9 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 9 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 5, "targetRpe": 8 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 4, "targetRpe": 9 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 3, "targetRpe": 7 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 9 }, { "type": "backoff", "sets": 3, "reps": 3, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 5, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 4, "targetRpe": 9 }] }
+    ]
+  },
+  "10": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "targetRpe": 6 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 3, "targetRpe": 5 }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 5 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 6 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 3, "targetRpe": 5 }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 5 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 1, "targetRpe": 7 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 6 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "blocks": [{ "type": "work", "sets": 3, "reps": 3, "targetRpe": 5 }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 8-10 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 8, "targetRpe": 5 }] }
+    ]
+  },
+  "11": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "targetRpe": 8 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 7 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 6, "targetRpe": 7 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 8 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 7 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 7 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 1, "targetRpe": 8 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 8 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 7 }, { "type": "backoff", "sets": 3, "reps": 2, "targetRpe": null }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 6-8 reps", "blocks": [{ "type": "work", "sets": 3, "reps": 6, "targetRpe": 7 }] }
+    ]
+  },
+  "12": {
+    "1": [
+      { "name": "Standard Height Deadlift", "type": "main", "blocks": [{ "type": "work", "sets": 1, "reps": 1, "targetRpe": 9 }] },
+      { "name": "13-16\" Deadlift", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Zercher Squat (Barbell)", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 8 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Power Row", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 4, "targetRpe": 9 }] }
+    ],
+    "2": [
+      { "name": "Competition Overhead Press From Rack", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 9 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Seated Pin Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Seated Strict Press", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 2, "reps": 3, "targetRpe": 8 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "JM Press", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 4, "reps": 4, "targetRpe": 9 }] }
+    ],
+    "3": [
+      { "name": "One Arm DB Snatch", "type": "main", "blocks": [{ "type": "work", "sets": 5, "reps": 1, "targetRpe": 9 }] },
+      { "name": "Box Squat (Pause On Box)", "type": "main", "blocks": [{ "type": "top", "sets": 1, "reps": 1, "targetRpe": 9 }, { "type": "backoff", "sets": 3, "reps": 1, "targetRpe": null }] },
+      { "name": "Clean Once And Press Away", "type": "main", "notes": "Backoff is AMRAP", "blocks": [{ "type": "top", "sets": 1, "reps": 3, "targetRpe": 9 }, { "type": "backoff", "sets": 1, "reps": 1, "targetRpe": null }] },
+      { "name": "Paused Good Morning", "type": "accessory", "notes": "Target: 4-6 reps", "blocks": [{ "type": "work", "sets": 2, "reps": 4, "targetRpe": 9 }] }
+    ]
+  }
+}
+/* Bromley_Strongman_END */ 
+            },
             "Full_Force": { name: "Full Force", weeks: /* Full_Force_START */
 {
     "1": {
