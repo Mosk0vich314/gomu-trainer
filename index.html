@@ -22280,19 +22280,14 @@
             renderWorkout(); 
         };
 
-        let activeAudio = null;
-        let audioTriggered = false; // Tracks if the 10s voice has played
+        // 1. Load the Audio Object GLOBALLY so it can be unlocked
+        let activeAudio = new Audio('./ding.mp3'); 
+        activeAudio.preload = 'auto';
 
         // Custom Audio File Sound
         function playBeep() {
             try {
-                // If audio is already playing (e.g. you clicked +15s), stop it before restarting
-                if (activeAudio) {
-                    activeAudio.pause();
-                    activeAudio.currentTime = 0;
-                }
-                // IMPORTANT: Ensure your file is named exactly 'ding.mp3' (or change the name here!)
-                activeAudio = new Audio('./ding.mp3'); 
+                activeAudio.currentTime = 0;
                 activeAudio.play().catch(e => console.log("Audio play blocked by browser:", e));
             } catch(e) { 
                 console.log("Audio not supported", e); 
@@ -22309,22 +22304,30 @@
             
             timeLeft = seconds;
             timerTargetMs = Date.now() + (seconds * 1000); 
-            audioTriggered = false; // Reset the 10s voice flag for the new set
             
             updateTimerDisplay();
             banner.classList.add('active');
+
+            // --- THE MAGIC FIX: "PRIME" THE AUDIO ---
+            // We briefly play and pause the audio at volume 0 the exact millisecond 
+            // you tap the checkmark. This permanently unlocks it for the browser!
+            try {
+                activeAudio.volume = 0;
+                activeAudio.play().then(() => {
+                    activeAudio.pause();
+                    activeAudio.volume = 1;
+                    activeAudio.currentTime = 0;
+                }).catch(e => console.log("Audio prime failed", e));
+            } catch (e) {}
+            // ----------------------------------------
             
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
-                // NEW: Trigger the audio exactly at 10 seconds remaining!
-                if (timeLeft <= 10 && timeLeft > 0 && !audioTriggered) {
-                    audioTriggered = true;
-                    playBeep(); // Starts the 10s countdown voice
-                }
-                
+                // Trigger exactly when it hits 0
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                    playBeep(); 
                     completeTimer();
                 }
                 
@@ -22340,15 +22343,9 @@
             document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
         }
 
-        // UPGRADED ADJUST TIMER
         function adjustTimer(seconds) {
             timerTargetMs += (seconds * 1000); 
             timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
-            
-            // If you add time and push the timer back above 10s, allow the voice to play again later!
-            if (timeLeft > 10) {
-                audioTriggered = false;
-            }
             
             const banner = document.getElementById('rest-timer-banner');
             if (timeLeft > 0 && banner.classList.contains('finished')) {
@@ -22356,7 +22353,6 @@
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
             }
-            
             updateTimerDisplay();
         }
 
@@ -22365,7 +22361,7 @@
             timerInterval = null; 
             document.getElementById('rest-timer-banner').classList.remove('active');
             
-            // NEW: Instantly cut off the voice if you click 'Skip' or 'Dismiss' while it's talking!
+            // Instantly cut off the voice/sound if you click 'Skip' or 'Dismiss'
             if (activeAudio) {
                 activeAudio.pause();
                 activeAudio.currentTime = 0;
@@ -22379,7 +22375,7 @@
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // Vibrate ONLY (The audio was already handled at the 10-second mark)
+            // Vibrate when complete
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
