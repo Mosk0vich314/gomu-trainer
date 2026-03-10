@@ -676,6 +676,22 @@
                 </details>
             </div>
         </details>
+
+        <details class="folder-card">
+            <summary class="folder-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="./boostcamp_logo.jpg" alt="Boostcamp" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
+                    <span>Boostcamp</span>
+                </div>
+                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+            </summary>
+            <div class="folder-content" id="boostcamp-folder-content">
+                <div class="program-card" data-program-id="strongman_bromley" onclick="startProgram('strongman_bromley')">
+                    <h3 class="program-title">Bromley Strongman</h3>
+                    <p class="program-desc">12-Week Strongman for Beginners</p>
+                </div>
+            </div>
+        </details>
     </div>
 
     <div id="history-screen" class="app-screen">
@@ -896,22 +912,37 @@
 
         let workoutDurationInterval;
 
-        // NEW: Forces the timer to sync instantly when you switch back to the app
-        document.addEventListener("visibilitychange", () => {
-            const banner = document.getElementById('rest-timer-banner');
-            // Keep syncing as long as the timer is visible on screen, even if finished
-            const isTimerRunning = banner && banner.classList.contains('active');
-            
-            if (!document.hidden && isTimerRunning) {
-                timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
-                
-                // Only trigger the "complete" events if it hasn't already been marked finished
-                if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    const isVeryLate = timeLeft < -2; 
-                    completeTimer(!isVeryLate);
+        // NEW: Background Web Worker to prevent mobile browsers from pausing the timer
+        const workerCode = `
+            let interval;
+            self.onmessage = function(e) {
+                if (e.data === 'start') {
+                    clearInterval(interval);
+                    interval = setInterval(() => self.postMessage('tick'), 1000);
+                } else if (e.data === 'stop') {
+                    clearInterval(interval);
                 }
+            };
+        `;
+        const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
+
+        // Handle when the user swipes to the home screen and comes back
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // 1. Re-acquire the screen wake lock
+                if (activeWorkout) requestWakeLock();
                 
-                updateTimerDisplay(); // Will now display negative time!
+                // 2. Catch up the timer!
+                if (timerInterval) {
+                    timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+                    updateTimerDisplay();
+                    
+                    const banner = document.getElementById('rest-timer-banner');
+                    if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                        playBeep(); // Play the sound the exact second they open the app
+                        completeTimer(false); // Pass false so we don't double-play audio
+                    }
+                }
             }
         });
 
@@ -1065,6 +1096,7 @@
             }
             if(tabId === 'history-screen') {
                 document.getElementById('nav-history').classList.add('active');
+                window.historyDisplayLimit = 3; // NEW: Reset the list to 3 items when entering the tab
                 renderHistory();
                 if (typeof initChartSelect === 'function') initChartSelect(); 
             }
@@ -1409,7 +1441,9 @@
             }
 
             currentProgram = activeWorkout.program;
-            localStorage.setItem('activeProgram', currentProgram);
+            if (!currentProgram.startsWith('Custom_')) {
+                localStorage.setItem('activeProgram', currentProgram);
+            }
             
             selectedWeek = activeWorkout.week;
             selectedDay = activeWorkout.day;
@@ -1476,8 +1510,10 @@
                     if (!confirmed) return;
                 }
                 
-                // NEW: Make this the official active program ONLY when they start a workout
-                localStorage.setItem('activeProgram', currentProgram);
+                // NEW: Make this the official active program ONLY if it is a real database program
+                if (!currentProgram.startsWith('Custom_')) {
+                    localStorage.setItem('activeProgram', currentProgram);
+                }
                 
                 activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
@@ -1685,41 +1721,101 @@
                 container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size: 13px; font-style: italic;">Complete a workout to plot progress.</div>'; 
                 return; 
             }
+            
             let exName = currentChartEx;
             let history = safeParse('workoutHistory', []).slice().reverse(); 
+            
+            // --- NEW: e1RM CALCULATION ENGINE FOR PLOTTING ---
+            const getE1RM = (weight, reps, rpe) => {
+                if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
+                
+                const rtsChart = {
+                    10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                    9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                    9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                    8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                    8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                    7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                    7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                    6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                    6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                    5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                    5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                };
+
+                // Parse RPE, default to 10 (max effort) if the user didn't enter one
+                let parsedRpe = parseFloat(rpe);
+                if (isNaN(parsedRpe) || parsedRpe < 0 || parsedRpe > 10) parsedRpe = 10;
+                
+                let roundedRpe = Math.round(parsedRpe * 2) / 2;
+                let repIndex = Math.max(0, Math.min(11, reps - 1));
+                
+                let percentage = 0;
+                if (roundedRpe >= 5) {
+                    percentage = rtsChart[roundedRpe][repIndex];
+                } else {
+                    percentage = Math.max(0.1, rtsChart[5][repIndex] - ((5 - roundedRpe) * 0.025));
+                }
+                
+                return weight / percentage;
+            };
+
             let data = [];
             history.forEach(log => {
                 let exMatch = log.details.find(e => e.name === exName);
-                if(exMatch) {
-                    let maxW = Math.max(...exMatch.sets.map(s => s.load));
-                    if(maxW > 0) data.push({ weight: maxW });
+                if(exMatch && exMatch.sets && exMatch.sets.length > 0) {
+                    // Calculate e1RM for every set in the workout and plot the highest one
+                    let maxE1RM = Math.max(...exMatch.sets.map(s => getE1RM(s.load, s.reps, s.rpe)));
+                    if(maxE1RM > 0) data.push({ value: parseFloat(maxE1RM.toFixed(1)) });
                 }
             });
+            
             if(data.length < 2) {
                 container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size:13px; font-style: italic;">Need 2 sessions of this lift to plot progress.</div>`;
                 return;
             }
             
-            let w = container.clientWidth; let h = 140; let padding = 20; 
-            let minW = Math.min(...data.map(d => d.weight));
-            let maxW = Math.max(...data.map(d => d.weight));
-            let range = maxW - minW; if(range === 0) range = 10; 
+            let w = container.clientWidth; 
+            let h = 140; 
+            let padding = 20; 
+            let minV = Math.min(...data.map(d => d.value));
+            let maxV = Math.max(...data.map(d => d.value));
+            let range = maxV - minV; 
+            if(range === 0) range = 10; 
             
-            // Adjusted X padding so text doesn't hit the screen edges
+            // --- NEW: GENERATE BACKGROUND GRID ---
+            let gridHtml = '';
+            
+            // 4 Horizontal lines for scale
+            for (let i = 0; i < 4; i++) {
+                let y = padding + (i * ((h - 2 * padding) / 3));
+                gridHtml += `<line x1="10" y1="${y}" x2="${w - 10}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4" />`;
+            }
+            
+            // Vertical lines marking each workout
+            data.forEach((d, i) => {
+                let x = (i / (data.length - 1)) * (w - 40) + 20;
+                gridHtml += `<line x1="${x}" y1="${padding}" x2="${x}" y2="${h - padding}" stroke="rgba(255,255,255,0.05)" stroke-width="1" />`;
+            });
+            
             let points = data.map((d, i) => {
                 let x = (i / (data.length - 1)) * (w - 40) + 20; 
-                let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
+                let y = h - padding - ((d.value - minV) / range) * (h - 2 * padding);
                 return `${x},${y}`;
             }).join(' ');
             
             let circles = data.map((d, i) => {
                 let x = (i / (data.length - 1)) * (w - 40) + 20;
-                let y = h - padding - ((d.weight - minW) / range) * (h - 2 * padding);
+                let y = h - padding - ((d.value - minV) / range) * (h - 2 * padding);
                 return `<circle cx="${x}" cy="${y}" r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
-                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.weight}kg</text>`;
+                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.value}kg</text>`;
             }).join('');
             
-            container.innerHTML = `<svg width="100%" height="${h}" style="overflow:visible;"><polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${circles}</svg>`;
+            container.innerHTML = `<svg width="100%" height="${h}" style="overflow:visible;">
+                                      ${gridHtml}
+                                      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                      ${circles}
+                                   </svg>`;
         };
 
     function renderHistory() {
@@ -1731,7 +1827,11 @@
                 return;
             }
 
-            historyContainer.innerHTML = history.map(log => {
+            // Slice the array based on the current limit (defaults to 3)
+            const limit = window.historyDisplayLimit || 3;
+            const visibleHistory = history.slice(0, limit);
+
+            let html = visibleHistory.map(log => {
                 let detailsHtml = '';
                 if (log.details && log.details.length > 0) {
                     detailsHtml = `<div class="history-details">`;
@@ -1765,7 +1865,40 @@
                 </details>
                 `;
             }).join('');
+
+            // Render Clean Pagination Buttons
+            let buttonsHtml = '<div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; margin-bottom: 25px;">';
+            let showButtons = false;
+
+            // Show "Show Less" if expanded
+            if (limit > 3) {
+                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick="collapseHistory()">▲ Show Less</button>`;
+                showButtons = true;
+            }
+
+            // Show "See More" if there's more history
+            if (history.length > limit) {
+                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.08); color: var(--text-main);" onclick="loadMoreHistory()">▼ See More</button>`;
+                showButtons = true;
+            }
+
+            buttonsHtml += '</div>';
+
+            if (showButtons) html += buttonsHtml;
+
+            historyContainer.innerHTML = html;
         }
+
+        window.loadMoreHistory = function() {
+            window.historyDisplayLimit = (window.historyDisplayLimit || 3) + 5; 
+            renderHistory();
+        };
+
+        window.collapseHistory = function() {
+            window.historyDisplayLimit = 3; 
+            renderHistory();
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Smoothly snaps back to the top!
+        };
 
         async function deleteHistoryLog(id, key) {
             const confirmed = await showConfirm(
@@ -2182,15 +2315,11 @@
                 pContainer.style.display = isCustomProgram ? 'none' : 'block';
             });
 
-            let exercises = db[currentProgram]?.weeks[selectedWeek]?.[selectedDay];
+            // 5. Handle Empty states & On-the-Fly modifications safely
+            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, currentKey);
+            const activeCount = exercises.filter(ex => !ex.isDeleted).length;
             
-            // If it's a custom program but the array is missing, force it to be an empty array
-            if (isCustomProgram && !exercises) {
-                exercises = [];
-            }
-            
-            // 5. NOW we can safely check if we should show the empty state
-            if (!exercises || (exercises.length === 0 && !isCustomProgram)) {
+            if (activeCount === 0 && !isCustomProgram) {
                 container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Rest Day / No Data Available</div>';
                 return;
             }
@@ -2235,6 +2364,8 @@
             const lastUsedWeights = safeParse('lastUsedWeights', {});
 
             exercises.forEach((ex, exIndex) => {
+                if (ex.isDeleted) return; // Skip rendering deleted exercises!
+                
                 const exId = `ex-${exIndex}`;
                 const isMain = ex.type === 'main';
                 const nameLower = ex.name.toLowerCase();
@@ -2328,13 +2459,6 @@
                         </div>
                     `;
 
-                    let smartDefaultLoad = '';
-                    if (block.pct && resolved1RM > 0) {
-                        smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
-                    } else if (!block.pct && lastUsedWeights[ex.name]) {
-                        smartDefaultLoad = lastUsedWeights[ex.name]; 
-                    }
-
                     let restSeconds = 120;
                     if (isMain) {
                         if (block.type === 'top') {
@@ -2354,6 +2478,18 @@
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
+                        let smartDefaultLoad = '';
+                        if (block.pct && resolved1RM > 0) {
+                            smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
+                        } else if (!block.pct && lastUsedWeights[ex.name]) {
+                            // NEW: Smart look-up per set!
+                            if (typeof lastUsedWeights[ex.name] === 'object' && lastUsedWeights[ex.name] !== null) {
+                                smartDefaultLoad = lastUsedWeights[ex.name][`_b${bIndex}_s${s}`] || lastUsedWeights[ex.name].fallback || '';
+                            } else {
+                                smartDefaultLoad = lastUsedWeights[ex.name]; 
+                            }
+                        }
+
                         const rowId = `${exId}_b${bIndex}_s${s}`;
                         const repsInputId = `${rowId}_reps`; 
                         const rpeInputId = `${rowId}_rpe`;
@@ -2512,25 +2648,44 @@
         function setupSwipeToDelete() {
             document.querySelectorAll('.exercise-container.swipable').forEach(el => {
                 let startX = 0;
+                let startY = 0;
                 let currentX = 0;
                 let isDragging = false;
+                let isScrolling = false; // NEW: Track if the user is vertically scrolling
 
                 const startDrag = (e) => {
-                    // Ignore swipes if you are clicking on inputs, buttons, or the timer icon
                     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
                     
                     startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; // Track vertical start
                     isDragging = true;
+                    isScrolling = false; // Reset scroll lock
                     el.classList.add('swiping');
                 };
 
                 const moveDrag = (e) => {
                     if (!isDragging) return;
+                    
                     let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    currentX = clientX - startX;
+                    let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    let diffX = clientX - startX;
+                    let diffY = Math.abs(clientY - startY);
+
+                    // NEW: If they move vertically (>10px) more than horizontally, lock it as a scroll!
+                    if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) {
+                        isScrolling = true;
+                    }
+
+                    // If they are scrolling down the page, completely ignore horizontal swipes
+                    if (isScrolling) return;
+
+                    currentX = diffX;
                     
                     // Only allow sliding left
                     if (currentX < 0) {
+                        // Prevent the screen from scrolling vertically while actively swiping left
+                        if (e.cancelable) e.preventDefault(); 
                         el.style.transform = `translateX(${currentX}px)`;
                     }
                 };
@@ -2540,23 +2695,22 @@
                     isDragging = false;
                     el.classList.remove('swiping');
                     
-                    // If swiped more than 100px left, lock it open and trigger delete
-                    if (currentX < -100) {
+                    // Only trigger the delete if they swiped far enough AND weren't scrolling
+                    if (!isScrolling && currentX < -100) {
                         el.style.transform = `translateX(-100%)`;
                         setTimeout(() => { deleteCustomExercise(parseInt(el.dataset.exindex)); }, 200);
                     } else {
-                        // Snap back into place
+                        // Snap back cleanly
                         el.style.transform = `translateX(0px)`;
                     }
                     currentX = 0;
                 };
 
-                // Mobile Touch Events
                 el.addEventListener('touchstart', startDrag, {passive: true});
-                el.addEventListener('touchmove', moveDrag, {passive: true});
+                // CHANGED: passive is now false so we can preventDefault() to freeze the screen while swiping sideways
+                el.addEventListener('touchmove', moveDrag, {passive: false});
                 el.addEventListener('touchend', endDrag);
                 
-                // PC Mouse Events (For Testing)
                 el.addEventListener('mousedown', startDrag);
                 el.addEventListener('mousemove', moveDrag);
                 el.addEventListener('mouseup', endDrag);
@@ -2598,30 +2752,17 @@
             renderWorkout(); 
         };
 
-        // Upgraded 3-Beep Countdown Sound
+        // 1. Load the Audio Object GLOBALLY so it can be unlocked
+        let activeAudio = new Audio('./ding.mp3'); 
+        activeAudio.preload = 'auto';
+
+        // Custom Audio File Sound
         function playBeep() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Play 3 distinct beeps, spaced 0.4 seconds apart
-                for (let i = 0; i < 3; i++) {
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    oscillator.type = 'sine'; 
-                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + (i * 0.4)); 
-                    
-                    gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime + (i * 0.4)); 
-                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + (i * 0.4) + 0.3);
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    oscillator.start(audioCtx.currentTime + (i * 0.4));
-                    oscillator.stop(audioCtx.currentTime + (i * 0.4) + 0.3);
-                }
+                activeAudio.currentTime = 0;
+                activeAudio.play().catch(e => console.log("Audio play blocked by browser:", e));
             } catch(e) { 
-                console.log("Audio API not supported in this browser"); 
+                console.log("Audio not supported", e); 
             }
         }
 
@@ -2634,24 +2775,35 @@
             if (actionBtn) actionBtn.innerText = "Skip";
             
             timeLeft = seconds;
-            timerTargetMs = Date.now() + (seconds * 1000); // Anchor to real-time
+            timerTargetMs = Date.now() + (seconds * 1000); 
             
             updateTimerDisplay();
             banner.classList.add('active');
+
+            // --- THE MAGIC FIX: "PRIME" THE AUDIO ---
+            // We briefly play and pause the audio at volume 0 the exact millisecond 
+            // you tap the checkmark. This permanently unlocks it for the browser!
+            try {
+                activeAudio.volume = 0;
+                activeAudio.play().then(() => {
+                    activeAudio.pause();
+                    activeAudio.volume = 1;
+                    activeAudio.currentTime = 0;
+                }).catch(e => console.log("Audio prime failed", e));
+            } catch (e) {}
+            // ----------------------------------------
             
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                // Calculate time based on the clock, not the interval loop
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
+                // Trigger exactly when it hits 0
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    const isVeryLate = timeLeft < -2;
-                    completeTimer(!isVeryLate);
+                    playBeep(); 
+                    completeTimer();
                 }
                 
-                // Always update display so it dynamically counts into the negatives!
                 updateTimerDisplay();
-                
             }, 1000);
         }
 
@@ -2663,47 +2815,51 @@
             document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
         }
 
-        // UPGRADED ADJUST TIMER
         function adjustTimer(seconds) {
-            timerTargetMs += (seconds * 1000); // Shift the target timestamp
+            timerTargetMs += (seconds * 1000); 
             timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
             
             const banner = document.getElementById('rest-timer-banner');
-            
-            // If you add time to a finished timer and push it back above 0, it un-finishes!
             if (timeLeft > 0 && banner.classList.contains('finished')) {
                 banner.classList.remove('finished');
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
             }
-            
             updateTimerDisplay();
         }
 
         function closeTimer() {
             clearInterval(timerInterval);
-            timerInterval = null; // Completely clear the variable from memory
+            timerInterval = null; 
             document.getElementById('rest-timer-banner').classList.remove('active');
+            
+            // Instantly cut off the voice/sound if you click 'Skip' or 'Dismiss'
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio.currentTime = 0;
+            }
         }
 
-        function completeTimer(playAudio = true) {
+        function completeTimer() {
             const banner = document.getElementById('rest-timer-banner');
             banner.classList.add('finished');
             
-            // Change button text to prompt the user to close it
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // Vibrate and beep if allowed (muted if returning from background too late)
-            if (playAudio) {
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
-                playBeep(); 
-            }
+            // Vibrate when complete
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
+        // NEW: Instantly request notification permission on their first physical tap
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission().then(permission => {
+                    console.log("Notification permission:", permission);
+                });
+            }
             el.classList.toggle('checked');
             const isChecked = el.classList.contains('checked');
             saveSessionState(el.id, isChecked);
@@ -2724,7 +2880,14 @@
                     
                     const exName = loadInput.dataset.exname;
                     let lastUsed = safeParse('lastUsedWeights', {});
-                    lastUsed[exName] = loadInput.value;
+                    
+                    // NEW: Convert old memory to object and save strictly by Set Number
+                    if (typeof lastUsed[exName] !== 'object' || lastUsed[exName] === null) {
+                        lastUsed[exName] = { fallback: lastUsed[exName] };
+                    }
+                    const suffixMatch = loadInput.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
+                    if (suffixMatch) lastUsed[exName][suffixMatch[0]] = loadInput.value;
+                    
                     localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
 
                     if (!isNaN(val)) {
@@ -2919,7 +3082,15 @@
                     saveSessionState(e.target.id, e.target.value);
                     if(e.target.id.includes('_load') && e.target.value) {
                         let lastUsed = safeParse('lastUsedWeights', {});
-                        lastUsed[e.target.dataset.exname] = e.target.value;
+                        const exName = e.target.dataset.exname;
+                        
+                        // NEW: Save strictly by Set Number when typing
+                        if (typeof lastUsed[exName] !== 'object' || lastUsed[exName] === null) {
+                            lastUsed[exName] = { fallback: lastUsed[exName] };
+                        }
+                        const suffixMatch = e.target.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
+                        if (suffixMatch) lastUsed[exName][suffixMatch[0]] = e.target.value;
+                        
                         localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
                     }
                 });
@@ -3287,13 +3458,22 @@
                 localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 delete db[pid];
                 
+                // NEW: Safely cancel any active session tied to this deleted template
+                if (activeWorkout && activeWorkout.program === pid) {
+                    activeWorkout = null;
+                    localStorage.removeItem('activeWorkout');
+                    updateBanners();
+                }
+                
                 if (currentProgram === pid) {
                     currentProgram = null;
-                    localStorage.removeItem('activeProgram');
+                    // BUG FIX: Removed the line that was deleting your main activeProgram!
                     document.getElementById('library-screen').classList.add('active');
                     document.getElementById('workout-screen').classList.remove('active');
                 }
+                
                 updateLibraryUI();
+                updateDashboard(); // Refreshes the dashboard to keep it perfectly synced
             }
         };
 

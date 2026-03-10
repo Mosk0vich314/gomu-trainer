@@ -22713,7 +22713,9 @@
                             const targetRowId = loadInput.dataset.rowid;
                             const checkCircle = document.getElementById(`${targetRowId}_check`);
                             
-                            if (checkCircle && checkCircle.classList.contains('checked')) {
+                            // FIX: Skip sets that are already checked, AND skip the exact row you just clicked
+                            // so it doesn't overwrite your manual entry!
+                            if (targetRowId === clickedRowId || (checkCircle && checkCircle.classList.contains('checked'))) {
                                 return; 
                             }
                             
@@ -22721,56 +22723,54 @@
                             const targetBlockIdx = targetBlockMatch ? targetBlockMatch[1] : null;
                             const pct = parseFloat(loadInput.dataset.pct);
                             
-                            if (clickedBlockIdx !== null && clickedBlockIdx === targetBlockIdx) {
-                                // SAME BLOCK: Cascade absolute working weight
+                            const targetRepsInput = document.getElementById(`${targetRowId}_reps`);
+                            const targetRpeInput = document.getElementById(`${targetRowId}_rpe`);
+                            
+                            let targetPct = pct || 0; // Fallback to programmed percent
+                            
+                            // Prioritize true Auto-Regulation (RPE) over rigid percentage
+                            if (targetRepsInput && targetRpeInput && targetRpeInput.value) {
+                                const trReps = parseFloat(targetRepsInput.value);
+                                const trRpe = parseFloat(targetRpeInput.value);
+                                
+                                if (trReps > 0 && trRpe >= 0 && trRpe <= 10) {
+                                    const rtsChart = {
+                                        10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                                        9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                                        9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                                        8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                                        8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                                        7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                                        7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                                        6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                                        6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                                        5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                                        5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                                    };
+                                    let rRoundedRpe = Math.round(trRpe * 2) / 2;
+                                    let rRepIndex = Math.max(0, Math.min(11, trReps - 1));
+                                    
+                                    if (rRoundedRpe >= 5) {
+                                        targetPct = rtsChart[rRoundedRpe][rRepIndex];
+                                    } else {
+                                        targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
+                                    }
+                                }
+                            }
+
+                            // Calculate weight based on percentage
+                            if (targetPct > 0) {
+                                const targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                                loadInput.value = targetWeight;
+                                saveSessionState(loadInput.id, targetWeight); 
+                                loadInput.dispatchEvent(new Event('input', {bubbles: true}));
+                                
+                            // ONLY cascade the raw weight if it's a straight-volume block (no pct, no RPE)
+                            } else if (clickedBlockIdx !== null && clickedBlockIdx === targetBlockIdx) {
                                 if (clickedWeight > 0) {
                                     loadInput.value = clickedWeight;
                                     saveSessionState(loadInput.id, clickedWeight);
                                     loadInput.dispatchEvent(new Event('input', {bubbles: true})); 
-                                }
-                            } else {
-                                // DIFFERENT BLOCK: Prioritize true Auto-Regulation (RPE) over rigid percentage
-                                const targetRepsInput = document.getElementById(`${targetRowId}_reps`);
-                                const targetRpeInput = document.getElementById(`${targetRowId}_rpe`);
-                                
-                                let targetPct = pct || 0; // Fallback to programmed percent
-                                
-                                if (targetRepsInput && targetRpeInput && targetRpeInput.value) {
-                                    const trReps = parseFloat(targetRepsInput.value);
-                                    const trRpe = parseFloat(targetRpeInput.value);
-                                    
-                                    // Unlocked to allow trRpe >= 0
-                                    if (trReps > 0 && trRpe >= 0 && trRpe <= 10) {
-                                        const rtsChart = {
-                                            10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
-                                            9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
-                                            9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
-                                            8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
-                                            8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
-                                            7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
-                                            7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
-                                            6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
-                                            6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
-                                            5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
-                                            5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
-                                        };
-                                        let rRoundedRpe = Math.round(trRpe * 2) / 2;
-                                        let rRepIndex = Math.max(0, Math.min(11, trReps - 1));
-                                        
-                                        // NEW: Apply extrapolation here too
-                                        if (rRoundedRpe >= 5) {
-                                            targetPct = rtsChart[rRoundedRpe][rRepIndex];
-                                        } else {
-                                            targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
-                                        }
-                                    }
-                                }
-
-                                if (targetPct > 0) {
-                                    const targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
-                                    loadInput.value = targetWeight;
-                                    saveSessionState(loadInput.id, targetWeight); 
-                                    loadInput.dispatchEvent(new Event('input', {bubbles: true}));
                                 }
                             }
                         });
