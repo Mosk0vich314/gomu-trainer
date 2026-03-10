@@ -20455,22 +20455,23 @@
         `;
         const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
 
-        // NEW: Forces the timer to sync instantly when you switch back to the app
-        document.addEventListener("visibilitychange", () => {
-            const banner = document.getElementById('rest-timer-banner');
-            // Keep syncing as long as the timer is visible on screen, even if finished
-            const isTimerRunning = banner && banner.classList.contains('active');
-            
-            if (!document.hidden && isTimerRunning) {
-                timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+        // Handle when the user swipes to the home screen and comes back
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // 1. Re-acquire the screen wake lock
+                if (activeWorkout) requestWakeLock();
                 
-                // Only trigger the "complete" events if it hasn't already been marked finished
-                if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    const isVeryLate = timeLeft < -2; 
-                    completeTimer(!isVeryLate);
+                // 2. Catch up the timer!
+                if (timerInterval) {
+                    timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
+                    updateTimerDisplay();
+                    
+                    const banner = document.getElementById('rest-timer-banner');
+                    if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                        playBeep(); // Play the sound the exact second they open the app
+                        completeTimer(false); // Pass false so we don't double-play audio
+                    }
                 }
-                
-                updateTimerDisplay(); // Will now display negative time!
             }
         });
 
@@ -22382,6 +22383,12 @@
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
+        // NEW: Instantly request notification permission on their first physical tap
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission().then(permission => {
+                    console.log("Notification permission:", permission);
+                });
+            }
             el.classList.toggle('checked');
             const isChecked = el.classList.contains('checked');
             saveSessionState(el.id, isChecked);
