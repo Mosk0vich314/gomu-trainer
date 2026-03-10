@@ -22309,9 +22309,7 @@
             updateTimerDisplay();
             banner.classList.add('active');
 
-            // --- THE MAGIC FIX: "PRIME" THE AUDIO ---
-            // We briefly play and pause the audio at volume 0 the exact millisecond 
-            // you tap the checkmark. This permanently unlocks it for the browser!
+            // --- PRIME THE AUDIO ---
             try {
                 activeAudio.volume = 0;
                 activeAudio.play().then(() => {
@@ -22320,20 +22318,25 @@
                     activeAudio.currentTime = 0;
                 }).catch(e => console.log("Audio prime failed", e));
             } catch (e) {}
-            // ----------------------------------------
             
+            // Clean up any standard intervals just in case
             clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
+            timerWorker.postMessage('stop');
+            
+            // --- START THE BACKGROUND WEB WORKER ---
+            timerWorker.postMessage('start');
+            
+            timerWorker.onmessage = function() {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
-                // Trigger exactly when it hits 0
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
+                    timerWorker.postMessage('stop'); // Stop the background loop
                     playBeep(); 
                     completeTimer();
                 }
                 
                 updateTimerDisplay();
-            }, 1000);
+            };
         }
 
         function updateTimerDisplay() {
@@ -22353,16 +22356,17 @@
                 banner.classList.remove('finished');
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
+                timerWorker.postMessage('start'); // Restart worker if pushed back above 0
             }
             updateTimerDisplay();
         }
 
         function closeTimer() {
             clearInterval(timerInterval);
+            timerWorker.postMessage('stop'); // Kill the worker
             timerInterval = null; 
             document.getElementById('rest-timer-banner').classList.remove('active');
             
-            // Instantly cut off the voice/sound if you click 'Skip' or 'Dismiss'
             if (activeAudio) {
                 activeAudio.pause();
                 activeAudio.currentTime = 0;
@@ -22376,7 +22380,17 @@
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // Vibrate when complete
+            // --- NATIVE NOTIFICATION (CRITICAL FOR BACKGROUND) ---
+            // If the browser strictly blocks the ding.mp3, it will fire a System Notification instead!
+            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification("Rest Complete!", {
+                        body: "Time for your next set.",
+                        icon: "./logo.png"
+                    });
+                } catch (e) { console.log("Notification blocked", e); }
+            }
+
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
