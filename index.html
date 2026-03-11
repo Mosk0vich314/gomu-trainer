@@ -22344,7 +22344,7 @@
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    timerWorker.postMessage('stop'); 
+                    // We removed the 'stop' command here so it keeps ticking into the negatives!
                     playBeep(); 
                     completeTimer();
                 }
@@ -22403,15 +22403,18 @@
 
             // --- NATIVE PWA BACKGROUND NOTIFICATION ---
             // ONLY fire if the app is physically hidden in the background!
+            // --- NATIVE PWA BACKGROUND NOTIFICATION ---
             if (document.hidden && "Notification" in window && Notification.permission === "granted") {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.ready.then(function(reg) {
                         reg.showNotification("⏱️ Rest Complete!", {
-                            body: "Time for your next set.",
+                            body: "Time for your next set. Tap to resume.",
                             icon: "./logo.png",
                             vibrate: [200, 100, 200, 100, 400],
                             tag: "gomu-timer",
-                            renotify: true 
+                            renotify: true,
+                            requireInteraction: true, // Keeps it on screen until tapped
+                            silent: false             // Forces the OS to play the default notification sound
                         });
                     });
                 }
