@@ -20455,6 +20455,13 @@
         `;
         const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
 
+        // --- NEW: REGISTER THE BACKGROUND SERVICE WORKER ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registered!'))
+                .catch(err => console.log('SW error', err));
+        }
+
         // Handle when the user swipes to the home screen and comes back
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
@@ -22380,17 +22387,24 @@
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // --- NATIVE NOTIFICATION (CRITICAL FOR BACKGROUND) ---
-            // If the browser strictly blocks the ding.mp3, it will fire a System Notification instead!
-            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
-                try {
-                    new Notification("Rest Complete!", {
-                        body: "Time for your next set.",
-                        icon: "./logo.png"
+            // --- NATIVE PWA BACKGROUND NOTIFICATION ---
+            if ("Notification" in window && Notification.permission === "granted") {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(function(reg) {
+                        reg.showNotification("⏱️ Rest Complete!", {
+                            body: "Time for your next set.",
+                            icon: "./logo.png",
+                            vibrate: [200, 100, 200, 100, 400],
+                            tag: "gomu-timer" // Prevents multiple notifications from stacking up
+                        });
                     });
-                } catch (e) { console.log("Notification blocked", e); }
+                } else {
+                    // Fallback for older browsers
+                    try { new Notification("⏱️ Rest Complete!", { body: "Time for your next set." }); } catch(e){}
+                }
             }
 
+            // Fallback vibration
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
