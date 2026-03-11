@@ -22395,7 +22395,8 @@
                             body: "Time for your next set.",
                             icon: "./logo.png",
                             vibrate: [200, 100, 200, 100, 400],
-                            tag: "gomu-timer" // Prevents multiple notifications from stacking up
+                            tag: "gomu-timer", // Prevents stacking
+                            renotify: true     // NEW FIX: Forces the phone to ring/buzz every single time!
                         });
                     });
                 } else {
