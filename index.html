@@ -22299,18 +22299,19 @@
             renderWorkout(); 
         };
 
-        // 1. Load the Audio Object GLOBALLY so it can be unlocked
+        // 1. Load the Audio Objects
         let activeAudio = new Audio('./ding.mp3'); 
         activeAudio.preload = 'auto';
 
-        // Custom Audio File Sound
+        // THE SPOTIFY HACK: Silent audio loop to keep the browser awake in the background
+        let silentKeeper = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+        silentKeeper.loop = true; 
+
         function playBeep() {
             try {
                 activeAudio.currentTime = 0;
-                activeAudio.play().catch(e => console.log("Audio play blocked by browser:", e));
-            } catch(e) { 
-                console.log("Audio not supported", e); 
-            }
+                activeAudio.play().catch(e => console.log("Audio play blocked:", e));
+            } catch(e) {}
         }
 
         // UPGRADED START TIMER
@@ -22327,14 +22328,17 @@
             updateTimerDisplay();
             banner.classList.add('active');
 
-            // --- PRIME THE AUDIO ---
+            // --- PRIME AUDIO & START SILENT LOOP ---
             try {
                 activeAudio.volume = 0;
                 activeAudio.play().then(() => {
                     activeAudio.pause();
                     activeAudio.volume = 1;
                     activeAudio.currentTime = 0;
-                }).catch(e => console.log("Audio prime failed", e));
+                }).catch(()=>{});
+                
+                // Keep the app awake in the background!
+                silentKeeper.play().catch(()=>{});
             } catch (e) {}
             
             timerWorker.postMessage('stop');
@@ -22343,8 +22347,8 @@
             timerWorker.onmessage = function() {
                 timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                 
+                // Trigger at 0, but DO NOT stop the worker so it goes negative!
                 if (timeLeft <= 0 && !banner.classList.contains('finished')) {
-                    // We removed the 'stop' command here so it keeps ticking into the negatives!
                     playBeep(); 
                     completeTimer();
                 }
@@ -22370,7 +22374,6 @@
                 banner.classList.remove('finished');
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
-                timerWorker.postMessage('start'); 
             }
             updateTimerDisplay();
         }
@@ -22379,12 +22382,10 @@
             timerWorker.postMessage('stop'); 
             document.getElementById('rest-timer-banner').classList.remove('active');
             
-            if (activeAudio) {
-                activeAudio.pause();
-                activeAudio.currentTime = 0;
-            }
+            if (activeAudio) { activeAudio.pause(); activeAudio.currentTime = 0; }
+            if (silentKeeper) { silentKeeper.pause(); } // Stop draining battery
 
-            // Clear any stuck OS notifications when you manually close the timer
+            // Clear any OS notifications
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(function(reg) {
                     reg.getNotifications({tag: 'gomu-timer'}).then(function(notifications) {
@@ -22401,8 +22402,9 @@
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // --- NATIVE PWA BACKGROUND NOTIFICATION ---
-            // ONLY fire if the app is physically hidden in the background!
+            // Stop the silent loop once the rest is over
+            if (silentKeeper) { silentKeeper.pause(); }
+
             // --- NATIVE PWA BACKGROUND NOTIFICATION ---
             if (document.hidden && "Notification" in window && Notification.permission === "granted") {
                 if ('serviceWorker' in navigator) {
@@ -22413,14 +22415,12 @@
                             vibrate: [200, 100, 200, 100, 400],
                             tag: "gomu-timer",
                             renotify: true,
-                            requireInteraction: true, // Keeps it on screen until tapped
-                            silent: false             // Forces the OS to play the default notification sound
+                            requireInteraction: true // Keeps the notification on screen
                         });
                     });
                 }
             }
 
-            // Fallback vibration
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
 
