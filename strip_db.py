@@ -32,4 +32,4 @@ def remove_db(filename):
         print("Success! Stripped code saved to clean_app.html")
 
 # CHANGE THIS to your actual HTML file name
-remove_db("noDB.html")
+remove_db("index.html")
