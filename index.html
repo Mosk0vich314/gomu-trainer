@@ -619,7 +619,15 @@
             <div id="history-overlay-content"></div>
         </div>
     </div>
-
+    <div id="plate-settings-modal" class="modal-overlay" onclick="if(event.target.id === 'plate-settings-modal') closePlateSettings()">
+        <div class="modal-card" style="padding: 20px;">
+            <h2 style="margin-bottom: 5px;">Gym Inventory</h2>
+            <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Select the plates available at your gym.</p>
+            <div id="plate-toggles-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; text-align: left;">
+                </div>
+            <button class="action-btn btn-start" style="margin: 0; padding: 12px;" onclick="closePlateSettings()">Save & Close</button>
+        </div>
+    </div>
     <div id="chart-exercise-modal" class="modal-overlay" onclick="if(event.target.id === 'chart-exercise-modal') this.style.display='none'">
         <div class="modal-card" style="max-height: 80vh; display: flex; flex-direction: column; padding: 20px;">
             <h2 style="margin-bottom: 15px;">Select Exercise</h2>
@@ -22703,7 +22711,54 @@
             overlay.classList.remove('open');
             setTimeout(() => overlay.style.display = 'none', 300);
         };
+        // --- GYM INVENTORY ENGINE ---
+        function getActivePlates() {
+            let saved = safeParse('gymPlateInventory', null);
+            if (!saved) {
+                // Default IPF standard plates
+                saved = [
+                    {w: 25, c: '#ef4444', t: '#fff', active: true},
+                    {w: 20, c: '#3b82f6', t: '#fff', active: true},
+                    {w: 15, c: '#eab308', t: '#000', active: true},
+                    {w: 10, c: '#22c55e', t: '#fff', active: true},
+                    {w: 5, c: '#f4f4f5', t: '#000', active: true},
+                    {w: 2.5, c: '#27272a', t: '#fff', active: true},
+                    {w: 1.25, c: '#52525b', t: '#fff', active: true}
+                ];
+                localStorage.setItem('gymPlateInventory', JSON.stringify(saved));
+            }
+            return saved;
+        }
 
+        window.openPlateSettings = function(e) {
+            e.stopPropagation();
+            const plates = getActivePlates();
+            const container = document.getElementById('plate-toggles-container');
+            container.innerHTML = plates.map((p, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="plate-block" style="background: ${p.c}; color: ${p.t}; width: 28px; text-align: center; font-size: 12px;">${p.w}</div>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 14px;">kg Plate</span>
+                    </div>
+                    <input type="checkbox" ${p.active ? 'checked' : ''} onchange="togglePlateInventory(${i}, this.checked)" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                </div>
+            `).join('');
+            
+            document.getElementById('plate-settings-modal').style.display = 'flex';
+        };
+
+        window.togglePlateInventory = function(idx, isActive) {
+            let plates = getActivePlates();
+            plates[idx].active = isActive;
+            localStorage.setItem('gymPlateInventory', JSON.stringify(plates));
+        };
+
+        window.closePlateSettings = function() {
+            document.getElementById('plate-settings-modal').style.display = 'none';
+            // Force close the balloon so it recalculates fresh on next tap
+            const balloon = document.getElementById('plate-balloon');
+            if (balloon) { balloon.style.display = 'none'; balloon.dataset.activeInput = ''; }
+        };
         // --- NEW: PLATE CALCULATOR ENGINE ---
         window.togglePlateBalloon = function(e, loadInputId) {
             e.stopPropagation();
@@ -22734,16 +22789,9 @@
             } else {
                 let perSide = (weight - 20) / 2;
                 let plates = [];
-                // Standard Competition Plates
-                const available = [
-                    {w: 25, c: '#ef4444', t: '#fff'}, // Red
-                    {w: 20, c: '#3b82f6', t: '#fff'}, // Blue
-                    {w: 15, c: '#eab308', t: '#000'}, // Yellow
-                    {w: 10, c: '#22c55e', t: '#fff'}, // Green
-                    {w: 5, c: '#f4f4f5', t: '#000'},  // White
-                    {w: 2.5, c: '#27272a', t: '#fff'},// Black
-                    {w: 1.25, c: '#52525b', t: '#fff'}// Silver
-                ];
+                
+                // Fetch the user's custom inventory and sort from heaviest to lightest
+                const available = getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w);
 
                 for (let p of available) {
                     while (perSide >= p.w) {
@@ -22752,7 +22800,8 @@
                     }
                 }
                 
-                html = `<div style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 800; text-transform: uppercase;">Per Side (20kg Bar)</div>
+                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 800; text-transform: uppercase; padding-right: 15px;">Per Side (20kg Bar)</div>
                         <div class="plate-row">`;
                 
                 plates.forEach(p => {
