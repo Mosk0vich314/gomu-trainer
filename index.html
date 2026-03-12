@@ -479,6 +479,26 @@
         .bottom-sheet-overlay.open { opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet { transform: translateY(0); }
         .sheet-handle { width: 40px; height: 5px; background: #3f3f46; border-radius: 3px; margin: 0 auto 20px auto; }
+        /* PLATE CALCULATOR BALLOON & BUTTON */
+        .plate-btn {
+            position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+            width: 28px; height: 100%; display: flex; align-items: center; justify-content: center;
+            background: transparent; border: none; color: var(--text-muted); cursor: pointer; transition: 0.2s;
+        }
+        .plate-btn:active { color: var(--accent); }
+        
+        .plate-balloon {
+            position: absolute; background: #27272a; border: 1px solid var(--accent);
+            border-radius: 12px; padding: 12px 16px; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: none; flex-direction: column; align-items: center; gap: 8px;
+            transform: translateX(-50%); width: max-content;
+        }
+        .plate-balloon::after {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            border-width: 6px; border-style: solid; border-color: var(--accent) transparent transparent transparent;
+        }
+        .plate-row { display: flex; gap: 4px; align-items: center; justify-content: center; }
+        .plate-block { padding: 4px 6px; border-radius: 6px; font-size: 11px; font-weight: 800; box-shadow: 0 2px 5px rgba(0,0,0,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -543,6 +563,17 @@
             <div class="sheet-handle"></div>
             <h2 id="history-overlay-title" style="margin-top:0; margin-bottom: 20px; color: var(--text-main); font-size: 20px; text-align: center; font-weight: 800; letter-spacing: -0.5px;"></h2>
             <div id="history-overlay-content"></div>
+        </div>
+    </div>
+
+    <div id="chart-exercise-modal" class="modal-overlay" onclick="if(event.target.id === 'chart-exercise-modal') this.style.display='none'">
+        <div class="modal-card" style="max-height: 80vh; display: flex; flex-direction: column; padding: 20px;">
+            <h2 style="margin-bottom: 15px;">Select Exercise</h2>
+            <div id="chart-exercise-list" style="overflow-y: auto; flex: 1; text-align: left; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg);">
+                </div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="modal-btn cancel" onclick="document.getElementById('chart-exercise-modal').style.display='none'">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -691,7 +722,7 @@
         </div>
 
         <button class="stats-launch-btn" onclick="switchTab('stats-screen')">
-            View All-Time Best Lifts <span>🏆</span>
+            The Iron Vault <span style="font-size: 18px;">⛓️</span>
         </button>
     </div>
 
@@ -787,10 +818,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
                     Lift Progress
                 </span>
-                <div class="custom-select-wrapper">
-                    <div id="chart-custom-select" class="custom-select" onclick="toggleChartDropdown()">--</div>
-                    <div id="chart-custom-options" class="custom-options"></div>
-                </div>
+                <button id="chart-exercise-btn" class="custom-select" style="width: auto; max-width: 180px;" onclick="document.getElementById('chart-exercise-modal').style.display='flex'">--</button>
             </div>
             <div id="chart-container" style="position:relative; height: 140px; width: 100%;"></div>
         </div>
@@ -913,7 +941,7 @@
         </button>
 
     </div>
-
+    <div id="plate-balloon" class="plate-balloon"></div>
     <script>
         // THE DATABASE
         const db = {
@@ -20788,6 +20816,19 @@
             });
         }
 
+        window.updateBodyweight = function(val) {
+            let bw = parseFloat(val);
+            if (!isNaN(bw) && bw > 0) {
+                localStorage.setItem('userBodyweight', bw);
+            } else {
+                localStorage.removeItem('userBodyweight');
+            }
+        };
+
+        window.isBodyweightExercise = function(name) {
+            return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
+        };
+
         function updateDashboard() {
             const heroEmpty = document.getElementById('hero-empty');
             const heroResume = document.getElementById('hero-resume');
@@ -21234,8 +21275,14 @@
                             const rpe = savedSession[rpeInputId] || '';
                             const actualReps = parseFloat(savedSession[repsInputId]) || block.reps; 
                             
-                            totalVolume += (load * actualReps); 
-                            if (load > maxLoad) maxLoad = load;
+                            let effectiveLoad = load;
+                            if (isBodyweightExercise(ex.name)) {
+                                const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                                if (bw > 0) effectiveLoad += bw;
+                            }
+                            
+                            totalVolume += (effectiveLoad * actualReps); 
+                            if (effectiveLoad > maxLoad) maxLoad = effectiveLoad;
                             
                             exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe });
                         }
@@ -21316,43 +21363,26 @@
 
     let currentChartEx = '';
 
-        function toggleChartDropdown() {
-            document.getElementById('chart-custom-options').classList.toggle('show');
-            document.getElementById('chart-custom-select').classList.toggle('open');
-        }
-
-        function selectChartEx(ex) {
+        window.selectChartEx = function(ex) {
             currentChartEx = ex;
-            document.getElementById('chart-custom-select').innerText = ex;
-            document.getElementById('chart-custom-options').classList.remove('show');
-            document.getElementById('chart-custom-select').classList.remove('open');
+            document.getElementById('chart-exercise-btn').innerText = ex;
+            document.getElementById('chart-exercise-modal').style.display = 'none';
             drawChart();
-        }
-
-        // Close dropdown if clicked outside
-        document.addEventListener('click', function(e) {
-            const wrapper = document.querySelector('.custom-select-wrapper');
-            if (wrapper && !wrapper.contains(e.target)) {
-                const opts = document.getElementById('chart-custom-options');
-                const sel = document.getElementById('chart-custom-select');
-                if(opts) opts.classList.remove('show');
-                if(sel) sel.classList.remove('open');
-            }
-        });
+        };
 
         function initChartSelect() {
             let history = safeParse('workoutHistory', []);
             let exSet = new Set();
             history.forEach(log => log.details.forEach(e => exSet.add(e.name)));
-            let optionsHtml = document.getElementById('chart-custom-options');
-            let selectDisplay = document.getElementById('chart-custom-select');
-            if(!optionsHtml || !selectDisplay) return;
+            let listHtml = document.getElementById('chart-exercise-list');
+            let selectDisplay = document.getElementById('chart-exercise-btn');
+            if(!listHtml || !selectDisplay) return;
             
             let options = Array.from(exSet).sort();
             
             if(options.length === 0) {
                 selectDisplay.innerText = 'No Data';
-                optionsHtml.innerHTML = '';
+                listHtml.innerHTML = '<div style="padding: 15px; color: var(--text-muted); text-align: center;">No exercises logged yet.</div>';
                 currentChartEx = '';
                 drawChart();
                 return;
@@ -21363,7 +21393,11 @@
             }
             
             selectDisplay.innerText = currentChartEx;
-            optionsHtml.innerHTML = options.map(o => `<div class="custom-option" onclick="selectChartEx('${o}')">${o}</div>`).join('');
+            
+            // Map the options into the new scrollable modal list
+            listHtml.innerHTML = options.map(o => 
+                `<div class="custom-option" style="padding: 15px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" onclick="selectChartEx('${o.replace(/'/g, "\\'")}')">${o}</div>`
+            ).join('');
             
             drawChart();
         }
@@ -21748,8 +21782,24 @@
             if (!global1RMs['Bench Press']) global1RMs['Bench Press'] = 0;
             if (!global1RMs['Deadlift']) global1RMs['Deadlift'] = 0;
 
-            let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current 1RM (Editable)</h3>';
-            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These values drive your percentage-based targets.</p>';
+            const savedBw = localStorage.getItem('userBodyweight') || '';
+
+            let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Lifter Profile</h3>';
+            
+            html += `
+            <div class="stat-card" style="padding: 12px 18px;">
+                <div style="flex: 1;">
+                    <span class="stat-name">Bodyweight</span>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Used for pull-ups & dips</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                    <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
+                    <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
+                </div>
+            </div>`;
+
+            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current Baselines</h3>';
+            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
 
             const sorted1RMs = Object.keys(global1RMs).sort();
             sorted1RMs.forEach(ex => {
@@ -22191,7 +22241,12 @@
                             <span>${s}</span>
                             <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
                             <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
-                            <span><input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" ${disabledAttr}></span>
+                            <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
+                                <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="padding-right: 22px; width: 100%;" ${disabledAttr}>
+                                <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                            </span>
                             ${e1rmCell}
                             <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
                         </div>
@@ -22236,7 +22291,12 @@
                                 ${setLabel}
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
-                                <span><input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" ${eDisabledAttr}></span>
+                                <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
+                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="padding-right: 22px; width: 100%;" ${eDisabledAttr}>
+                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                                    </button>
+                                </span>
                                 ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
                             </div>`;
@@ -22549,6 +22609,97 @@
             setTimeout(() => overlay.style.display = 'none', 300);
         };
 
+        window.closeHistoryOverlay = function() {
+            const overlay = document.getElementById('history-overlay');
+            overlay.classList.remove('open');
+            setTimeout(() => overlay.style.display = 'none', 300);
+        };
+
+        // --- NEW: PLATE CALCULATOR ENGINE ---
+        window.togglePlateBalloon = function(e, loadInputId) {
+            e.stopPropagation();
+            const balloon = document.getElementById('plate-balloon');
+            const input = document.getElementById(loadInputId);
+            
+            // Toggle off if tapping the same active button
+            if (balloon.dataset.activeInput === loadInputId && balloon.style.display === 'flex') {
+                balloon.style.display = 'none';
+                balloon.dataset.activeInput = '';
+                return;
+            }
+
+            if (!input || !input.value) return;
+
+            const weight = parseFloat(input.value);
+            if (isNaN(weight) || weight <= 0) return;
+
+            let html = '';
+            
+            // Handle bodyweight / light dumbbells
+            if (weight < 20) {
+                html = `<div style="font-weight: 800; color: var(--accent); font-size: 14px;">${weight}kg</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Dumbbell / Plate</div>`;
+            } else if (weight === 20) {
+                html = `<div style="font-weight: 800; color: var(--accent); font-size: 14px;">Empty Bar</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">20kg</div>`;
+            } else {
+                let perSide = (weight - 20) / 2;
+                let plates = [];
+                // Standard Competition Plates
+                const available = [
+                    {w: 25, c: '#ef4444', t: '#fff'}, // Red
+                    {w: 20, c: '#3b82f6', t: '#fff'}, // Blue
+                    {w: 15, c: '#eab308', t: '#000'}, // Yellow
+                    {w: 10, c: '#22c55e', t: '#fff'}, // Green
+                    {w: 5, c: '#f4f4f5', t: '#000'},  // White
+                    {w: 2.5, c: '#27272a', t: '#fff'},// Black
+                    {w: 1.25, c: '#52525b', t: '#fff'}// Silver
+                ];
+
+                for (let p of available) {
+                    while (perSide >= p.w) {
+                        plates.push(p);
+                        perSide -= p.w;
+                    }
+                }
+                
+                html = `<div style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 800; text-transform: uppercase;">Per Side (20kg Bar)</div>
+                        <div class="plate-row">`;
+                
+                plates.forEach(p => {
+                    html += `<div class="plate-block" style="background: ${p.c}; color: ${p.t};">${p.w}</div>`;
+                });
+                
+                if (perSide > 0 && perSide < 1.25) {
+                    html += `<div class="plate-block" style="background: transparent; color: var(--text-muted); border: 1px dashed var(--border);">+${perSide}kg</div>`;
+                }
+                
+                html += `</div>`;
+            }
+
+            balloon.innerHTML = html;
+            balloon.dataset.activeInput = loadInputId;
+            balloon.style.display = 'flex';
+            
+            // Smart Positioning (Centers directly above the button you clicked)
+            const rect = e.currentTarget.getBoundingClientRect();
+            const top = rect.top + window.scrollY - balloon.offsetHeight - 14;
+            const left = rect.left + window.scrollX + (rect.width / 2);
+
+            balloon.style.top = `${top}px`;
+            balloon.style.left = `${left}px`;
+        };
+
+        // Close balloon when clicking anywhere else on the screen
+        document.addEventListener('click', (e) => {
+            const balloon = document.getElementById('plate-balloon');
+            if (balloon && !e.target.closest('.plate-btn')) {
+                balloon.style.display = 'none';
+                balloon.dataset.activeInput = '';
+            }
+        });
+        // ------------------------------------
+
         window.addSetToBlock = function(exIndex, bIndex) {
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
             if (isCustomProgram) {
@@ -22639,8 +22790,18 @@
         activeAudio.preload = 'auto';
 
         // THE SPOTIFY HACK: Silent audio loop to keep the browser awake in the background
-        let silentKeeper = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+        const silentURI = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+        let silentKeeper = new Audio(silentURI);
         silentKeeper.loop = true; 
+
+        // NEW: Forcefully strips audio focus from the browser so Spotify/Podcasts go back to full volume
+        function releaseAudioFocus() {
+            if (silentKeeper) {
+                silentKeeper.pause();
+                silentKeeper.src = ''; // Wipes the source completely
+                silentKeeper.load();   // Forces the OS to abandon the audio session
+            }
+        }
 
         function playBeep() {
             try {
@@ -22672,7 +22833,8 @@
                     activeAudio.currentTime = 0;
                 }).catch(()=>{});
                 
-                // Keep the app awake in the background!
+                // Re-inject the source and keep the app awake in the background!
+                silentKeeper.src = silentURI; 
                 silentKeeper.play().catch(()=>{});
             } catch (e) {}
             
@@ -22718,7 +22880,9 @@
             document.getElementById('rest-timer-banner').classList.remove('active');
             
             if (activeAudio) { activeAudio.pause(); activeAudio.currentTime = 0; }
-            if (silentKeeper) { silentKeeper.pause(); } // Stop draining battery
+            
+            // Instantly restore background music volume
+            releaseAudioFocus(); 
 
             // Clear any OS notifications
             if ('serviceWorker' in navigator) {
@@ -22737,8 +22901,8 @@
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
 
-            // Stop the silent loop once the rest is over
-            if (silentKeeper) { silentKeeper.pause(); }
+            // Instantly restore background music volume once the rest is over
+            releaseAudioFocus();
 
             // --- NATIVE PWA BACKGROUND NOTIFICATION ---
             if (document.hidden && "Notification" in window && Notification.permission === "granted") {
@@ -22758,7 +22922,6 @@
 
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
         }
-
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
@@ -22949,8 +23112,20 @@
                 const currentPct = getPct(rInputRpe, repIndex);
                 const targetPct = getPct(rTargetRpe, repIndex);
 
-                const e1rm = weight / currentPct;
-                const newWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                let effectiveWeight = weight;
+                if (isBodyweightExercise(ex.name)) {
+                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                    if (bw > 0) effectiveWeight += bw;
+                }
+
+                const e1rm = effectiveWeight / currentPct;
+                let targetEffectiveWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                
+                let newWeight = targetEffectiveWeight;
+                if (isBodyweightExercise(ex.name)) {
+                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                    if (bw > 0) newWeight = Math.max(0, targetEffectiveWeight - bw); // Subtract BW back out so it just tells you the added plate weight!
+                }
 
                 extrasArray = extrasArray.slice(0, currentExtraIndex + 1);
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
@@ -23016,13 +23191,17 @@
                 
                 if(!loadInput || !rpeInput || !repsInput || !btn) return;
 
-                const weight = parseFloat(loadInput.value);
+                const weight = parseFloat(loadInput.value) || 0; // Handles empty or 0 inputs (0kg added)
                 const rpe = parseFloat(rpeInput.value);
                 const reps = parseFloat(repsInput.value); 
 
-                // Updated the condition to check if rpe >= 5 (instead of 6)
-                // Unlocked to allow rpe >= 0
-                if (weight > 0 && rpe >= 0 && rpe <= 10 && reps > 0) {
+                let effectiveWeight = weight;
+                if (isBodyweightExercise(exName)) {
+                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                    if (bw > 0) effectiveWeight += bw;
+                }
+
+                if (effectiveWeight > 0 && rpe >= 0 && rpe <= 10 && reps > 0) {
                     
                     const rtsChart = {
                         10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
@@ -23139,7 +23318,13 @@
 
                             // Calculate weight based on percentage
                             if (targetPct > 0) {
-                                const targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                                let targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                                
+                                if (isBodyweightExercise(exName)) {
+                                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                                    if (bw > 0) targetWeight = Math.max(0, targetWeight - bw);
+                                }
+                                
                                 loadInput.value = targetWeight;
                                 saveSessionState(loadInput.id, targetWeight); 
                                 loadInput.dispatchEvent(new Event('input', {bubbles: true}));
