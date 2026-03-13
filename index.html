@@ -23355,6 +23355,8 @@
                 
                 if(!loadInput || !rpeInput || !repsInput || !btn) return;
 
+                const exName = loadInput.dataset.exname; // BUG FIX: Defines the exercise name so the engine doesn't crash!
+
                 const weight = parseFloat(loadInput.value) || 0; // Handles empty or 0 inputs (0kg added)
                 const rpe = parseFloat(rpeInput.value);
                 const reps = parseFloat(repsInput.value); 
