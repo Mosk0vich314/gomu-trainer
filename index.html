@@ -544,6 +544,12 @@
         }
         .login-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
         .login-error { color: var(--danger); font-size: 13px; font-weight: 600; margin-top: -10px; margin-bottom: 15px; display: none; }
+        /* PHYSIQUE PRIVACY STYLES */
+        #physique-gallery img { transition: filter 0.3s ease, brightness 0.3s ease; }
+        #physique-gallery button { transition: opacity 0.2s; }
+        .privacy-hidden img { filter: blur(15px) brightness(0.5); pointer-events: none; }
+        .privacy-hidden button { opacity: 0; pointer-events: none; }
+        .privacy-hidden .pic-date-label { opacity: 0; }
     </style>
 </head>
 <body>
@@ -22002,9 +22008,31 @@
             reader.readAsDataURL(file);
         };
 
+        window.togglePhysiquePrivacy = function() {
+            window.physiquePrivacy = !window.physiquePrivacy;
+            const gallery = document.getElementById('physique-gallery');
+            const btn = document.getElementById('privacy-toggle-btn');
+            
+            if (window.physiquePrivacy) {
+                gallery.classList.add('privacy-hidden');
+                btn.innerText = '🙈 Hidden';
+                btn.style.color = 'var(--text-muted)';
+                btn.style.borderColor = 'var(--border)';
+            } else {
+                gallery.classList.remove('privacy-hidden');
+                btn.innerText = '👁️ Revealed';
+                btn.style.color = 'var(--accent)';
+                btn.style.borderColor = 'var(--accent)';
+            }
+        };
+
         window.renderPhysiqueGallery = async function() {
             const container = document.getElementById('physique-gallery');
             if (!container) return;
+
+            // Enforce class on re-render just in case a new photo is uploaded
+            if (window.physiquePrivacy) container.classList.add('privacy-hidden');
+            else container.classList.remove('privacy-hidden');
 
             let pics = await getDB('progressPictures', []);
             
@@ -22020,7 +22048,7 @@
                 html += `
                 <div style="position: relative; flex-shrink: 0; width: 140px; scroll-snap-align: start; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                     <img src="${pic.url}" style="width: 140px; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); display: block;">
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 15px 8px 8px 8px; font-size: 11px; font-weight: 800; color: #fff; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; letter-spacing: 0.5px;">${pic.date}</div>
+                    <div class="pic-date-label" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 15px 8px 8px 8px; font-size: 11px; font-weight: 800; color: #fff; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; letter-spacing: 0.5px; transition: opacity 0.2s;">${pic.date}</div>
                     <button onclick="deleteProgressPicture('${pic.id}')" style="position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: 2px solid var(--card); width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">✕</button>
                 </div>`;
             });
@@ -22110,11 +22138,17 @@
                 });
             }
 
+            // Reset privacy lock every time the vault is opened
+            window.physiquePrivacy = true;
+
             // --- NEW: PHYSIQUE TRACKING UI ---
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Physique Tracking</h3>';
+            html += '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
+            html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Physique Tracking</h3>';
+            html += '<button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">🙈 Hidden</button>';
+            html += '</div>';
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Locally stored progress pictures. These never leave your device.</p>';
             html += `
-            <div id="physique-gallery" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+            <div id="physique-gallery" class="privacy-hidden" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
                 <div style="color: var(--text-muted); font-style: italic; font-size: 13px;">Loading gallery...</div>
             </div>
             <label class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px dashed var(--border); display: block; text-align: center; cursor: pointer; padding: 15px; font-size: 14px;">
