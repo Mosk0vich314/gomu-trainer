@@ -486,25 +486,25 @@
         .sheet-handle { width: 40px; height: 5px; background: #3f3f46; border-radius: 3px; margin: 0 auto 20px auto; }
         /* PLATE CALCULATOR BALLOON & BUTTON */
         .plate-btn {
-            position: absolute; right: 0; bottom: 0; top: auto; transform: none;
-            width: 30px; height: 30px; /* Invisible touch target size */
-            display: flex; align-items: flex-end; justify-content: flex-end;
+            position: absolute; left: 0; top: 0; right: auto; bottom: auto; transform: none;
+            width: 22px; height: 22px; /* Much smaller touch target to prevent misclicks */
+            display: flex; align-items: flex-start; justify-content: flex-start;
             background: transparent; border: none; cursor: pointer; z-index: 10; padding: 0;
         }
         .plate-indicator {
             width: 0; height: 0;
             border-style: solid;
-            border-width: 0 0 10px 10px;
-            border-color: transparent transparent var(--border) transparent;
-            transition: 0.2s; border-bottom-right-radius: 6px;
+            border-width: 12px 12px 0 0;
+            border-color: var(--border) transparent transparent transparent;
+            transition: 0.2s; border-top-left-radius: 6px; /* Matches the top-left curve of the input */
         }
-        .plate-btn:active .plate-indicator { border-color: transparent transparent var(--accent) transparent; }
+        .plate-btn:active .plate-indicator { border-color: var(--accent) transparent transparent transparent; }
         
         .plate-balloon {
             position: absolute; background: #27272a; border: 1px solid var(--accent);
             border-radius: 12px; padding: 12px 16px; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             display: none; flex-direction: column; align-items: center; gap: 8px;
-            transform: translateX(-50%); width: max-content;
+            transform: translateX(-50%); width: max-content; max-width: 85vw;
         }
         .plate-balloon::after {
             content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
@@ -544,6 +544,12 @@
         }
         .login-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
         .login-error { color: var(--danger); font-size: 13px; font-weight: 600; margin-top: -10px; margin-bottom: 15px; display: none; }
+        /* PHYSIQUE PRIVACY STYLES */
+        #physique-gallery img { transition: filter 0.3s ease, brightness 0.3s ease; }
+        #physique-gallery button { transition: opacity 0.2s; }
+        .privacy-hidden img { filter: blur(15px) brightness(0.5); pointer-events: none; }
+        .privacy-hidden button { opacity: 0; pointer-events: none; }
+        .privacy-hidden .pic-date-label { opacity: 0; }
     </style>
 </head>
 <body>
@@ -1407,8 +1413,9 @@
             }
         };
 
-        window.isBodyweightExercise = function(name) {
-            return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
+        window.isNoPlateExercise = function(name) {
+            if (!name) return false;
+            return /dumbbell|dumbell|\bdb\b|cable|machine/i.test(name);
         };
 
         function updateDashboard() {
@@ -2473,9 +2480,31 @@
             reader.readAsDataURL(file);
         };
 
+        window.togglePhysiquePrivacy = function() {
+            window.physiquePrivacy = !window.physiquePrivacy;
+            const gallery = document.getElementById('physique-gallery');
+            const btn = document.getElementById('privacy-toggle-btn');
+            
+            if (window.physiquePrivacy) {
+                gallery.classList.add('privacy-hidden');
+                btn.innerText = '🙈 Hidden';
+                btn.style.color = 'var(--text-muted)';
+                btn.style.borderColor = 'var(--border)';
+            } else {
+                gallery.classList.remove('privacy-hidden');
+                btn.innerText = '👁️ Revealed';
+                btn.style.color = 'var(--accent)';
+                btn.style.borderColor = 'var(--accent)';
+            }
+        };
+
         window.renderPhysiqueGallery = async function() {
             const container = document.getElementById('physique-gallery');
             if (!container) return;
+
+            // Enforce class on re-render just in case a new photo is uploaded
+            if (window.physiquePrivacy) container.classList.add('privacy-hidden');
+            else container.classList.remove('privacy-hidden');
 
             let pics = await getDB('progressPictures', []);
             
@@ -2491,7 +2520,7 @@
                 html += `
                 <div style="position: relative; flex-shrink: 0; width: 140px; scroll-snap-align: start; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                     <img src="${pic.url}" style="width: 140px; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); display: block;">
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 15px 8px 8px 8px; font-size: 11px; font-weight: 800; color: #fff; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; letter-spacing: 0.5px;">${pic.date}</div>
+                    <div class="pic-date-label" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 15px 8px 8px 8px; font-size: 11px; font-weight: 800; color: #fff; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; letter-spacing: 0.5px; transition: opacity 0.2s;">${pic.date}</div>
                     <button onclick="deleteProgressPicture('${pic.id}')" style="position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: 2px solid var(--card); width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">✕</button>
                 </div>`;
             });
@@ -2581,11 +2610,17 @@
                 });
             }
 
+            // Reset privacy lock every time the vault is opened
+            window.physiquePrivacy = true;
+
             // --- NEW: PHYSIQUE TRACKING UI ---
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Physique Tracking</h3>';
+            html += '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
+            html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Physique Tracking</h3>';
+            html += '<button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">🙈 Hidden</button>';
+            html += '</div>';
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Locally stored progress pictures. These never leave your device.</p>';
             html += `
-            <div id="physique-gallery" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+            <div id="physique-gallery" class="privacy-hidden" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
                 <div style="color: var(--text-muted); font-style: italic; font-size: 13px;">Loading gallery...</div>
             </div>
             <label class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px dashed var(--border); display: block; text-align: center; cursor: pointer; padding: 15px; font-size: 14px;">
@@ -2813,17 +2848,21 @@
                 }
             } else if (isActive) {
             bottomActionUI = `
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px;">
-                <div class="slider-container" id="finish-slider" style="flex: 1; margin: 0;">
+            <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
+                <span style="color: var(--danger);">◀ SWIPE TO STOP</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
+            </div>
+            <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
+                <div class="swipe-delete-bg" style="right: 25px; opacity: 1;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
+                    <span style="font-size: 11px; margin-top: 4px; font-weight: 800;">STOP</span>
+                </div>
+                <div class="slider-container" id="finish-slider" style="margin: 0; width: 100%; position: relative; z-index: 2; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y;">
                     <div class="slider-track" id="slider-track"></div>
                     <div class="slider-thumb" id="slider-thumb">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                     </div>
                     <div class="slider-text" style="width: calc(100% - 64px); left: 64px; font-size: 14px;">Slide to Finish</div>
                 </div>
-                <button onclick="cancelActiveWorkout()" style="flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); transition: 0.2s;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
-                </button>
             </div>`;
             } else {
                 topActionUI = `<button class="action-btn btn-start" onclick="toggleWorkoutState('start')">▶ Start Workout</button>`;
@@ -2834,13 +2873,27 @@
             const savedSession = safeParse(currentKey, {});
             const lastUsedWeights = safeParse('lastUsedWeights', {});
 
-            exercises.forEach((ex, exIndex) => {
-                if (ex.isDeleted) return; // Skip rendering deleted exercises!
+            // --- REORDER ENGINE ---
+            let displayExercises = exercises.map((ex, origIdx) => ({ ...ex, origIdx }));
+            if (savedSession.customOrder) {
+                let orderMap = new Map();
+                savedSession.customOrder.forEach((origIdx, pos) => orderMap.set(origIdx, pos));
+                displayExercises.sort((a, b) => {
+                    let posA = orderMap.has(a.origIdx) ? orderMap.get(a.origIdx) : 999 + a.origIdx;
+                    let posB = orderMap.has(b.origIdx) ? orderMap.get(b.origIdx) : 999 + b.origIdx;
+                    return posA - posB;
+                });
+            }
+
+            displayExercises.forEach((ex, displayIndex) => {
+                const exIndex = ex.origIdx; // CRITICAL: Preserves data bindings!
+                if (ex.isDeleted) return; 
                 
                 const exId = `ex-${exIndex}`;
                 const isMain = ex.type === 'main';
                 const nameLower = ex.name.toLowerCase();
-                const isMyo = ex.notes ? ex.notes.toLowerCase().includes('myo') : false; // DETECTS MYO-REPS
+                const isMyo = ex.notes ? ex.notes.toLowerCase().includes('myo') : false; 
+                const isSupersetNext = ex.supersetNext && displayIndex < displayExercises.length - 1;
                 
                 let logoSvg = '';
                 if (nameLower.includes('squat')) {
@@ -2875,7 +2928,7 @@
                 
                 if (!isCompleted) {
                     wrapperStart = `
-                    <div class="swipe-wrapper" id="swipe-wrapper-${exId}">
+                    <div class="swipe-wrapper" id="swipe-wrapper-${exId}" style="margin-bottom: ${isSupersetNext ? '8px' : '16px'};">
                         <div class="swipe-delete-bg">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                             <span>DELETE</span>
@@ -3028,12 +3081,13 @@
                             <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
                             <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                 <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                ${isNoPlateExercise(ex.name) ? '' : `
                                 <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
                                     <div class="plate-indicator"></div>
-                                </button>
+                                </button>`}
                             </span>
                             ${e1rmCell}
-                            <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                            <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                         </div>
                         `;
 
@@ -3078,12 +3132,13 @@
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    ${isNoPlateExercise(ex.name) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
-                                    </button>
+                                    </button>`}
                                 </span>
                                 ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
-                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
                     }
@@ -3098,7 +3153,25 @@
                     html += `</div>`; // Close block-container
                 });
                 html += `</div>`;
-                html += wrapperEnd; // NEW: Close the swipe wrapper
+                html += wrapperEnd; // Close the swipe wrapper
+                
+                // --- SUPERSET & REORDER CONTROLS ---
+                if (!isCompleted && displayIndex < displayExercises.length - 1) {
+                    const linkColor = isSupersetNext ? '#fff' : 'var(--text-muted)';
+                    const borderColor = isSupersetNext ? '#fff' : 'var(--border)';
+                    const linkGlow = isSupersetNext ? '0 0 10px rgba(255,255,255,0.3)' : '0 4px 10px rgba(0,0,0,0.5)';
+                    const linkOpacity = isSupersetNext ? '1' : '0.5';
+                    
+                    html += `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 0px; margin-bottom: ${isSupersetNext ? '8px' : '16px'}; position: relative; z-index: 10;">
+                        <button onclick="swapExercisesOrder(${displayIndex})" style="background: var(--card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" title="Swap Order">
+                            <span style="font-size: 16px; font-weight: 800; line-height: 1; margin-top: -2px;">⇅</span>
+                        </button>
+                        <button onclick="toggleSuperset(${exIndex})" style="background: var(--card); border: 2px solid ${borderColor}; color: ${linkColor}; opacity: ${linkOpacity}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: ${linkGlow};" title="Link as Superset">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        </button>
+                    </div>`;
+                }
             });
             
             html += `</div>`; // CLOSE THE PREVIEW WRAPPER FIRST!
@@ -3132,19 +3205,26 @@
             const track = document.getElementById('slider-track');
             const container = document.getElementById('finish-slider');
             if(!thumb || !container) return;
-            let isDragging = false;
-            let startX = 0;
-            let maxSlide = container.offsetWidth - 76; 
+            
+            let isDraggingThumb = false;
+            let isDraggingContainer = false;
+            let isScrolling = false;
+            let startX = 0, startY = 0;
+            let maxSlide = 0; 
 
-            const onStart = (e) => {
-                isDragging = true;
+            // --- THUMB LOGIC (Slide Right to Finish) ---
+            const onThumbStart = (e) => {
+                isDraggingThumb = true;
+                // BUG FIX: Calculate width exactly when tapped, not before!
+                maxSlide = container.offsetWidth - 76; 
                 startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                 thumb.style.transition = 'none';
                 track.style.transition = 'none';
+                e.stopPropagation(); 
             };
 
-            const onMove = (e) => {
-                if (!isDragging) return;
+            const onThumbMove = (e) => {
+                if (!isDraggingThumb) return;
                 if(e.cancelable) e.preventDefault(); 
                 
                 let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
@@ -3157,31 +3237,85 @@
                 track.style.width = `${diff + 38}px`; 
                 
                 const text = container.querySelector('.slider-text');
-                text.style.opacity = 1 - (diff / maxSlide);
+                if (text) text.style.opacity = 1 - (diff / maxSlide);
 
                 if (diff >= maxSlide - 5) {
-                    isDragging = false;
+                    isDraggingThumb = false;
                     toggleWorkoutState('finish');
                 }
             };
 
-            const onEnd = () => {
-                if (!isDragging) return;
-                isDragging = false;
+            const onThumbEnd = () => {
+                if (!isDraggingThumb) return;
+                isDraggingThumb = false;
                 thumb.style.transition = 'transform 0.3s ease';
                 track.style.transition = 'width 0.3s ease';
                 thumb.style.transform = `translateX(0px)`;
                 track.style.width = `0%`;
-                container.querySelector('.slider-text').style.opacity = 1;
+                const text = container.querySelector('.slider-text');
+                if (text) text.style.opacity = 1;
             };
 
-            thumb.addEventListener('mousedown', onStart);
-            document.addEventListener('mousemove', onMove, {passive: false});
-            document.addEventListener('mouseup', onEnd);
+            thumb.addEventListener('mousedown', onThumbStart);
+            document.addEventListener('mousemove', onThumbMove, {passive: false});
+            document.addEventListener('mouseup', onThumbEnd);
             
-            thumb.addEventListener('touchstart', onStart, {passive: true});
-            document.addEventListener('touchmove', onMove, {passive: false});
-            document.addEventListener('touchend', onEnd);
+            thumb.addEventListener('touchstart', onThumbStart, {passive: true});
+            document.addEventListener('touchmove', onThumbMove, {passive: false});
+            document.addEventListener('touchend', onThumbEnd);
+            
+            // --- CONTAINER LOGIC (Swipe Left to Stop) ---
+            const onContainerStart = (e) => {
+                if (e.target.closest('#slider-thumb')) return; 
+                isDraggingContainer = true;
+                isScrolling = false;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                container.style.transition = 'none';
+            };
+            
+            const onContainerMove = (e) => {
+                if (!isDraggingContainer) return;
+                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientX;
+                let diffX = currentX - startX;
+                let diffY = Math.abs(currentY - startY);
+                
+                if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) isScrolling = true;
+                if (isScrolling) return;
+                
+                if (diffX < 0) {
+                    if (e.cancelable) e.preventDefault();
+                    container.style.transform = `translateX(${diffX}px)`;
+                }
+            };
+            
+            const onContainerEnd = (e) => {
+                if (!isDraggingContainer) return;
+                isDraggingContainer = false;
+                container.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                
+                let currentX = e.type.includes('mouse') ? e.clientX : e.changedTouches[0].clientX;
+                let diffX = currentX - startX;
+                
+                if (!isScrolling && diffX < -100) {
+                    container.style.transform = `translateX(-100%)`;
+                    setTimeout(() => {
+                        container.style.transform = `translateX(0px)`;
+                        cancelActiveWorkout();
+                    }, 200);
+                } else {
+                    container.style.transform = `translateX(0px)`;
+                }
+            };
+            
+            container.addEventListener('touchstart', onContainerStart, {passive: true});
+            container.addEventListener('touchmove', onContainerMove, {passive: false});
+            container.addEventListener('touchend', onContainerEnd);
+            container.addEventListener('mousedown', onContainerStart);
+            container.addEventListener('mousemove', onContainerMove);
+            container.addEventListener('mouseup', onContainerEnd);
+            container.addEventListener('mouseleave', onContainerEnd);
         }
 
         function setupSwipeToDelete() {
@@ -3330,6 +3464,25 @@
             renderWorkout();
         };
 
+        window.swapExercisesOrder = function(displayIndex) {
+            const key = getWorkoutKey();
+            let savedSession = safeParse(key, {});
+            
+            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            let currentOrder = savedSession.customOrder || exercises.map((_, i) => i);
+            
+            if (displayIndex < currentOrder.length - 1) {
+                // Swap the two indices
+                let temp = currentOrder[displayIndex];
+                currentOrder[displayIndex] = currentOrder[displayIndex + 1];
+                currentOrder[displayIndex + 1] = temp;
+                
+                savedSession.customOrder = currentOrder;
+                localStorage.setItem(key, JSON.stringify(savedSession));
+                renderWorkout();
+            }
+        };
+
         window.openNoteModal = function(exIndex, currentNote) {
             window.noteTargetExIndex = exIndex;
             document.getElementById('edit-note-text').value = currentNote && currentNote !== 'undefined' ? currentNote : '';
@@ -3453,6 +3606,14 @@
 
         window.openPlateSettings = function(e) {
             e.stopPropagation();
+            
+            // Force the balloon to close immediately so it doesn't overlap the modal
+            const balloon = document.getElementById('plate-balloon');
+            if (balloon) {
+                balloon.style.display = 'none';
+                balloon.dataset.activeInput = '';
+            }
+
             const plates = getActivePlates();
             
             // Set the barbell input to your saved value
@@ -3518,28 +3679,42 @@
                 let perSide = (weight - barWeight) / 2;
                 let plates = [];
                 
+                // Float precision fix so weird numbers don't break the loop
+                perSide = Math.round(perSide * 100) / 100; 
+
                 const available = getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w);
 
                 for (let p of available) {
                     while (perSide >= p.w) {
                         plates.push(p);
-                        perSide -= p.w;
+                        perSide = Math.round((perSide - p.w) * 100) / 100;
                     }
                 }
                 
-                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 800; text-transform: uppercase; padding-right: 15px;">Per Side (${barWeight}kg Bar)</div>
-                        <div class="plate-row">`;
+                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; z-index: 10;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">Per Side (${barWeight}kg Bar)</div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: flex-start; max-width: 100%; overflow-x: auto; padding: 25px 5px; scrollbar-width: none;">
+                            <div style="width: 14px; height: 10px; background: #52525b; border-radius: 2px 0 0 2px; flex-shrink: 0;"></div>
+                            <div style="width: 7px; height: 28px; background: #a1a1aa; border-radius: 2px; flex-shrink: 0; box-shadow: inset 2px 0 4px rgba(0,0,0,0.3); z-index: 2;"></div>
+                            <div style="display: flex; align-items: center; height: 10px; background: #71717a; border-radius: 0 4px 4px 0; padding-left: 1px; padding-right: 15px; min-width: 25px;">`;
                 
+                // Draw dynamic plates!
                 plates.forEach(p => {
-                    html += `<div class="plate-block" style="background: ${p.c}; color: ${p.t};">${p.w}</div>`;
+                    let h = p.w >= 20 ? 54 : p.w >= 15 ? 46 : p.w >= 10 ? 36 : p.w >= 5 ? 26 : p.w >= 2.5 ? 20 : 16;
+                    let w = p.w >= 10 ? 14 : 10;
+                    let f = p.w >= 10 ? 9 : 8;
+                    html += `<div style="width: ${w}px; height: ${h}px; background: ${p.c}; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; margin-right: 1px; flex-shrink: 0; box-shadow: inset -1px 0 3px rgba(0,0,0,0.3); z-index: 3;">
+                                <span style="font-size: ${f}px; font-weight: 800; color: ${p.t}; transform: rotate(-90deg); letter-spacing: -0.5px;">${p.w}</span>
+                             </div>`;
                 });
                 
                 if (perSide > 0.01) {
-                    html += `<div class="plate-block" style="background: transparent; color: var(--text-muted); border: 1px dashed var(--border);">+${parseFloat(perSide.toFixed(2))}kg</div>`;
+                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))}kg</div>`;
                 }
                 
-                html += `</div>`;
+                html += `   </div>
+                        </div>`;
             }
 
             balloon.innerHTML = html;
@@ -3944,6 +4119,11 @@
                             }
                         }
                     }
+                }
+
+                // SUPERSET TIMER HIJACK: Give 15s to switch machines if this exercise links to the next!
+                if (el.dataset.superset === 'true') {
+                    restSeconds = 15;
                 }
 
                 startTimer(restSeconds);

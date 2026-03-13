@@ -20943,7 +20943,13 @@
         };
 
         window.isNoPlateExercise = function(name) {
+            if (!name) return false;
             return /dumbbell|dumbell|\bdb\b|cable|machine/i.test(name);
+        };
+
+        window.isBodyweightExercise = function(name) {
+            if (!name) return false;
+            return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
         };
 
         function updateDashboard() {
@@ -22376,11 +22382,15 @@
                 }
             } else if (isActive) {
             bottomActionUI = `
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px; padding-bottom: 60px;">
-                <button onclick="cancelActiveWorkout()" style="flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); transition: 0.2s;" title="Stop Workout">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
-                </button>
-                <div class="slider-container" id="finish-slider" style="flex: 1; margin: 0;">
+            <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
+                <span style="color: var(--danger);">◀ SWIPE TO STOP</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
+            </div>
+            <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
+                <div class="swipe-delete-bg" style="right: 25px; opacity: 1;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
+                    <span style="font-size: 11px; margin-top: 4px; font-weight: 800;">STOP</span>
+                </div>
+                <div class="slider-container" id="finish-slider" style="margin: 0; width: 100%; position: relative; z-index: 2; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y;">
                     <div class="slider-track" id="slider-track"></div>
                     <div class="slider-thumb" id="slider-thumb">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
@@ -22729,22 +22739,27 @@
             const track = document.getElementById('slider-track');
             const container = document.getElementById('finish-slider');
             if(!thumb || !container) return;
-            let isDragging = false;
-            let startX = 0;
-            let maxSlide = container.offsetWidth - 76; 
+            
+            let isDraggingThumb = false;
+            let isDraggingContainer = false;
+            let isScrolling = false;
+            let startX = 0, startY = 0;
+            let maxSlide = 0; 
 
-            const onStart = (e) => {
-                isDragging = true;
-                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            // --- THUMB LOGIC (Slide Right to Finish) ---
+            const onThumbStart = (e) => {
+                isDraggingThumb = true;
+                maxSlide = container.offsetWidth - 76; 
+                startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
                 thumb.style.transition = 'none';
                 track.style.transition = 'none';
             };
 
-            const onMove = (e) => {
-                if (!isDragging) return;
-                if(e.cancelable) e.preventDefault(); 
+            const onThumbMove = (e) => {
+                if (!isDraggingThumb) return;
+                if (e.cancelable) e.preventDefault(); 
                 
-                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
                 let diff = currentX - startX;
                 
                 if (diff < 0) diff = 0;
@@ -22754,31 +22769,88 @@
                 track.style.width = `${diff + 38}px`; 
                 
                 const text = container.querySelector('.slider-text');
-                text.style.opacity = 1 - (diff / maxSlide);
+                if (text) text.style.opacity = 1 - (diff / maxSlide);
 
                 if (diff >= maxSlide - 5) {
-                    isDragging = false;
+                    isDraggingThumb = false;
                     toggleWorkoutState('finish');
                 }
             };
 
-            const onEnd = () => {
-                if (!isDragging) return;
-                isDragging = false;
+            const onThumbEnd = () => {
+                if (!isDraggingThumb) return;
+                isDraggingThumb = false;
                 thumb.style.transition = 'transform 0.3s ease';
                 track.style.transition = 'width 0.3s ease';
                 thumb.style.transform = `translateX(0px)`;
                 track.style.width = `0%`;
-                container.querySelector('.slider-text').style.opacity = 1;
+                const text = container.querySelector('.slider-text');
+                if (text) text.style.opacity = 1;
             };
 
-            thumb.addEventListener('mousedown', onStart);
-            document.addEventListener('mousemove', onMove, {passive: false});
-            document.addEventListener('mouseup', onEnd);
+            thumb.addEventListener('touchstart', onThumbStart, {passive: true});
+            document.addEventListener('touchmove', onThumbMove, {passive: false});
+            document.addEventListener('touchend', onThumbEnd);
+            document.addEventListener('touchcancel', onThumbEnd);
             
-            thumb.addEventListener('touchstart', onStart, {passive: true});
-            document.addEventListener('touchmove', onMove, {passive: false});
-            document.addEventListener('touchend', onEnd);
+            thumb.addEventListener('mousedown', onThumbStart);
+            document.addEventListener('mousemove', onThumbMove, {passive: false});
+            document.addEventListener('mouseup', onThumbEnd);
+            
+            // --- CONTAINER LOGIC (Swipe Left to Stop) ---
+            const onContainerStart = (e) => {
+                if (e.target.closest('#slider-thumb')) return; 
+                isDraggingContainer = true;
+                isScrolling = false;
+                startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                startY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+                container.style.transition = 'none';
+            };
+            
+            const onContainerMove = (e) => {
+                if (!isDraggingContainer) return;
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                let currentY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+                let diffX = currentX - startX;
+                let diffY = Math.abs(currentY - startY);
+                
+                if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) isScrolling = true;
+                if (isScrolling) return;
+                
+                if (diffX < 0) {
+                    if (e.cancelable) e.preventDefault();
+                    container.style.transform = `translateX(${diffX}px)`;
+                }
+            };
+            
+            const onContainerEnd = (e) => {
+                if (!isDraggingContainer) return;
+                isDraggingContainer = false;
+                container.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : 0);
+                let diffX = currentX - startX;
+                
+                if (!isScrolling && diffX < -100) {
+                    container.style.transform = `translateX(-100%)`;
+                    setTimeout(() => {
+                        container.style.transform = `translateX(0px)`;
+                        cancelActiveWorkout();
+                    }, 200);
+                } else {
+                    container.style.transform = `translateX(0px)`;
+                }
+            };
+            
+            container.addEventListener('touchstart', onContainerStart, {passive: true});
+            container.addEventListener('touchmove', onContainerMove, {passive: false});
+            container.addEventListener('touchend', onContainerEnd);
+            container.addEventListener('touchcancel', onContainerEnd);
+            
+            container.addEventListener('mousedown', onContainerStart);
+            container.addEventListener('mousemove', onContainerMove);
+            container.addEventListener('mouseup', onContainerEnd);
+            container.addEventListener('mouseleave', onContainerEnd);
         }
 
         function setupSwipeToDelete() {
@@ -22787,18 +22859,21 @@
                 
                 const startDrag = (e) => {
                     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                    e.stopPropagation(); // <-- FIX: Stops the parent exercise from swiping!
-                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    // Elegantly prevents the parent exercise from swiping when you are dragging a child set!
+                    if (el.classList.contains('exercise-container') && e.target.closest('.set-swipable')) return;
+                    
+                    startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                    startY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                     isDragging = true; isScrolling = false;
                     el.classList.add('swiping');
                 };
                 
                 const moveDrag = (e) => {
                     if (!isDragging) return;
-                    e.stopPropagation(); // <-- FIX
-                    let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    let clientX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                    let clientY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                     let diffX = clientX - startX;
                     let diffY = Math.abs(clientY - startY);
                     
@@ -22814,7 +22889,6 @@
                 
                 const endDrag = (e) => {
                     if (!isDragging) return;
-                    e.stopPropagation(); // <-- FIX
                     isDragging = false;
                     el.classList.remove('swiping');
                     if (!isScrolling && currentX < threshold) {
