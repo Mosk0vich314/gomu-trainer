@@ -98,6 +98,12 @@
         .swipe-delete-bg { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; font-size: 12px; pointer-events: none; }
         .exercise-container.swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; margin-bottom: 0; box-shadow: none; border: 1px solid var(--border); }
         .exercise-container.swiping { transition: none; }
+        /* DRAG AND DROP REORDER */
+        .reorder-item { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); border: 1px solid var(--border); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; color: var(--text-main); font-weight: 600; font-size: 15px; user-select: none;}
+        .reorder-item.dragging { opacity: 0.4; border-color: var(--accent); background: var(--card); transform: scale(0.98); }
+        .drag-handle { padding: 10px; margin: -10px; color: var(--text-muted); cursor: grab; display: flex; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; }
+        .drag-handle:active { cursor: grabbing; color: var(--accent); }
+        
         /* Modals (Onboarding & Warmups & Confirmation) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; backdrop-filter: blur(8px); }
         .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -565,6 +571,20 @@
             <div id="login-error" class="login-error">Incorrect password.</div>
             
             <button class="action-btn btn-start" style="margin: 0; padding: 15px;" onclick="checkLogin()">Unlock Vault</button>
+        </div>
+    </div>
+    <div id="reorder-modal" class="modal-overlay">
+        <div class="modal-card" style="padding: 20px; max-height: 85vh; display: flex; flex-direction: column;">
+            <h2 style="margin-bottom: 5px;">Reorder Exercises</h2>
+            <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px;">Drag the handles to rearrange your workout.</p>
+            
+            <div id="reorder-list" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; text-align: left; touch-action: none;">
+                </div>
+            
+            <div class="modal-actions" style="margin-top: 15px;">
+                <button class="modal-btn cancel" onclick="document.getElementById('reorder-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="saveReorder()">Save</button>
+            </div>
         </div>
     </div>
     <div id="add-exercise-modal" class="modal-overlay">
@@ -22383,12 +22403,12 @@
             } else if (isActive) {
             bottomActionUI = `
             <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
-                <span style="color: var(--danger);">◀ SWIPE TO STOP</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
+                <span style="color: var(--danger);">◀ SWIPE TO CANCEL</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
             </div>
             <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
-                <div class="swipe-delete-bg" style="right: 25px; opacity: 1;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
-                    <span style="font-size: 11px; margin-top: 4px; font-weight: 800;">STOP</span>
+                <div class="swipe-delete-bg" style="right: 25px; opacity: 1; flex-direction: row; gap: 6px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span style="font-size: 13px; font-weight: 800; letter-spacing: 1px; margin-top: 0;">CANCEL</span>
                 </div>
                 <div class="slider-container" id="finish-slider" style="margin: 0; width: 100%; position: relative; z-index: 2; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y;">
                     <div class="slider-track" id="slider-track"></div>
@@ -22689,7 +22709,7 @@
                 html += `</div>`;
                 html += wrapperEnd; // Close the swipe wrapper
                 
-                // --- SUPERSET & REORDER CONTROLS ---
+                // --- SUPERSET CONTROLS ---
                 if (!isCompleted && displayIndex < displayExercises.length - 1) {
                     const linkColor = isSupersetNext ? '#fff' : 'var(--text-muted)';
                     const borderColor = isSupersetNext ? '#fff' : 'var(--border)';
@@ -22698,9 +22718,6 @@
                     
                     html += `
                     <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 0px; margin-bottom: ${isSupersetNext ? '8px' : '16px'}; position: relative; z-index: 10;">
-                        <button onclick="swapExercisesOrder(${displayIndex})" style="background: var(--card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" title="Swap Order">
-                            <span style="font-size: 16px; font-weight: 800; line-height: 1; margin-top: -2px;">⇅</span>
-                        </button>
                         <button onclick="toggleSuperset(${exIndex})" style="background: var(--card); border: 2px solid ${borderColor}; color: ${linkColor}; opacity: ${linkOpacity}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: ${linkGlow};" title="Link as Superset">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         </button>
@@ -22710,9 +22727,13 @@
             
             html += `</div>`; // CLOSE THE PREVIEW WRAPPER FIRST!
             
-            // Show Add Exercise for ANY uncompleted workout
+            // Show Add Exercise & Reorder for ANY uncompleted workout
             if (!isCompleted) {
-                html += `<button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin-top: 20px; margin-bottom: 20px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add Exercise</button>`;
+                html += `
+                <div style="display: flex; gap: 12px; margin-top: 20px; margin-bottom: 20px;">
+                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add</button>
+                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openReorderModal()">⇅ Reorder</button>
+                </div>`;
             }
             
             html += bottomActionUI;
@@ -23001,24 +23022,120 @@
             renderWorkout();
         };
 
-        window.swapExercisesOrder = function(displayIndex) {
+        window.openReorderModal = function() {
+            const key = getWorkoutKey();
+            const savedSession = safeParse(key, {});
+            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            
+            let displayExercises = exercises.map((ex, origIdx) => ({ ...ex, origIdx }));
+            if (savedSession.customOrder) {
+                let orderMap = new Map();
+                savedSession.customOrder.forEach((origIdx, pos) => orderMap.set(origIdx, pos));
+                displayExercises.sort((a, b) => {
+                    let posA = orderMap.has(a.origIdx) ? orderMap.get(a.origIdx) : 999 + a.origIdx;
+                    let posB = orderMap.has(b.origIdx) ? orderMap.get(b.origIdx) : 999 + b.origIdx;
+                    return posA - posB;
+                });
+            }
+
+            const listContainer = document.getElementById('reorder-list');
+            let html = '';
+            
+            displayExercises.forEach(ex => {
+                if (ex.isDeleted) return;
+                html += `
+                <div class="reorder-item" data-origidx="${ex.origIdx}">
+                    <span style="flex: 1; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${ex.name}</span>
+                    <div class="drag-handle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </div>
+                </div>`;
+            });
+            
+            listContainer.innerHTML = html;
+            document.getElementById('reorder-modal').style.display = 'flex';
+            setupReorderDrag();
+        };
+
+        window.saveReorder = function() {
+            const listContainer = document.getElementById('reorder-list');
+            const items = listContainer.querySelectorAll('.reorder-item');
+            let newOrder = [];
+            
+            items.forEach(item => {
+                newOrder.push(parseInt(item.dataset.origidx));
+            });
+            
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
+            savedSession.customOrder = newOrder;
+            localStorage.setItem(key, JSON.stringify(savedSession));
             
-            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
-            let currentOrder = savedSession.customOrder || exercises.map((_, i) => i);
-            
-            if (displayIndex < currentOrder.length - 1) {
-                // Swap the two indices
-                let temp = currentOrder[displayIndex];
-                currentOrder[displayIndex] = currentOrder[displayIndex + 1];
-                currentOrder[displayIndex + 1] = temp;
-                
-                savedSession.customOrder = currentOrder;
-                localStorage.setItem(key, JSON.stringify(savedSession));
-                renderWorkout();
-            }
+            document.getElementById('reorder-modal').style.display = 'none';
+            renderWorkout();
         };
+
+        function setupReorderDrag() {
+            const list = document.getElementById('reorder-list');
+            if(!list) return;
+
+            // Pre-clean listeners to prevent memory leaks
+            if (window.onReorderMoveHandler) {
+                document.removeEventListener('mousemove', window.onReorderMoveHandler);
+                document.removeEventListener('mouseup', window.onReorderEndHandler);
+                document.removeEventListener('touchmove', window.onReorderMoveHandler);
+                document.removeEventListener('touchend', window.onReorderEndHandler);
+            }
+
+            let draggingEle = null;
+
+            const onStart = (e) => {
+                if (!e.target.closest('.drag-handle')) return;
+                draggingEle = e.target.closest('.reorder-item');
+                draggingEle.classList.add('dragging');
+                if (e.cancelable) e.preventDefault(); 
+            };
+
+            window.onReorderMoveHandler = (e) => {
+                if (!draggingEle) return;
+                if (e.cancelable) e.preventDefault();
+                
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                
+                // Temporarily hide the moving item so the touch sensor can "see" the item underneath it!
+                draggingEle.style.visibility = 'hidden';
+                const target = document.elementFromPoint(clientX, clientY);
+                draggingEle.style.visibility = 'visible';
+                
+                if (!target) return;
+                const targetItem = target.closest('.reorder-item');
+                
+                if (targetItem && targetItem !== draggingEle) {
+                    const rect = targetItem.getBoundingClientRect();
+                    const mid = rect.top + rect.height / 2;
+                    if (clientY < mid) {
+                        list.insertBefore(draggingEle, targetItem);
+                    } else {
+                        list.insertBefore(draggingEle, targetItem.nextSibling);
+                    }
+                }
+            };
+
+            window.onReorderEndHandler = () => {
+                if (!draggingEle) return;
+                draggingEle.classList.remove('dragging');
+                draggingEle = null;
+            };
+
+            list.addEventListener('touchstart', onStart, {passive: false});
+            list.addEventListener('mousedown', onStart);
+            
+            document.addEventListener('touchmove', window.onReorderMoveHandler, {passive: false});
+            document.addEventListener('touchend', window.onReorderEndHandler);
+            document.addEventListener('mousemove', window.onReorderMoveHandler, {passive: false});
+            document.addEventListener('mouseup', window.onReorderEndHandler);
+        }
 
         window.openNoteModal = function(exIndex, currentNote) {
             window.noteTargetExIndex = exIndex;
