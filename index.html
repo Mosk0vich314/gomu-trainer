@@ -733,16 +733,16 @@
         </div>
     </div>
 
-    <div id="custom-timer-modal" class="modal-overlay" onclick="if(event.target.id === 'custom-timer-modal') this.style.display='none'">
-        <div class="modal-card" style="padding: 20px;">
+    <div id="custom-timer-modal" class="modal-overlay" onclick="if(event.target.id === 'custom-timer-modal') closeCustomTimerModal()">
+        <div class="modal-card" style="padding: 20px; animation: none;">
             <h2 style="margin-bottom: 5px;">Custom Rest</h2>
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Select a preset or enter minutes.</p>
             
             <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
-                <button class="pill" onclick="startTimer(60); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">1m</button>
-                <button class="pill" onclick="startTimer(120); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">2m</button>
-                <button class="pill" onclick="startTimer(180); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">3m</button>
-                <button class="pill" onclick="startTimer(300); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">5m</button>
+                <button class="pill" onclick="startTimer(60); closeCustomTimerModal()" style="flex:1; justify-content:center;">1m</button>
+                <button class="pill" onclick="startTimer(120); closeCustomTimerModal()" style="flex:1; justify-content:center;">2m</button>
+                <button class="pill" onclick="startTimer(180); closeCustomTimerModal()" style="flex:1; justify-content:center;">3m</button>
+                <button class="pill" onclick="startTimer(300); closeCustomTimerModal()" style="flex:1; justify-content:center;">5m</button>
             </div>
             
             <div class="modal-input-group" style="margin-bottom: 20px;">
@@ -750,7 +750,7 @@
             </div>
             
             <div class="modal-actions">
-                <button class="modal-btn cancel" onclick="document.getElementById('custom-timer-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn cancel" onclick="closeCustomTimerModal()">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitCustomTimer()">Start</button>
             </div>
         </div>
@@ -20747,15 +20747,66 @@
 
         // MODAL FUNCTIONS
         window.openCustomTimerModal = function() {
+            const modal = document.getElementById('custom-timer-modal');
+            const card = modal.querySelector('.modal-card');
+            const fab = document.querySelector('.global-timer-fab');
+            
             document.getElementById('custom-timer-input').value = '';
-            document.getElementById('custom-timer-modal').style.display = 'flex';
+            modal.style.display = 'flex';
+            
+            // Safety Check: Only animate from the FAB if it actually exists on screen!
+            if (fab && fab.offsetWidth > 0) {
+                const fabRect = fab.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                const deltaX = (fabRect.left + fabRect.width/2) - (cardRect.left + cardRect.width/2);
+                const deltaY = (fabRect.top + fabRect.height/2) - (cardRect.top + cardRect.height/2);
+                
+                card.animate([
+                    { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.1)`, opacity: 0, borderRadius: '50px' },
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1, borderRadius: '20px' }
+                ], { duration: 250, easing: 'ease-out' });
+            } else {
+                // Standard Pop-in Fallback
+                card.animate([
+                    { transform: 'scale(0.8)', opacity: 0 },
+                    { transform: 'scale(1)', opacity: 1 }
+                ], { duration: 200, easing: 'ease-out' });
+            }
+        };
+
+        window.closeCustomTimerModal = function() {
+            const modal = document.getElementById('custom-timer-modal');
+            const card = modal.querySelector('.modal-card');
+            const fab = document.querySelector('.global-timer-fab');
+            
+            if (fab && fab.offsetWidth > 0) {
+                const fabRect = fab.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                const deltaX = (fabRect.left + fabRect.width/2) - (cardRect.left + cardRect.width/2);
+                const deltaY = (fabRect.top + fabRect.height/2) - (cardRect.top + cardRect.height/2);
+                
+                card.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1, borderRadius: '20px' },
+                    { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.1)`, opacity: 0, borderRadius: '50px' }
+                ], { duration: 200, easing: 'ease-in' });
+            } else {
+                card.animate([
+                    { transform: 'scale(1)', opacity: 1 },
+                    { transform: 'scale(0.8)', opacity: 0 }
+                ], { duration: 150, easing: 'ease-in' });
+            }
+            
+            // Absolute failsafe to ensure the black screen ALWAYS disappears
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 190);
         };
 
         window.submitCustomTimer = function() {
             const val = parseFloat(document.getElementById('custom-timer-input').value);
             if (!isNaN(val) && val > 0) {
                 startTimer(Math.round(val * 60));
-                document.getElementById('custom-timer-modal').style.display = 'none';
+                closeCustomTimerModal();
             }
         };
 
@@ -23079,7 +23130,6 @@
             const list = document.getElementById('reorder-list');
             if(!list) return;
 
-            // Pre-clean listeners to prevent memory leaks
             if (window.onReorderMoveHandler) {
                 document.removeEventListener('mousemove', window.onReorderMoveHandler);
                 document.removeEventListener('mouseup', window.onReorderEndHandler);
@@ -23088,12 +23138,48 @@
             }
 
             let draggingEle = null;
+            let placeholder = null;
+            let startY = 0;
+            let offsetTop = 0;
 
             const onStart = (e) => {
                 if (!e.target.closest('.drag-handle')) return;
                 draggingEle = e.target.closest('.reorder-item');
-                draggingEle.classList.add('dragging');
-                if (e.cancelable) e.preventDefault(); 
+                
+                const rect = draggingEle.getBoundingClientRect();
+                const listRect = list.getBoundingClientRect();
+                
+                startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                // Calculate position relative to the scrollable container
+                offsetTop = rect.top - listRect.top + list.scrollTop;
+                
+                // 1. Create a perfectly sized invisible placeholder to hold the layout open
+                placeholder = document.createElement('div');
+                placeholder.className = 'reorder-item';
+                placeholder.style.visibility = 'hidden';
+                placeholder.style.height = rect.height + 'px';
+                placeholder.style.margin = '0 0 8px 0'; // Matches CSS margin
+                
+                // 2. Insert placeholder exactly where the item started
+                list.insertBefore(placeholder, draggingEle);
+                
+                // 3. Float the dragging element above everything else
+                // We don't use the hollow class, instead we manually lift it with a shadow
+                draggingEle.style.position = 'absolute';
+                draggingEle.style.top = offsetTop + 'px';
+                draggingEle.style.left = '0px'; 
+                draggingEle.style.margin = '0';
+                draggingEle.style.width = '100%';
+                draggingEle.style.boxSizing = 'border-box';
+                draggingEle.style.zIndex = '1000';
+                draggingEle.style.background = 'var(--card)';
+                draggingEle.style.borderColor = 'var(--accent)';
+                draggingEle.style.boxShadow = '0 10px 25px rgba(0,0,0,0.8)';
+                
+                // Lock the parent container relative so the floating item stays inside
+                list.style.position = 'relative';
+
+                if (e.cancelable) e.preventDefault();
             };
 
             window.onReorderMoveHandler = (e) => {
@@ -23101,31 +23187,53 @@
                 if (e.cancelable) e.preventDefault();
                 
                 const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const diffY = clientY - startY;
                 
-                // Temporarily hide the moving item so the touch sensor can "see" the item underneath it!
+                // Move the floating element
+                draggingEle.style.transform = `translateY(${diffY}px)`;
+                
+                // Temporarily hide the floating item to see what our finger is hovering over
                 draggingEle.style.visibility = 'hidden';
-                const target = document.elementFromPoint(clientX, clientY);
+                const target = document.elementFromPoint(e.type.includes('mouse') ? e.clientX : e.touches[0].clientX, clientY);
                 draggingEle.style.visibility = 'visible';
                 
                 if (!target) return;
                 const targetItem = target.closest('.reorder-item');
                 
-                if (targetItem && targetItem !== draggingEle) {
-                    const rect = targetItem.getBoundingClientRect();
-                    const mid = rect.top + rect.height / 2;
+                // If we cross halfway over another item, physically swap the placeholder's DOM location!
+                if (targetItem && targetItem !== draggingEle && targetItem !== placeholder) {
+                    const targetRect = targetItem.getBoundingClientRect();
+                    const mid = targetRect.top + targetRect.height / 2;
                     if (clientY < mid) {
-                        list.insertBefore(draggingEle, targetItem);
+                        list.insertBefore(placeholder, targetItem);
                     } else {
-                        list.insertBefore(draggingEle, targetItem.nextSibling);
+                        list.insertBefore(placeholder, targetItem.nextSibling);
                     }
                 }
             };
 
             window.onReorderEndHandler = () => {
                 if (!draggingEle) return;
-                draggingEle.classList.remove('dragging');
+                
+                // 4. Snap the floating element permanently into the placeholder's location
+                list.insertBefore(draggingEle, placeholder);
+                placeholder.remove();
+                
+                // 5. Clean up all inline styles so the DOM returns to normal
+                draggingEle.style.position = '';
+                draggingEle.style.top = '';
+                draggingEle.style.left = '';
+                draggingEle.style.margin = '';
+                draggingEle.style.width = '';
+                draggingEle.style.boxSizing = '';
+                draggingEle.style.zIndex = '';
+                draggingEle.style.transform = '';
+                draggingEle.style.background = '';
+                draggingEle.style.borderColor = '';
+                draggingEle.style.boxShadow = '';
+                
                 draggingEle = null;
+                placeholder = null;
             };
 
             list.addEventListener('touchstart', onStart, {passive: false});
