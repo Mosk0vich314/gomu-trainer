@@ -22376,7 +22376,10 @@
                 }
             } else if (isActive) {
             bottomActionUI = `
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px;">
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px; padding-bottom: 60px;">
+                <button onclick="cancelActiveWorkout()" style="flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); transition: 0.2s;" title="Stop Workout">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
+                </button>
                 <div class="slider-container" id="finish-slider" style="flex: 1; margin: 0;">
                     <div class="slider-track" id="slider-track"></div>
                     <div class="slider-thumb" id="slider-thumb">
@@ -22384,9 +22387,6 @@
                     </div>
                     <div class="slider-text" style="width: calc(100% - 64px); left: 64px; font-size: 14px;">Slide to Finish</div>
                 </div>
-                <button onclick="cancelActiveWorkout()" style="flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); transition: 0.2s;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
-                </button>
             </div>`;
             } else {
                 topActionUI = `<button class="action-btn btn-start" onclick="toggleWorkoutState('start')">▶ Start Workout</button>`;
