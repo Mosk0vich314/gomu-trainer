@@ -267,6 +267,11 @@
         .set-swipable.swiping { transition: none; }
         .swipe-wrapper.set-swipe { background: var(--danger); border-radius: 12px; margin-bottom: 8px; position: relative; overflow: hidden;}
         .swipe-wrapper.set-swipe .set-row { margin-bottom: 0; }
+        
+        /* STATS SWIPE STYLES */
+        .stat-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; width: 100%; position: relative; z-index: 2; box-sizing: border-box; }
+        .stat-swipable.swiping { transition: none; }
+        .swipe-wrapper.stat-swipe { background: var(--danger); border-radius: 12px; margin-bottom: 12px; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: none; }
         /* Exercises & Sets Revamped */
         .exercise-container { margin-bottom: 30px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--card); box-shadow: 0 8px 16px rgba(0,0,0,0.4); position: relative;}
         
@@ -1747,6 +1752,13 @@
                 });
             }
 
+            // NEW: Apply Superset Links
+            if (saved.supersets) {
+                Object.keys(saved.supersets).forEach(idx => {
+                    if (exercises[idx]) exercises[idx].supersetNext = saved.supersets[idx];
+                });
+            }
+
             // NEW: Apply modified notes
             if (saved.modifiedNotes) {
                 Object.keys(saved.modifiedNotes).forEach(idx => {
@@ -2347,9 +2359,157 @@
                 let b = safeParse('actualBests', {}); delete b[exName]; localStorage.setItem('actualBests', JSON.stringify(b));
                 let w = safeParse('lastUsedWeights', {}); delete w[exName]; localStorage.setItem('lastUsedWeights', JSON.stringify(w));
                 renderStats();
+            } else {
+                renderStats(); // Snaps the swiped card back to normal if cancelled
             }
         };
+        function setupStatsSwipe() {
+            const bindSwipe = (el, threshold, onTrigger) => {
+                let startX = 0, startY = 0, currentX = 0, isDragging = false, isScrolling = false;
+                
+                const startDrag = (e) => {
+                    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    isDragging = true; isScrolling = false;
+                    el.classList.add('swiping');
+                };
+                
+                const moveDrag = (e) => {
+                    if (!isDragging) return;
+                    let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    let diffX = clientX - startX;
+                    let diffY = Math.abs(clientY - startY);
+                    
+                    if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) isScrolling = true;
+                    if (isScrolling) return;
+                    
+                    currentX = diffX;
+                    if (currentX < 0) {
+                        if (e.cancelable) e.preventDefault();
+                        el.style.transform = `translateX(${currentX}px)`;
+                    }
+                };
+                
+                const endDrag = (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    el.classList.remove('swiping');
+                    if (!isScrolling && currentX < threshold) {
+                        el.style.transform = `translateX(-100%)`;
+                        setTimeout(onTrigger, 200);
+                    } else {
+                        el.style.transform = `translateX(0px)`;
+                    }
+                    currentX = 0;
+                };
+                
+                el.addEventListener('touchstart', startDrag, {passive: true});
+                el.addEventListener('touchmove', moveDrag, {passive: false});
+                el.addEventListener('touchend', endDrag);
+                el.addEventListener('mousedown', startDrag);
+                el.addEventListener('mousemove', moveDrag);
+                el.addEventListener('mouseup', endDrag);
+                el.addEventListener('mouseleave', endDrag);
+            };
 
+            document.querySelectorAll('.stat-swipable').forEach(el => {
+                bindSwipe(el, -80, () => resetSpecificLift(el.dataset.exname));
+            });
+        }
+        // --- NEW: PHYSIQUE TRACKING ENGINE ---
+        window.handlePictureUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show loading state
+            const gallery = document.getElementById('physique-gallery');
+            if (gallery) gallery.innerHTML = '<div style="color: var(--accent); font-weight: 700; font-size: 13px;">Compressing and saving...</div>';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600; // Optimal size for mobile grids without crushing DB
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Calculate aspect ratio
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Compress to JPEG at 70% quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                    let pics = await getDB('progressPictures', []);
+                    pics.unshift({
+                        id: Date.now().toString(),
+                        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        url: dataUrl
+                    });
+                    
+                    await setDB('progressPictures', pics);
+                    renderPhysiqueGallery();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.renderPhysiqueGallery = async function() {
+            const container = document.getElementById('physique-gallery');
+            if (!container) return;
+
+            let pics = await getDB('progressPictures', []);
+            
+            if (pics.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 14px; text-align: center; padding: 20px; width: 100%;">No progress pictures added yet.</div>';
+                return;
+            }
+
+            let html = '<div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; padding-top: 5px; width: 100%; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;">';
+            html += '<style>#physique-gallery div::-webkit-scrollbar { display: none; }</style>'; // Hide scrollbar for webkit
+            
+            pics.forEach(pic => {
+                html += `
+                <div style="position: relative; flex-shrink: 0; width: 140px; scroll-snap-align: start; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                    <img src="${pic.url}" style="width: 140px; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); display: block;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 15px 8px 8px 8px; font-size: 11px; font-weight: 800; color: #fff; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; letter-spacing: 0.5px;">${pic.date}</div>
+                    <button onclick="deleteProgressPicture('${pic.id}')" style="position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: 2px solid var(--card); width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">✕</button>
+                </div>`;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+        };
+
+        window.deleteProgressPicture = async function(id) {
+            const confirmed = await showConfirm("Delete Picture?", "This will permanently remove this progress photo.", "Delete", "Cancel", true);
+            if (confirmed) {
+                let pics = await getDB('progressPictures', []);
+                pics = pics.filter(p => p.id !== id);
+                await setDB('progressPictures', pics);
+                renderPhysiqueGallery();
+            }
+        };
+        // ------------------------------------
         function renderStats() {
             const statsContainer = document.getElementById('stats-container');
             let global1RMs = safeParse('global1RMs', {});
@@ -2380,13 +2540,19 @@
 
             const sorted1RMs = Object.keys(global1RMs).sort();
             sorted1RMs.forEach(ex => {
+                const safeExJS = ex.replace(/'/g, "\\'");
+                const safeExHTML = ex.replace(/"/g, '&quot;');
                 html += `
-                <div class="stat-card" style="padding: 12px 18px;">
-                    <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM('${ex}', this.value)" inputmode="decimal">
-                        <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
-                        <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0 0 0 5px; font-size:16px; cursor:pointer;" title="Reset this lift">🗑️</button>
+                <div class="swipe-wrapper stat-swipe">
+                    <div class="swipe-delete-bg" style="right: 15px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </div>
+                    <div class="stat-card stat-swipable" style="padding: 12px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
+                        <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM('${safeExJS}', this.value)" inputmode="decimal">
+                            <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
+                        </div>
                     </div>
                 </div>`;
             });
@@ -2399,18 +2565,42 @@
             } else {
                 bestKeys.forEach(ex => {
                     const b = actualBests[ex];
+                    const safeExHTML = ex.replace(/"/g, '&quot;');
                     html += `
-                    <div class="stat-card" style="padding: 16px 18px;">
-                        <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
-                        <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; white-space: nowrap;">
-                            <span class="stat-value" style="color: var(--teal); white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
-                            <button onclick="resetSpecificLift('${ex}')" style="background:none; border:none; padding: 0; font-size:16px; cursor:pointer;">🗑️</button>
+                    <div class="swipe-wrapper stat-swipe">
+                        <div class="swipe-delete-bg" style="right: 15px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </div>
+                        <div class="stat-card stat-swipable" style="padding: 16px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
+                            <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; white-space: nowrap;">
+                                <span class="stat-value" style="color: var(--teal); white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
+                            </div>
                         </div>
                     </div>`;
                 });
             }
 
+            // --- NEW: PHYSIQUE TRACKING UI ---
+            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Physique Tracking</h3>';
+            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Locally stored progress pictures. These never leave your device.</p>';
+            html += `
+            <div id="physique-gallery" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                <div style="color: var(--text-muted); font-style: italic; font-size: 13px;">Loading gallery...</div>
+            </div>
+            <label class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px dashed var(--border); display: block; text-align: center; cursor: pointer; padding: 15px; font-size: 14px;">
+                📸 Add Progress Picture
+                <input type="file" accept="image/*" style="display:none;" onchange="handlePictureUpload(event)">
+            </label>`;
+            // ---------------------------------
+
             statsContainer.innerHTML = html;
+            
+            // Turn on the swipe engine for the newly drawn cards!
+            if (typeof setupStatsSwipe === 'function') setupStatsSwipe();
+            
+            // Render the gallery asynchronously
+            if (typeof renderPhysiqueGallery === 'function') renderPhysiqueGallery();
         }
 
         async function exportData() {
@@ -2650,6 +2840,7 @@
                 const exId = `ex-${exIndex}`;
                 const isMain = ex.type === 'main';
                 const nameLower = ex.name.toLowerCase();
+                const isMyo = ex.notes ? ex.notes.toLowerCase().includes('myo') : false; // DETECTS MYO-REPS
                 
                 let logoSvg = '';
                 if (nameLower.includes('squat')) {
@@ -2750,15 +2941,32 @@
                     const detailsStr = details.length > 0 ? ` @ ${details.join(' | ')}` : '';
                     const dotColor = isMain ? '#f97316' : '#14b8a6';
                     
-                    html += `
-                    <div class="block-container">
-                        <div class="block-header">
-                            <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${block.sets} x ${block.reps} Reps${detailsStr}</span>
-                        </div>
-                        <div class="set-row header">
-                            <span>Set</span><span>Reps</span><span>RPE</span><span>Load</span>${isMain ? '<span>e1RM</span>' : ''}<span></span>
-                        </div>
-                    `;
+                    // SMART DETECTION: Activations are always the first block, OR any single set with 8+ reps
+                    const isMyoActivation = isMyo && (bIndex === 0 || (block.sets === 1 && block.reps >= 8));
+                    const isMyoBackoff = isMyo && !isMyoActivation;
+                    
+                    if (isMyoBackoff) {
+                        // VISUAL LINK FOR MYO-REP BACK-OFFS
+                        html += `
+                        <div class="block-container" style="padding-top: 0; margin-top: -15px; position: relative;">
+                            <div style="position: absolute; left: 35px; top: -10px; bottom: 30px; width: 2px; background: repeating-linear-gradient(to bottom, ${dotColor} 0, ${dotColor} 4px, transparent 4px, transparent 8px); opacity: 0.5;"></div>
+                            <div style="padding: 8px 16px 12px 45px; color: var(--text-muted); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dotColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+                                Myo-Rep Back-offs (${block.sets} x ${block.reps})
+                            </div>
+                        `;
+                    } else {
+                        // STANDARD BLOCK HEADER
+                        html += `
+                        <div class="block-container">
+                            <div class="block-header">
+                                <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${block.sets} x ${block.reps} Reps${detailsStr}</span>
+                            </div>
+                            <div class="set-row header">
+                                <span>Set</span><span>Reps</span><span>RPE</span><span>Load</span>${isMain ? '<span>e1RM</span>' : ''}<span></span>
+                            </div>
+                        `;
+                    }
 
                     let restSeconds = 120;
                     if (isMain) {
@@ -2825,7 +3033,7 @@
                                 </button>
                             </span>
                             ${e1rmCell}
-                            <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
+                            <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                         </div>
                         `;
 
@@ -2875,7 +3083,7 @@
                                     </button>
                                 </span>
                                 ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
-                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
                     }
@@ -3097,6 +3305,28 @@
             }
             
             document.getElementById('swap-exercise-modal').style.display = 'none';
+            renderWorkout();
+        };
+        window.toggleSuperset = function(exIndex) {
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
+            
+            if (isCustomProgram) {
+                const ex = db[currentProgram].weeks[selectedWeek][selectedDay][exIndex];
+                ex.supersetNext = !ex.supersetNext;
+                const customProgs = safeParse('customPrograms', {});
+                if (customProgs[currentProgram]) {
+                    customProgs[currentProgram] = db[currentProgram];
+                    localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                }
+            } else {
+                const key = getWorkoutKey();
+                let savedSession = safeParse(key, {});
+                if (!savedSession.supersets) savedSession.supersets = {};
+                // Toggle the boolean state
+                savedSession.supersets[exIndex] = !savedSession.supersets[exIndex];
+                localStorage.setItem(key, JSON.stringify(savedSession));
+            }
+            
             renderWorkout();
         };
 
@@ -3612,32 +3842,66 @@
                     saveSessionState(repsInput.id, repsInput.value); // Saves actual reps
                 }
 
-                // Cascade load and RPE to next sets (but NOT reps, to keep target as default)
                 // Cascade ONLY load to next sets (keep target RPE and reps as default)
-                const match = baseId.match(/(ex-\d+_b\d+)_s(\d+)/);
-                if (match) {
-                    const blockPrefix = match[1];
-                    let currentSet = parseInt(match[2]);
-                    const currentLoad = loadInput ? loadInput.value : '';
+                const myoType = el.dataset.myotype;
+                const currentLoad = loadInput ? loadInput.value : '';
 
-                    let nextSet = currentSet + 1;
-                    while(true) {
-                        const nextCheck = document.getElementById(`${blockPrefix}_s${nextSet}_check`);
-                        if (!nextCheck) break; 
-
-                        if (!nextCheck.classList.contains('checked')) {
-                            const nextLoad = document.getElementById(`${blockPrefix}_s${nextSet}_load`);
-
-                            if (nextLoad && currentLoad !== '') {
-                                nextLoad.value = currentLoad;
-                                saveSessionState(nextLoad.id, currentLoad);
+                if (myoType && currentLoad !== '') {
+                    // MYO-REP CASCADE: Push load to next sets, but STOP if we hit a new Activation block
+                    const exIdMatch = baseId.match(/(ex-\d+)/);
+                    const currentBlockMatch = baseId.match(/_b(\d+)_/);
+                    if (exIdMatch && currentBlockMatch) {
+                        const exId = exIdMatch[1];
+                        const currentBIndex = parseInt(currentBlockMatch[1]);
+                        const allLoadInputs = document.querySelectorAll(`input[id^="${exId}_b"][id$="_load"]`);
+                        
+                        let foundCurrent = false;
+                        for (let input of allLoadInputs) {
+                            if (input.id === (loadInput ? loadInput.id : '')) {
+                                foundCurrent = true;
+                            } else if (foundCurrent) {
+                                const targetCheckId = input.id.replace('_load', '_check');
+                                const targetCheck = document.getElementById(targetCheckId);
                                 
-                                // This triggers the e1RM button on this future set to recalculate 
-                                // using the cascaded weight + its original untouched RPE!
-                                nextLoad.dispatchEvent(new Event('input', {bubbles: true}));
+                                // Stop cascading if we hit a NEW Activation block
+                                if (targetCheck && targetCheck.dataset.myotype === 'activation' && !input.id.includes(`_b${currentBIndex}_`)) {
+                                    break; 
+                                }
+                                
+                                if (targetCheck && !targetCheck.classList.contains('checked')) {
+                                    input.value = currentLoad;
+                                    saveSessionState(input.id, currentLoad);
+                                    input.dispatchEvent(new Event('input', {bubbles: true}));
+                                }
                             }
                         }
-                        nextSet++;
+                    }
+                } else {
+                    // STANDARD CASCADE: Only push load to next sets within the SAME block
+                    const match = baseId.match(/(ex-\d+_b\d+)_s(\d+)/);
+                    if (match) {
+                        const blockPrefix = match[1];
+                        let currentSet = parseInt(match[2]);
+
+                        let nextSet = currentSet + 1;
+                        while(true) {
+                            const nextCheck = document.getElementById(`${blockPrefix}_s${nextSet}_check`);
+                            if (!nextCheck) break; 
+
+                            if (!nextCheck.classList.contains('checked')) {
+                                const nextLoad = document.getElementById(`${blockPrefix}_s${nextSet}_load`);
+
+                                if (nextLoad && currentLoad !== '') {
+                                    nextLoad.value = currentLoad;
+                                    saveSessionState(nextLoad.id, currentLoad);
+                                    
+                                    // This triggers the e1RM button on this future set to recalculate 
+                                    // using the cascaded weight + its original untouched RPE!
+                                    nextLoad.dispatchEvent(new Event('input', {bubbles: true}));
+                                }
+                            }
+                            nextSet++;
+                        }
                     }
                 }
 
@@ -3661,6 +3925,23 @@
                             else if (rpeVal >= 8) restSeconds = 150;   // RPE 8-8.5: 2.5 mins
                             else if (rpeVal >= 7) restSeconds = 120;   // RPE 7-7.5: 2 mins
                             else restSeconds = 90;                     // RPE < 7: 1.5 mins
+                        }
+                    }
+                }
+
+                // MYO-REP TIMER HIJACK: Only 20s if the NEXT set is a Myo Back-off
+                if (myoType) {
+                    const exIdMatch = baseId.match(/(ex-\d+)/);
+                    if (exIdMatch) {
+                        const exId = exIdMatch[1];
+                        const allChecks = Array.from(document.querySelectorAll(`span[id^="${exId}_b"][id$="_check"]`));
+                        const currentIndex = allChecks.findIndex(c => c.id === el.id);
+                        if (currentIndex !== -1 && currentIndex + 1 < allChecks.length) {
+                            const nextCheck = allChecks[currentIndex + 1];
+                            // If the next set is a back-off, 20s. If it's an Activation, give them full rest!
+                            if (nextCheck.dataset.myotype === 'backoff') {
+                                restSeconds = 20; 
+                            }
                         }
                     }
                 }
@@ -3825,6 +4106,8 @@
                 const btn = document.getElementById(`e1rm-btn-${rowId}`);
                 
                 if(!loadInput || !rpeInput || !repsInput || !btn) return;
+
+                const exName = loadInput.dataset.exname; // BUG FIX: Defines the exercise name so the engine doesn't crash!
 
                 const weight = parseFloat(loadInput.value) || 0; // Handles empty or 0 inputs (0kg added)
                 const rpe = parseFloat(rpeInput.value);
