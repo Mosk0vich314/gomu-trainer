@@ -29,10 +29,10 @@
         body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior-y: none;}
         
         /* App Screens */
-        .app-screen { display: none; padding: 20px; padding-bottom: 110px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden;}
-        .app-screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .app-screen { display: none; padding: 20px; padding-bottom: 110px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative; }
+        .app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInScreen { from { opacity: 0; left: 20px; } to { opacity: 1; left: 0px; } }
 
         /* PERFECTED DASHBOARD BACKGROUND */
         #home-screen { 
@@ -556,6 +556,39 @@
         .privacy-hidden img { filter: blur(15px) brightness(0.5); pointer-events: none; }
         .privacy-hidden button { opacity: 0; pointer-events: none; }
         .privacy-hidden .pic-date-label { opacity: 0; }
+        /* PREMIUM MICRO-INTERACTIONS */
+        
+        /* 1. Addictive Checkmark */
+        .check-circle { transition: transform 0.1s ease, background 0.2s, border 0.2s; }
+        .check-circle:active { transform: scale(0.85); }
+        @keyframes checkPop {
+            0% { transform: scale(0.85); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .check-circle.checked { animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* 2. Breathing Timer FAB */
+        @keyframes pulseRing {
+            0% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0.6); }
+            70% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 15px rgba(249, 115, 22, 0); }
+            100% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+        .global-timer-fab.timer-active { animation: pulseRing 2s infinite; }
+
+        /* 3. Smooth Tab Sliding */
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .tab-content.active { animation: tabFadeIn 0.2s ease-out forwards; display: block; }
+        .tab-content { display: none; } /* Override old hard-toggle */
+
+        /* 4. Workout Complete Spring */
+        @keyframes slideUpSpring {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -954,7 +987,7 @@
     </div>
 
     <div id="summary-screen" class="app-screen">
-        <div class="summary-card">
+        <div class="summary-card" style="animation: slideUpSpring 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
             <h2>🎉 Workout Complete!</h2>
             <p style="color: var(--text-muted); font-size: 15px;">Incredible work today. Here are your stats:</p>
             
@@ -21559,7 +21592,10 @@
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
             
             const summaryScreen = document.getElementById('summary-screen');
-            if (summaryScreen) summaryScreen.classList.add('active');
+            if (summaryScreen) {
+                summaryScreen.classList.add('active');
+                if (typeof fireConfetti === 'function') fireConfetti();
+            }
         }
 
     let currentChartEx = '';
@@ -23625,6 +23661,10 @@
             
             updateTimerDisplay();
             banner.classList.add('active');
+            
+            // --- TRIGGER BREATHING FAB ---
+            const fab = document.querySelector('.global-timer-fab');
+            if (fab && seconds > 0) fab.classList.add('timer-active');
 
             // --- PRIME AUDIO & START SILENT LOOP ---
             try {
@@ -23681,6 +23721,9 @@
             timerWorker.postMessage('stop'); 
             document.getElementById('rest-timer-banner').classList.remove('active');
             
+            const fab = document.querySelector('.global-timer-fab');
+            if (fab) fab.classList.remove('timer-active'); // Stop Breathing
+            
             if (activeAudio) { activeAudio.pause(); activeAudio.currentTime = 0; }
             
             // Instantly restore background music volume
@@ -23702,6 +23745,9 @@
             
             const actionBtn = document.getElementById('timer-action-btn');
             if (actionBtn) actionBtn.innerText = "Dismiss";
+
+            const fab = document.querySelector('.global-timer-fab');
+            if (fab) fab.classList.remove('timer-active'); // Stop Breathing
 
             // Instantly restore background music volume once the rest is over
             releaseAudioFocus();
@@ -23727,6 +23773,9 @@
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
+            if (document.querySelector('.preview-mode')) return; // Safety check
+            if (navigator.vibrate) navigator.vibrate(15); // Tiny physical tap!
+            
         // NEW: Instantly request notification permission on their first physical tap
             if ("Notification" in window && Notification.permission === "default") {
                 Notification.requestPermission().then(permission => {
@@ -24476,6 +24525,30 @@
             }
         };
 
+        window.fireConfetti = function() {
+            const colors = ['#f97316', '#14b8a6', '#fff'];
+            for(let i=0; i<40; i++) {
+                let conf = document.createElement('div');
+                conf.style.position = 'fixed';
+                conf.style.width = '8px'; conf.style.height = '8px';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.left = '50%'; conf.style.top = '50%';
+                conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                conf.style.zIndex = '9999'; conf.style.pointerEvents = 'none';
+                document.body.appendChild(conf);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 50 + Math.random() * 200;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity - 100;
+
+                conf.animate([
+                    { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 800 + Math.random()*500, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }).onfinish = () => conf.remove();
+            }
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Victory rumble
+        };
 
         initApp();
     </script>

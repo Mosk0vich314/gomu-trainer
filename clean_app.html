@@ -98,6 +98,12 @@
         .swipe-delete-bg { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; font-size: 12px; pointer-events: none; }
         .exercise-container.swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; margin-bottom: 0; box-shadow: none; border: 1px solid var(--border); }
         .exercise-container.swiping { transition: none; }
+        /* DRAG AND DROP REORDER */
+        .reorder-item { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); border: 1px solid var(--border); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; color: var(--text-main); font-weight: 600; font-size: 15px; user-select: none;}
+        .reorder-item.dragging { opacity: 0.4; border-color: var(--accent); background: var(--card); transform: scale(0.98); }
+        .drag-handle { padding: 10px; margin: -10px; color: var(--text-muted); cursor: grab; display: flex; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; }
+        .drag-handle:active { cursor: grabbing; color: var(--accent); }
+        
         /* Modals (Onboarding & Warmups & Confirmation) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; backdrop-filter: blur(8px); }
         .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -550,6 +556,39 @@
         .privacy-hidden img { filter: blur(15px) brightness(0.5); pointer-events: none; }
         .privacy-hidden button { opacity: 0; pointer-events: none; }
         .privacy-hidden .pic-date-label { opacity: 0; }
+        /* PREMIUM MICRO-INTERACTIONS */
+        
+        /* 1. Addictive Checkmark */
+        .check-circle { transition: transform 0.1s ease, background 0.2s, border 0.2s; }
+        .check-circle:active { transform: scale(0.85); }
+        @keyframes checkPop {
+            0% { transform: scale(0.85); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .check-circle.checked { animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* 2. Breathing Timer FAB */
+        @keyframes pulseRing {
+            0% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0.6); }
+            70% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 15px rgba(249, 115, 22, 0); }
+            100% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+        .global-timer-fab.timer-active { animation: pulseRing 2s infinite; }
+
+        /* 3. Smooth Tab Sliding */
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .tab-content.active { animation: tabFadeIn 0.2s ease-out forwards; display: block; }
+        .tab-content { display: none; } /* Override old hard-toggle */
+
+        /* 4. Workout Complete Spring */
+        @keyframes slideUpSpring {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -565,6 +604,20 @@
             <div id="login-error" class="login-error">Incorrect password.</div>
             
             <button class="action-btn btn-start" style="margin: 0; padding: 15px;" onclick="checkLogin()">Unlock Vault</button>
+        </div>
+    </div>
+    <div id="reorder-modal" class="modal-overlay">
+        <div class="modal-card" style="padding: 20px; max-height: 85vh; display: flex; flex-direction: column;">
+            <h2 style="margin-bottom: 5px;">Reorder Exercises</h2>
+            <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px;">Drag the handles to rearrange your workout.</p>
+            
+            <div id="reorder-list" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; text-align: left; touch-action: none;">
+                </div>
+            
+            <div class="modal-actions" style="margin-top: 15px;">
+                <button class="modal-btn cancel" onclick="document.getElementById('reorder-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="saveReorder()">Save</button>
+            </div>
         </div>
     </div>
     <div id="add-exercise-modal" class="modal-overlay">
@@ -713,16 +766,16 @@
         </div>
     </div>
 
-    <div id="custom-timer-modal" class="modal-overlay" onclick="if(event.target.id === 'custom-timer-modal') this.style.display='none'">
-        <div class="modal-card" style="padding: 20px;">
+    <div id="custom-timer-modal" class="modal-overlay" onclick="if(event.target.id === 'custom-timer-modal') closeCustomTimerModal()">
+        <div class="modal-card" style="padding: 20px; animation: none;">
             <h2 style="margin-bottom: 5px;">Custom Rest</h2>
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Select a preset or enter minutes.</p>
             
             <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
-                <button class="pill" onclick="startTimer(60); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">1m</button>
-                <button class="pill" onclick="startTimer(120); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">2m</button>
-                <button class="pill" onclick="startTimer(180); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">3m</button>
-                <button class="pill" onclick="startTimer(300); document.getElementById('custom-timer-modal').style.display='none'" style="flex:1; justify-content:center;">5m</button>
+                <button class="pill" onclick="startTimer(60); closeCustomTimerModal()" style="flex:1; justify-content:center;">1m</button>
+                <button class="pill" onclick="startTimer(120); closeCustomTimerModal()" style="flex:1; justify-content:center;">2m</button>
+                <button class="pill" onclick="startTimer(180); closeCustomTimerModal()" style="flex:1; justify-content:center;">3m</button>
+                <button class="pill" onclick="startTimer(300); closeCustomTimerModal()" style="flex:1; justify-content:center;">5m</button>
             </div>
             
             <div class="modal-input-group" style="margin-bottom: 20px;">
@@ -730,7 +783,7 @@
             </div>
             
             <div class="modal-actions">
-                <button class="modal-btn cancel" onclick="document.getElementById('custom-timer-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn cancel" onclick="closeCustomTimerModal()">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitCustomTimer()">Start</button>
             </div>
         </div>
@@ -1198,15 +1251,66 @@
 
         // MODAL FUNCTIONS
         window.openCustomTimerModal = function() {
+            const modal = document.getElementById('custom-timer-modal');
+            const card = modal.querySelector('.modal-card');
+            const fab = document.querySelector('.global-timer-fab');
+            
             document.getElementById('custom-timer-input').value = '';
-            document.getElementById('custom-timer-modal').style.display = 'flex';
+            modal.style.display = 'flex';
+            
+            // Safety Check: Only animate from the FAB if it actually exists on screen!
+            if (fab && fab.offsetWidth > 0) {
+                const fabRect = fab.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                const deltaX = (fabRect.left + fabRect.width/2) - (cardRect.left + cardRect.width/2);
+                const deltaY = (fabRect.top + fabRect.height/2) - (cardRect.top + cardRect.height/2);
+                
+                card.animate([
+                    { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.1)`, opacity: 0, borderRadius: '50px' },
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1, borderRadius: '20px' }
+                ], { duration: 250, easing: 'ease-out' });
+            } else {
+                // Standard Pop-in Fallback
+                card.animate([
+                    { transform: 'scale(0.8)', opacity: 0 },
+                    { transform: 'scale(1)', opacity: 1 }
+                ], { duration: 200, easing: 'ease-out' });
+            }
+        };
+
+        window.closeCustomTimerModal = function() {
+            const modal = document.getElementById('custom-timer-modal');
+            const card = modal.querySelector('.modal-card');
+            const fab = document.querySelector('.global-timer-fab');
+            
+            if (fab && fab.offsetWidth > 0) {
+                const fabRect = fab.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                const deltaX = (fabRect.left + fabRect.width/2) - (cardRect.left + cardRect.width/2);
+                const deltaY = (fabRect.top + fabRect.height/2) - (cardRect.top + cardRect.height/2);
+                
+                card.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1, borderRadius: '20px' },
+                    { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.1)`, opacity: 0, borderRadius: '50px' }
+                ], { duration: 200, easing: 'ease-in' });
+            } else {
+                card.animate([
+                    { transform: 'scale(1)', opacity: 1 },
+                    { transform: 'scale(0.8)', opacity: 0 }
+                ], { duration: 150, easing: 'ease-in' });
+            }
+            
+            // Absolute failsafe to ensure the black screen ALWAYS disappears
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 190);
         };
 
         window.submitCustomTimer = function() {
             const val = parseFloat(document.getElementById('custom-timer-input').value);
             if (!isNaN(val) && val > 0) {
                 startTimer(Math.round(val * 60));
-                document.getElementById('custom-timer-modal').style.display = 'none';
+                closeCustomTimerModal();
             }
         };
 
@@ -1416,6 +1520,11 @@
         window.isNoPlateExercise = function(name) {
             if (!name) return false;
             return /dumbbell|dumbell|\bdb\b|cable|machine/i.test(name);
+        };
+
+        window.isBodyweightExercise = function(name) {
+            if (!name) return false;
+            return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
         };
 
         function updateDashboard() {
@@ -2849,12 +2958,12 @@
             } else if (isActive) {
             bottomActionUI = `
             <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
-                <span style="color: var(--danger);">◀ SWIPE TO STOP</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
+                <span style="color: var(--danger);">◀ SWIPE TO CANCEL</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
             </div>
             <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
-                <div class="swipe-delete-bg" style="right: 25px; opacity: 1;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
-                    <span style="font-size: 11px; margin-top: 4px; font-weight: 800;">STOP</span>
+                <div class="swipe-delete-bg" style="right: 25px; opacity: 1; flex-direction: row; gap: 6px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span style="font-size: 13px; font-weight: 800; letter-spacing: 1px; margin-top: 0;">CANCEL</span>
                 </div>
                 <div class="slider-container" id="finish-slider" style="margin: 0; width: 100%; position: relative; z-index: 2; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y;">
                     <div class="slider-track" id="slider-track"></div>
@@ -3155,7 +3264,7 @@
                 html += `</div>`;
                 html += wrapperEnd; // Close the swipe wrapper
                 
-                // --- SUPERSET & REORDER CONTROLS ---
+                // --- SUPERSET CONTROLS ---
                 if (!isCompleted && displayIndex < displayExercises.length - 1) {
                     const linkColor = isSupersetNext ? '#fff' : 'var(--text-muted)';
                     const borderColor = isSupersetNext ? '#fff' : 'var(--border)';
@@ -3164,9 +3273,6 @@
                     
                     html += `
                     <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 0px; margin-bottom: ${isSupersetNext ? '8px' : '16px'}; position: relative; z-index: 10;">
-                        <button onclick="swapExercisesOrder(${displayIndex})" style="background: var(--card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" title="Swap Order">
-                            <span style="font-size: 16px; font-weight: 800; line-height: 1; margin-top: -2px;">⇅</span>
-                        </button>
                         <button onclick="toggleSuperset(${exIndex})" style="background: var(--card); border: 2px solid ${borderColor}; color: ${linkColor}; opacity: ${linkOpacity}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: ${linkGlow};" title="Link as Superset">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         </button>
@@ -3176,9 +3282,13 @@
             
             html += `</div>`; // CLOSE THE PREVIEW WRAPPER FIRST!
             
-            // Show Add Exercise for ANY uncompleted workout
+            // Show Add Exercise & Reorder for ANY uncompleted workout
             if (!isCompleted) {
-                html += `<button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin-top: 20px; margin-bottom: 20px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add Exercise</button>`;
+                html += `
+                <div style="display: flex; gap: 12px; margin-top: 20px; margin-bottom: 20px;">
+                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="document.getElementById('add-exercise-modal').style.display='flex'">+ Add</button>
+                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openReorderModal()">⇅ Reorder</button>
+                </div>`;
             }
             
             html += bottomActionUI;
@@ -3215,19 +3325,17 @@
             // --- THUMB LOGIC (Slide Right to Finish) ---
             const onThumbStart = (e) => {
                 isDraggingThumb = true;
-                // BUG FIX: Calculate width exactly when tapped, not before!
                 maxSlide = container.offsetWidth - 76; 
-                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
                 thumb.style.transition = 'none';
                 track.style.transition = 'none';
-                e.stopPropagation(); 
             };
 
             const onThumbMove = (e) => {
                 if (!isDraggingThumb) return;
-                if(e.cancelable) e.preventDefault(); 
+                if (e.cancelable) e.preventDefault(); 
                 
-                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
                 let diff = currentX - startX;
                 
                 if (diff < 0) diff = 0;
@@ -3256,28 +3364,29 @@
                 if (text) text.style.opacity = 1;
             };
 
-            thumb.addEventListener('mousedown', onThumbStart);
-            document.addEventListener('mousemove', onThumbMove, {passive: false});
-            document.addEventListener('mouseup', onThumbEnd);
-            
             thumb.addEventListener('touchstart', onThumbStart, {passive: true});
             document.addEventListener('touchmove', onThumbMove, {passive: false});
             document.addEventListener('touchend', onThumbEnd);
+            document.addEventListener('touchcancel', onThumbEnd);
+            
+            thumb.addEventListener('mousedown', onThumbStart);
+            document.addEventListener('mousemove', onThumbMove, {passive: false});
+            document.addEventListener('mouseup', onThumbEnd);
             
             // --- CONTAINER LOGIC (Swipe Left to Stop) ---
             const onContainerStart = (e) => {
                 if (e.target.closest('#slider-thumb')) return; 
                 isDraggingContainer = true;
                 isScrolling = false;
-                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                startY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                 container.style.transition = 'none';
             };
             
             const onContainerMove = (e) => {
                 if (!isDraggingContainer) return;
-                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                let currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientX;
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                let currentY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                 let diffX = currentX - startX;
                 let diffY = Math.abs(currentY - startY);
                 
@@ -3295,7 +3404,7 @@
                 isDraggingContainer = false;
                 container.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)';
                 
-                let currentX = e.type.includes('mouse') ? e.clientX : e.changedTouches[0].clientX;
+                let currentX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : 0);
                 let diffX = currentX - startX;
                 
                 if (!isScrolling && diffX < -100) {
@@ -3312,6 +3421,8 @@
             container.addEventListener('touchstart', onContainerStart, {passive: true});
             container.addEventListener('touchmove', onContainerMove, {passive: false});
             container.addEventListener('touchend', onContainerEnd);
+            container.addEventListener('touchcancel', onContainerEnd);
+            
             container.addEventListener('mousedown', onContainerStart);
             container.addEventListener('mousemove', onContainerMove);
             container.addEventListener('mouseup', onContainerEnd);
@@ -3324,18 +3435,21 @@
                 
                 const startDrag = (e) => {
                     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                    e.stopPropagation(); // <-- FIX: Stops the parent exercise from swiping!
-                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    // Elegantly prevents the parent exercise from swiping when you are dragging a child set!
+                    if (el.classList.contains('exercise-container') && e.target.closest('.set-swipable')) return;
+                    
+                    startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                    startY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                     isDragging = true; isScrolling = false;
                     el.classList.add('swiping');
                 };
                 
                 const moveDrag = (e) => {
                     if (!isDragging) return;
-                    e.stopPropagation(); // <-- FIX
-                    let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    
+                    let clientX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                    let clientY = e.type.includes('mouse') ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
                     let diffX = clientX - startX;
                     let diffY = Math.abs(clientY - startY);
                     
@@ -3351,7 +3465,6 @@
                 
                 const endDrag = (e) => {
                     if (!isDragging) return;
-                    e.stopPropagation(); // <-- FIX
                     isDragging = false;
                     el.classList.remove('swiping');
                     if (!isScrolling && currentX < threshold) {
@@ -3464,24 +3577,177 @@
             renderWorkout();
         };
 
-        window.swapExercisesOrder = function(displayIndex) {
+        window.openReorderModal = function() {
+            const key = getWorkoutKey();
+            const savedSession = safeParse(key, {});
+            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            
+            let displayExercises = exercises.map((ex, origIdx) => ({ ...ex, origIdx }));
+            if (savedSession.customOrder) {
+                let orderMap = new Map();
+                savedSession.customOrder.forEach((origIdx, pos) => orderMap.set(origIdx, pos));
+                displayExercises.sort((a, b) => {
+                    let posA = orderMap.has(a.origIdx) ? orderMap.get(a.origIdx) : 999 + a.origIdx;
+                    let posB = orderMap.has(b.origIdx) ? orderMap.get(b.origIdx) : 999 + b.origIdx;
+                    return posA - posB;
+                });
+            }
+
+            const listContainer = document.getElementById('reorder-list');
+            let html = '';
+            
+            displayExercises.forEach(ex => {
+                if (ex.isDeleted) return;
+                html += `
+                <div class="reorder-item" data-origidx="${ex.origIdx}">
+                    <span style="flex: 1; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${ex.name}</span>
+                    <div class="drag-handle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </div>
+                </div>`;
+            });
+            
+            listContainer.innerHTML = html;
+            document.getElementById('reorder-modal').style.display = 'flex';
+            setupReorderDrag();
+        };
+
+        window.saveReorder = function() {
+            const listContainer = document.getElementById('reorder-list');
+            const items = listContainer.querySelectorAll('.reorder-item');
+            let newOrder = [];
+            
+            items.forEach(item => {
+                newOrder.push(parseInt(item.dataset.origidx));
+            });
+            
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
+            savedSession.customOrder = newOrder;
+            localStorage.setItem(key, JSON.stringify(savedSession));
             
-            let exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
-            let currentOrder = savedSession.customOrder || exercises.map((_, i) => i);
-            
-            if (displayIndex < currentOrder.length - 1) {
-                // Swap the two indices
-                let temp = currentOrder[displayIndex];
-                currentOrder[displayIndex] = currentOrder[displayIndex + 1];
-                currentOrder[displayIndex + 1] = temp;
-                
-                savedSession.customOrder = currentOrder;
-                localStorage.setItem(key, JSON.stringify(savedSession));
-                renderWorkout();
-            }
+            document.getElementById('reorder-modal').style.display = 'none';
+            renderWorkout();
         };
+
+        function setupReorderDrag() {
+            const list = document.getElementById('reorder-list');
+            if(!list) return;
+
+            if (window.onReorderMoveHandler) {
+                document.removeEventListener('mousemove', window.onReorderMoveHandler);
+                document.removeEventListener('mouseup', window.onReorderEndHandler);
+                document.removeEventListener('touchmove', window.onReorderMoveHandler);
+                document.removeEventListener('touchend', window.onReorderEndHandler);
+            }
+
+            let draggingEle = null;
+            let placeholder = null;
+            let startY = 0;
+            let offsetTop = 0;
+
+            const onStart = (e) => {
+                if (!e.target.closest('.drag-handle')) return;
+                draggingEle = e.target.closest('.reorder-item');
+                
+                const rect = draggingEle.getBoundingClientRect();
+                const listRect = list.getBoundingClientRect();
+                
+                startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                // Calculate position relative to the scrollable container
+                offsetTop = rect.top - listRect.top + list.scrollTop;
+                
+                // 1. Create a perfectly sized invisible placeholder to hold the layout open
+                placeholder = document.createElement('div');
+                placeholder.className = 'reorder-item';
+                placeholder.style.visibility = 'hidden';
+                placeholder.style.height = rect.height + 'px';
+                placeholder.style.margin = '0 0 8px 0'; // Matches CSS margin
+                
+                // 2. Insert placeholder exactly where the item started
+                list.insertBefore(placeholder, draggingEle);
+                
+                // 3. Float the dragging element above everything else
+                // We don't use the hollow class, instead we manually lift it with a shadow
+                draggingEle.style.position = 'absolute';
+                draggingEle.style.top = offsetTop + 'px';
+                draggingEle.style.left = '0px'; 
+                draggingEle.style.margin = '0';
+                draggingEle.style.width = '100%';
+                draggingEle.style.boxSizing = 'border-box';
+                draggingEle.style.zIndex = '1000';
+                draggingEle.style.background = 'var(--card)';
+                draggingEle.style.borderColor = 'var(--accent)';
+                draggingEle.style.boxShadow = '0 10px 25px rgba(0,0,0,0.8)';
+                
+                // Lock the parent container relative so the floating item stays inside
+                list.style.position = 'relative';
+
+                if (e.cancelable) e.preventDefault();
+            };
+
+            window.onReorderMoveHandler = (e) => {
+                if (!draggingEle) return;
+                if (e.cancelable) e.preventDefault();
+                
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                const diffY = clientY - startY;
+                
+                // Move the floating element
+                draggingEle.style.transform = `translateY(${diffY}px)`;
+                
+                // Temporarily hide the floating item to see what our finger is hovering over
+                draggingEle.style.visibility = 'hidden';
+                const target = document.elementFromPoint(e.type.includes('mouse') ? e.clientX : e.touches[0].clientX, clientY);
+                draggingEle.style.visibility = 'visible';
+                
+                if (!target) return;
+                const targetItem = target.closest('.reorder-item');
+                
+                // If we cross halfway over another item, physically swap the placeholder's DOM location!
+                if (targetItem && targetItem !== draggingEle && targetItem !== placeholder) {
+                    const targetRect = targetItem.getBoundingClientRect();
+                    const mid = targetRect.top + targetRect.height / 2;
+                    if (clientY < mid) {
+                        list.insertBefore(placeholder, targetItem);
+                    } else {
+                        list.insertBefore(placeholder, targetItem.nextSibling);
+                    }
+                }
+            };
+
+            window.onReorderEndHandler = () => {
+                if (!draggingEle) return;
+                
+                // 4. Snap the floating element permanently into the placeholder's location
+                list.insertBefore(draggingEle, placeholder);
+                placeholder.remove();
+                
+                // 5. Clean up all inline styles so the DOM returns to normal
+                draggingEle.style.position = '';
+                draggingEle.style.top = '';
+                draggingEle.style.left = '';
+                draggingEle.style.margin = '';
+                draggingEle.style.width = '';
+                draggingEle.style.boxSizing = '';
+                draggingEle.style.zIndex = '';
+                draggingEle.style.transform = '';
+                draggingEle.style.background = '';
+                draggingEle.style.borderColor = '';
+                draggingEle.style.boxShadow = '';
+                
+                draggingEle = null;
+                placeholder = null;
+            };
+
+            list.addEventListener('touchstart', onStart, {passive: false});
+            list.addEventListener('mousedown', onStart);
+            
+            document.addEventListener('touchmove', window.onReorderMoveHandler, {passive: false});
+            document.addEventListener('touchend', window.onReorderEndHandler);
+            document.addEventListener('mousemove', window.onReorderMoveHandler, {passive: false});
+            document.addEventListener('mouseup', window.onReorderEndHandler);
+        }
 
         window.openNoteModal = function(exIndex, currentNote) {
             window.noteTargetExIndex = exIndex;
@@ -3965,6 +4231,9 @@
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
+            if (document.querySelector('.preview-mode')) return; // Safety check
+            if (navigator.vibrate) navigator.vibrate(15); // Tiny physical tap!
+            
         // NEW: Instantly request notification permission on their first physical tap
             if ("Notification" in window && Notification.permission === "default") {
                 Notification.requestPermission().then(permission => {
