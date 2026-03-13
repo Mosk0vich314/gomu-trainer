@@ -486,25 +486,25 @@
         .sheet-handle { width: 40px; height: 5px; background: #3f3f46; border-radius: 3px; margin: 0 auto 20px auto; }
         /* PLATE CALCULATOR BALLOON & BUTTON */
         .plate-btn {
-            position: absolute; right: 0; bottom: 0; top: auto; transform: none;
-            width: 30px; height: 30px; /* Invisible touch target size */
-            display: flex; align-items: flex-end; justify-content: flex-end;
+            position: absolute; left: 0; top: 0; right: auto; bottom: auto; transform: none;
+            width: 22px; height: 22px; /* Much smaller touch target to prevent misclicks */
+            display: flex; align-items: flex-start; justify-content: flex-start;
             background: transparent; border: none; cursor: pointer; z-index: 10; padding: 0;
         }
         .plate-indicator {
             width: 0; height: 0;
             border-style: solid;
-            border-width: 0 0 10px 10px;
-            border-color: transparent transparent var(--border) transparent;
-            transition: 0.2s; border-bottom-right-radius: 6px;
+            border-width: 12px 12px 0 0;
+            border-color: var(--border) transparent transparent transparent;
+            transition: 0.2s; border-top-left-radius: 6px; /* Matches the top-left curve of the input */
         }
-        .plate-btn:active .plate-indicator { border-color: transparent transparent var(--accent) transparent; }
+        .plate-btn:active .plate-indicator { border-color: var(--accent) transparent transparent transparent; }
         
         .plate-balloon {
             position: absolute; background: #27272a; border: 1px solid var(--accent);
             border-radius: 12px; padding: 12px 16px; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             display: none; flex-direction: column; align-items: center; gap: 8px;
-            transform: translateX(-50%); width: max-content;
+            transform: translateX(-50%); width: max-content; max-width: 85vw;
         }
         .plate-balloon::after {
             content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
@@ -20942,8 +20942,8 @@
             }
         };
 
-        window.isBodyweightExercise = function(name) {
-            return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
+        window.isNoPlateExercise = function(name) {
+            return /dumbbell|dumbell|\bdb\b|cable|machine/i.test(name);
         };
 
         function updateDashboard() {
@@ -22452,7 +22452,7 @@
                 
                 if (!isCompleted) {
                     wrapperStart = `
-                    <div class="swipe-wrapper" id="swipe-wrapper-${exId}" style="margin-bottom: ${isSupersetNext ? '10px' : '30px'};">
+                    <div class="swipe-wrapper" id="swipe-wrapper-${exId}" style="margin-bottom: ${isSupersetNext ? '8px' : '16px'};">
                         <div class="swipe-delete-bg">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                             <span>DELETE</span>
@@ -22605,9 +22605,10 @@
                             <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
                             <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                 <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                ${isNoPlateExercise(ex.name) ? '' : `
                                 <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
                                     <div class="plate-indicator"></div>
-                                </button>
+                                </button>`}
                             </span>
                             ${e1rmCell}
                             <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
@@ -22655,9 +22656,10 @@
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    ${isNoPlateExercise(ex.name) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
-                                    </button>
+                                    </button>`}
                                 </span>
                                 ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
@@ -22679,15 +22681,17 @@
                 
                 // --- SUPERSET & REORDER CONTROLS ---
                 if (!isCompleted && displayIndex < displayExercises.length - 1) {
-                    const linkColor = isSupersetNext ? 'var(--teal)' : 'var(--border)';
-                    const linkOpacity = isSupersetNext ? '1' : '0.4';
+                    const linkColor = isSupersetNext ? '#fff' : 'var(--text-muted)';
+                    const borderColor = isSupersetNext ? '#fff' : 'var(--border)';
+                    const linkGlow = isSupersetNext ? '0 0 10px rgba(255,255,255,0.3)' : '0 4px 10px rgba(0,0,0,0.5)';
+                    const linkOpacity = isSupersetNext ? '1' : '0.5';
                     
                     html += `
-                    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: ${isSupersetNext ? '-10px' : '-25px'}; margin-bottom: ${isSupersetNext ? '10px' : '20px'}; position: relative; z-index: 10;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 0px; margin-bottom: ${isSupersetNext ? '8px' : '16px'}; position: relative; z-index: 10;">
                         <button onclick="swapExercisesOrder(${displayIndex})" style="background: var(--card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" title="Swap Order">
                             <span style="font-size: 16px; font-weight: 800; line-height: 1; margin-top: -2px;">⇅</span>
                         </button>
-                        <button onclick="toggleSuperset(${exIndex})" style="background: var(--card); border: 2px solid ${linkColor}; color: ${linkColor}; opacity: ${linkOpacity}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" title="Link as Superset">
+                        <button onclick="toggleSuperset(${exIndex})" style="background: var(--card); border: 2px solid ${borderColor}; color: ${linkColor}; opacity: ${linkOpacity}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: ${linkGlow};" title="Link as Superset">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         </button>
                     </div>`;
@@ -23065,6 +23069,14 @@
 
         window.openPlateSettings = function(e) {
             e.stopPropagation();
+            
+            // Force the balloon to close immediately so it doesn't overlap the modal
+            const balloon = document.getElementById('plate-balloon');
+            if (balloon) {
+                balloon.style.display = 'none';
+                balloon.dataset.activeInput = '';
+            }
+
             const plates = getActivePlates();
             
             // Set the barbell input to your saved value
@@ -23130,28 +23142,42 @@
                 let perSide = (weight - barWeight) / 2;
                 let plates = [];
                 
+                // Float precision fix so weird numbers don't break the loop
+                perSide = Math.round(perSide * 100) / 100; 
+
                 const available = getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w);
 
                 for (let p of available) {
                     while (perSide >= p.w) {
                         plates.push(p);
-                        perSide -= p.w;
+                        perSide = Math.round((perSide - p.w) * 100) / 100;
                     }
                 }
                 
-                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 800; text-transform: uppercase; padding-right: 15px;">Per Side (${barWeight}kg Bar)</div>
-                        <div class="plate-row">`;
+                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; z-index: 10;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">Per Side (${barWeight}kg Bar)</div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: flex-start; max-width: 100%; overflow-x: auto; padding: 25px 5px; scrollbar-width: none;">
+                            <div style="width: 14px; height: 10px; background: #52525b; border-radius: 2px 0 0 2px; flex-shrink: 0;"></div>
+                            <div style="width: 7px; height: 28px; background: #a1a1aa; border-radius: 2px; flex-shrink: 0; box-shadow: inset 2px 0 4px rgba(0,0,0,0.3); z-index: 2;"></div>
+                            <div style="display: flex; align-items: center; height: 10px; background: #71717a; border-radius: 0 4px 4px 0; padding-left: 1px; padding-right: 15px; min-width: 25px;">`;
                 
+                // Draw dynamic plates!
                 plates.forEach(p => {
-                    html += `<div class="plate-block" style="background: ${p.c}; color: ${p.t};">${p.w}</div>`;
+                    let h = p.w >= 20 ? 54 : p.w >= 15 ? 46 : p.w >= 10 ? 36 : p.w >= 5 ? 26 : p.w >= 2.5 ? 20 : 16;
+                    let w = p.w >= 10 ? 14 : 10;
+                    let f = p.w >= 10 ? 9 : 8;
+                    html += `<div style="width: ${w}px; height: ${h}px; background: ${p.c}; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; margin-right: 1px; flex-shrink: 0; box-shadow: inset -1px 0 3px rgba(0,0,0,0.3); z-index: 3;">
+                                <span style="font-size: ${f}px; font-weight: 800; color: ${p.t}; transform: rotate(-90deg); letter-spacing: -0.5px;">${p.w}</span>
+                             </div>`;
                 });
                 
                 if (perSide > 0.01) {
-                    html += `<div class="plate-block" style="background: transparent; color: var(--text-muted); border: 1px dashed var(--border);">+${parseFloat(perSide.toFixed(2))}kg</div>`;
+                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))}kg</div>`;
                 }
                 
-                html += `</div>`;
+                html += `   </div>
+                        </div>`;
             }
 
             balloon.innerHTML = html;
