@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1124";
+        const APP_VERSION = "v2026.03.14.1129";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -314,7 +314,7 @@
             await bootDatabase(); // CRITICAL: Wait for history to load into memory
 
             // Update version display
-            const versionEl = document.getElementById('library-version-text');
+            const versionEl = document.getElementById('app-version-text');
             if (versionEl) versionEl.innerText = APP_VERSION;
 
             const savedProgram = localStorage.getItem('activeProgram');
