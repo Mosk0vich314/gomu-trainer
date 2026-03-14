@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1135";
+        const APP_VERSION = "v2026.03.14.1140";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1655,7 +1655,8 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed var(--border); padding-top: 15px;">
                     <div style="text-align: center; flex: 1; border-right: 1px dashed var(--border);">
                         <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">SBD Total</div>
-                        <div style="font-size: 22px; font-weight: 900; color: var(--text-main);">${sbdTotal > 0 ? sbdTotal + ' kg' : '--'}</div>
+                        <div style="font-size: 22px; font-weight: 900; color: var(--text-main);">${sbdTotal > 0 ? parseFloat(sbdTotal.toFixed(1)) + ' kg' : '--'}</div>
+                        <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">(Sum of 1RM Baselines)</div>
                     </div>
                     <div style="text-align: center; flex: 1;">
                         <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">DOTS Score</div>
@@ -1688,22 +1689,34 @@
 
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">All-Time Heaviest Lifts</h3>';
 
-            const bestKeys = Object.keys(actualBests).sort();
+            const allBestKeys = Object.keys(actualBests);
+            const sbdKeys = ['Squat', 'Bench Press', 'Deadlift'].filter(k => allBestKeys.includes(k));
+            const otherKeys = allBestKeys.filter(k => !['Squat', 'Bench Press', 'Deadlift'].includes(k)).sort();
+            const bestKeys = [...sbdKeys, ...otherKeys]; // Forces SBD to the top, alphabetizes the rest
+
             if (bestKeys.length === 0) {
                 html += '<div class="empty-stats" style="color: var(--text-muted); font-style: italic; font-size: 14px; text-align: center; padding: 20px;">No completed sets logged yet. Your heaviest actual lifts will automatically appear here.</div>';
             } else {
                 bestKeys.forEach(ex => {
                     const b = actualBests[ex];
                     const safeExHTML = ex.replace(/"/g, '&quot;');
+                    
+                    // Design logic for "The Big Three"
+                    const isSBD = ['Squat', 'Bench Press', 'Deadlift'].includes(ex);
+                    const borderStyle = isSBD ? 'border: 1px solid var(--accent); background: linear-gradient(to right, rgba(249, 115, 22, 0.05), var(--card));' : '';
+                    const titleColor = isSBD ? 'color: var(--accent);' : '';
+                    const iconHTML = isSBD ? '<span style="font-size: 14px; margin-right: 6px;">🏆</span>' : '';
+                    const valColor = isSBD ? 'var(--accent)' : 'var(--teal)';
+
                     html += `
                     <div class="swipe-wrapper stat-swipe">
                         <div class="swipe-delete-bg" style="right: 15px;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </div>
-                        <div class="stat-card stat-swipable" style="padding: 16px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
-                            <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                        <div class="stat-card stat-swipable" style="padding: 16px 18px; margin-bottom: 0; ${borderStyle}" data-exname="${safeExHTML}">
+                            <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3; ${titleColor}">${iconHTML}${ex}</span>
                             <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; white-space: nowrap;">
-                                <span class="stat-value" style="color: var(--teal); white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
+                                <span class="stat-value" style="color: ${valColor}; white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
                             </div>
                         </div>
                     </div>`;
