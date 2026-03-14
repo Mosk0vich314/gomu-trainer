@@ -1,4 +1,16 @@
-// --- HONESTY DOOR LOGIC ---
+        let refreshing = false;
+
+        // Monitor the Service Worker for updates
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                // This line actually reloads the page for you!
+                window.location.reload();
+            });
+        }
+        
+        // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
         // Immediately check if they've logged in before

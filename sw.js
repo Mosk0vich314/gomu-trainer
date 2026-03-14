@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v7'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v8'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -63,4 +63,11 @@ self.addEventListener('notificationclick', function(event) {
             if (clients.openWindow) return clients.openWindow('./');
         })
     );
+});
+
+// Add this to listen for the "Update Now" command from app.js
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
 });
