@@ -131,9 +131,12 @@
 
         // --- NEW: REGISTER THE BACKGROUND SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('Service Worker registered!'))
-                .catch(err => console.log('SW error', err));
+            window.addEventListener('load', () => {
+                // Since sw.js is in the root, the path is just './sw.js'
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered at root!'))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
         }
 
         // Handle when the user swipes to the home screen and comes back
@@ -3013,7 +3016,7 @@
         };
 
         // 1. Load the Audio Objects
-        let activeAudio = new Audio('./ding.mp3'); 
+        let activeAudio = new Audio('./assets/audio/ding.mp3'); 
         activeAudio.preload = 'auto';
 
         // THE SPOTIFY HACK: Silent audio loop to keep the browser awake in the background
