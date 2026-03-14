@@ -1,28 +1,67 @@
+const CACHE_NAME = 'gomu-trainer-v3'; // Increment this number when you update the app
+const urlsToCache = [
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './database.js',
+  './manifest.json',
+  './logo.png',
+  './ding.mp3',
+  './dashboard.jpg',
+  './warmup.jpg',
+  './management.jpg',
+  './panash_logo.jpg',
+  './cbb_logo.jpg',
+  './boostcamp_logo.jpg'
+];
+
+// 1. INSTALL: Save all files into the phone's memory
 self.addEventListener('install', function(event) {
     self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(function(cache) {
+            return cache.addAll(urlsToCache);
+        })
+    );
 });
 
+// 2. ACTIVATE: Clean up old versions of the cache
 self.addEventListener('activate', function(event) {
-    event.waitUntil(clients.claim());
+    event.waitUntil(
+        caches.keys().then(function(cacheNames) {
+            return Promise.all(
+                cacheNames.map(function(cacheName) {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
 });
 
-// NEW: When you tap the notification, open the app!
+// 3. FETCH: Serve files from cache if offline
+self.addEventListener('fetch', function(event) {
+    event.respondWith(
+        caches.match(event.request).then(function(response) {
+            return response || fetch(event.request);
+        })
+    );
+});
+
+// 4. NOTIFICATION CLICK: Open or focus the app
 self.addEventListener('notificationclick', function(event) {
-    event.notification.close(); // Clear the notification
-    
+    event.notification.close();
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-            // If the app is already open in a background tab, focus it
             for (let i = 0; i < clientList.length; i++) {
                 let client = clientList[i];
-                if (client.url.includes('index.html') || client.url.includes('clean_app.html') || ('focus' in client)) {
+                if (client.url.includes('index.html') && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // If the app was completely closed, open a new window
-            if (clients.openWindow) {
-                return clients.openWindow('/');
-            }
+            if (clients.openWindow) return clients.openWindow('./');
         })
     );
 });
