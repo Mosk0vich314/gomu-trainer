@@ -575,3 +575,14 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     from { opacity: 0; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.app-version-display {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.3;
+    margin-top: 40px;
+    padding-bottom: 20px;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
