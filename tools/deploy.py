@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from datetime import datetime
 import subprocess
 
@@ -25,24 +26,27 @@ def update_file(relative_path, pattern, replacement):
         print(f"❌ Could not find {relative_path}. Are you running this from the right folder?")
 
 # --- 2. EXECUTE THE REPLACEMENTS ---
-
-# Update index.html (Cache Busting for CSS & JS)
 update_file('index.html', r'\?v=[\d\.]+', f'?v={new_version}')
-
-# Update app.js (The Library UI Badge)
 update_file('scripts/app.js', r'const APP_VERSION = "v[^"]+";', f'const APP_VERSION = "v{new_version}";')
-
-# Update sw.js (The Service Worker Background Cache)
 update_file('sw.js', r"const CACHE_NAME = 'gomu-trainer-v[^']+';", f"const CACHE_NAME = 'gomu-trainer-v{new_version}';")
 
 
-# --- 3. AUTO-PUSH TO GITHUB ---
-print("📦 Pushing to GitHub...")
+# --- 3. DETERMINE COMMIT MESSAGE ---
+commit_msg = f"Auto-deploy build v{new_version}"
+
+# If you passed an argument in the terminal, use it!
+if len(sys.argv) > 1:
+    custom_msg = " ".join(sys.argv[1:])
+    commit_msg = f"{custom_msg} (v{new_version})"
+
+
+# --- 4. AUTO-PUSH TO GITHUB ---
+print(f"📦 Committing as: '{commit_msg}'")
 root_dir = os.path.join(os.path.dirname(__file__), '..')
 
 try:
     subprocess.run(["git", "add", "."], check=True, cwd=root_dir)
-    subprocess.run(["git", "commit", "-m", f"Auto-deploy build v{new_version}"], check=True, cwd=root_dir)
+    subprocess.run(["git", "commit", "-m", commit_msg], check=True, cwd=root_dir)
     subprocess.run(["git", "push"], check=True, cwd=root_dir)
     print("🎉 Deployment Complete! Pull down on your phone to see the magic.")
 except Exception as e:
