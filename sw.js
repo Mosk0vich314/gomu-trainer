@@ -1,19 +1,19 @@
-const CACHE_NAME = 'gomu-trainer-v3'; // Increment this number when you update the app
+const CACHE_NAME = 'gomu-trainer-v6'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
-  './database.js',
-  './manifest.json',
-  './logo.png',
-  './ding.mp3',
-  './dashboard.jpg',
-  './warmup.jpg',
-  './management.jpg',
-  './panash_logo.jpg',
-  './cbb_logo.jpg',
-  './boostcamp_logo.jpg'
+  './styles/styles.css',
+  './scripts/app.js',
+  './scripts/database.js',
+  './assets/manifest.json',
+  './assets/logo.png',
+  './assets/audio/ding.mp3',
+  './assets/images/dashboard.jpg',
+  './assets/images/warmup.jpg',
+  './assets/images/management.jpg',
+  './assets/icons/panash_logo.jpg',
+  './assets/icons/cbb_logo.jpg',
+  './assets/icons/boostcamp_logo.jpg'
 ];
 
 // 1. INSTALL: Save all files into the phone's memory
