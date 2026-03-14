@@ -578,11 +578,17 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 .app-version-display {
     text-align: center;
-    font-size: 11px;
-    color: var(--text-muted);
-    opacity: 0.3;
     margin-top: 40px;
-    padding-bottom: 20px;
+    padding-bottom: 30px;
+}
+
+.app-version-display span {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    font-size: 11px;
     font-family: monospace;
     letter-spacing: 1px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
 }
