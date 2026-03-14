@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1140";
+        const APP_VERSION = "v2026.03.14.1153";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1625,15 +1625,24 @@
             let global1RMs = safeParse('global1RMs', {});
             let actualBests = safeParse('actualBests', {});
 
+            // Defaults
             if (!global1RMs['Squat']) global1RMs['Squat'] = 0;
-            if (!global1RMs['Bench Press']) global1RMs['Bench Press'] = 0;
+            if (!global1RMs['Bench']) global1RMs['Bench'] = 0;
             if (!global1RMs['Deadlift']) global1RMs['Deadlift'] = 0;
 
             const savedBw = localStorage.getItem('userBodyweight') || '';
-
             const savedGender = localStorage.getItem('userGender') || 'M';
-            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
-            const dotsScore = savedBw ? calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender) : 0;
+
+            // 1. SBD Total Math (Strict Exact Matches Only)
+            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench'] || 0) + (global1RMs['Deadlift'] || 0);
+            
+            // Safe DOTS Calculation
+            let dotsScore = 0;
+            if (savedBw && typeof calculateDOTS === 'function') {
+                dotsScore = calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
+            } else if (savedBw && window.calculateDOTS) {
+                dotsScore = window.calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
+            }
 
             let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Lifter Profile</h3>';
             
@@ -1668,7 +1677,13 @@
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current Baselines</h3>';
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
 
-            const sorted1RMs = Object.keys(global1RMs).sort();
+            // 2. Sort Baselines (Exact SBD strictly pinned to the top)
+            const all1RMKeys = Object.keys(global1RMs);
+            const exactSBD = ['Squat', 'Bench', 'Deadlift'];
+            let sorted1RMs = exactSBD.filter(k => all1RMKeys.includes(k));
+            const other1RMs = all1RMKeys.filter(k => !exactSBD.includes(k)).sort();
+            sorted1RMs = [...sorted1RMs, ...other1RMs];
+
             sorted1RMs.forEach(ex => {
                 const safeExJS = ex.replace(/'/g, "\\'");
                 const safeExHTML = ex.replace(/"/g, '&quot;');
@@ -1689,10 +1704,11 @@
 
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">All-Time Heaviest Lifts</h3>';
 
+            // 3. Sort Bests & Add Subtle Highlight
             const allBestKeys = Object.keys(actualBests);
-            const sbdKeys = ['Squat', 'Bench Press', 'Deadlift'].filter(k => allBestKeys.includes(k));
-            const otherKeys = allBestKeys.filter(k => !['Squat', 'Bench Press', 'Deadlift'].includes(k)).sort();
-            const bestKeys = [...sbdKeys, ...otherKeys]; // Forces SBD to the top, alphabetizes the rest
+            let sbdKeysBest = exactSBD.filter(k => allBestKeys.includes(k));
+            const otherKeysBest = allBestKeys.filter(k => !exactSBD.includes(k)).sort();
+            const bestKeys = [...sbdKeysBest, ...otherKeysBest];
 
             if (bestKeys.length === 0) {
                 html += '<div class="empty-stats" style="color: var(--text-muted); font-style: italic; font-size: 14px; text-align: center; padding: 20px;">No completed sets logged yet. Your heaviest actual lifts will automatically appear here.</div>';
@@ -1701,10 +1717,10 @@
                     const b = actualBests[ex];
                     const safeExHTML = ex.replace(/"/g, '&quot;');
                     
-                    // Design logic for "The Big Three"
-                    const isSBD = ['Squat', 'Bench Press', 'Deadlift'].includes(ex);
-                    const borderStyle = isSBD ? 'border: 1px solid var(--accent); background: linear-gradient(to right, rgba(249, 115, 22, 0.05), var(--card));' : '';
-                    const titleColor = isSBD ? 'color: var(--accent);' : '';
+                    const isSBD = exactSBD.includes(ex);
+                    // Minimalist highlight: just an orange line on the left!
+                    const borderStyle = isSBD ? 'border-left: 3px solid var(--accent);' : '';
+                    const titleColor = isSBD ? 'color: var(--text-main); font-weight: 800;' : '';
                     const iconHTML = isSBD ? '<span style="font-size: 14px; margin-right: 6px;">🏆</span>' : '';
                     const valColor = isSBD ? 'var(--accent)' : 'var(--teal)';
 
@@ -1726,7 +1742,7 @@
             // Reset privacy lock every time the vault is opened
             window.physiquePrivacy = true;
 
-            // --- NEW: PHYSIQUE TRACKING UI ---
+            // Physique Tracking UI
             html += '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Physique Tracking</h3>';
             html += '<button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">🙈 Hidden</button>';
@@ -1740,14 +1756,10 @@
                 📸 Add Progress Picture
                 <input type="file" accept="image/*" style="display:none;" onchange="handlePictureUpload(event)">
             </label>`;
-            // ---------------------------------
 
             statsContainer.innerHTML = html;
             
-            // Turn on the swipe engine for the newly drawn cards!
             if (typeof setupStatsSwipe === 'function') setupStatsSwipe();
-            
-            // Render the gallery asynchronously
             if (typeof renderPhysiqueGallery === 'function') renderPhysiqueGallery();
         }
 
