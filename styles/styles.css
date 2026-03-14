@@ -13,7 +13,16 @@
 }
 
 body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior-y: none;}
+/* KILL THE BROWSER BLUE TAP HIGHLIGHT */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
 
+/* Optional: Prevent accidental text selection when tapping buttons fast */
+button, .pill, .check-circle, .stat-card {
+    user-select: none;
+    -webkit-user-select: none;
+}
 /* App Screens */
 .app-screen { display: none; padding: 20px; padding-bottom: 180px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative; }
 .app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
@@ -555,13 +564,22 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 }
 .check-circle.checked { animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-/* 2. Breathing Timer FAB */
+/* 2. Breathing Timer Banner Pulse */
 @keyframes pulseRing {
-    0% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0.6); }
-    70% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 15px rgba(249, 115, 22, 0); }
-    100% { box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0 0 rgba(249, 115, 22, 0); }
+    0% { box-shadow: 0 6px 16px rgba(0,0,0,0.6), 0 0 0 0 rgba(249, 115, 22, 0.6); }
+    70% { box-shadow: 0 6px 16px rgba(0,0,0,0.6), 0 0 0 14px rgba(249, 115, 22, 0); }
+    100% { box-shadow: 0 6px 16px rgba(0,0,0,0.6), 0 0 0 0 rgba(249, 115, 22, 0); }
 }
-.global-timer-fab.timer-active { animation: pulseRing 2s infinite; }
+
+/* Apply to the banner ONLY while it is actively counting down */
+#rest-timer-banner.active:not(.finished) {
+    animation: pulseRing 2s infinite cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Ensure the old FAB animation is completely killed */
+.global-timer-fab.timer-active {
+    animation: none;
+}
 
 /* 3. Smooth Tab Sliding */
 @keyframes tabFadeIn {

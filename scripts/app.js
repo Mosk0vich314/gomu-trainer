@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1156";
+        const APP_VERSION = "v2026.03.14.1636";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -2128,7 +2128,7 @@
                             </button>
                             `}
                             
-                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px; margin-bottom: -3px; display: inline-block;'}">
+                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; display: inline-block; padding-bottom: 2px; margin-bottom: -3px;'}">
                                 ${ex.name}
                             </h2>
                             
@@ -2143,7 +2143,7 @@
                         
                         ${displayNotesHtml}
                         
-                        ${isMain && !isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
+                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
                     `;
 
                 const numBlocks = ex.blocks.length;
@@ -2177,7 +2177,7 @@
                                 <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${block.sets} x ${block.reps} Reps${detailsStr}</span>
                             </div>
                             <div class="set-row header">
-                                <span>Set</span><span>Reps</span><span>RPE</span><span>Load</span>${isMain ? '<span>e1RM</span>' : ''}<span></span>
+                                <span>Set</span><span>Reps</span><span>RPE</span><span>Load</span><span>e1RM</span><span></span>
                             </div>
                         `;
                     }
@@ -2204,8 +2204,41 @@
                         let smartDefaultLoad = '';
                         if (block.pct && resolved1RM > 0) {
                             smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
-                        } else if (!block.pct && lastUsedWeights[ex.name]) {
-                            // NEW: Smart look-up per set!
+                        } else if (block.targetRpe && resolved1RM > 0) {
+                            // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
+                            const rtsChart = {
+                                10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                                9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                                9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                                8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                                8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                                7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                                7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                                6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                                6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                                5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                                5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                            };
+                            let rRoundedRpe = Math.round(block.targetRpe * 2) / 2;
+                            let rRepIndex = Math.max(0, Math.min(11, block.reps - 1));
+                            
+                            let targetPct = 0;
+                            if (rRoundedRpe >= 5) {
+                                targetPct = rtsChart[rRoundedRpe][rRepIndex];
+                            } else {
+                                targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
+                            }
+                            
+                            if (targetPct > 0) {
+                                let calcWeight = Math.round((resolved1RM * targetPct) / 2.5) * 2.5;
+                                if (isBodyweightExercise(ex.name)) {
+                                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                                    if (bw > 0) calcWeight = Math.max(0, calcWeight - bw);
+                                }
+                                smartDefaultLoad = calcWeight;
+                            }
+                        } else if (lastUsedWeights[ex.name]) {
+                            // Fallback to memory if neither PCT nor Target RPE exist
                             if (typeof lastUsedWeights[ex.name] === 'object' && lastUsedWeights[ex.name] !== null) {
                                 smartDefaultLoad = lastUsedWeights[ex.name][`_b${bIndex}_s${s}`] || lastUsedWeights[ex.name].fallback || '';
                             } else {
@@ -2226,17 +2259,14 @@
                         const isChecked = savedSession[checkId] ? 'checked' : '';
                         const disabledAttr = isChecked ? 'disabled' : '';
 
-                        let e1rmCell = '';
-                        if (isMain) {
-                            e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
-                        }
+                        let e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
 
                         const repsClass = 'input-box saveable calc-trigger'; 
                         const rpeClass = 'input-box input-rpe saveable calc-trigger';
                         const loadClass = `input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}`;
 
                         let setHtml = `
-                        <div class="set-row" style="${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.6fr 0.8fr;' : ''}">
+                        <div class="set-row">
                             <span>${s}</span>
                             <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
                             <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
@@ -2287,7 +2317,7 @@
                             const borderStyle = isLatestExtra ? `border: 1px dashed ${themeColor};` : `border: 1px solid transparent;`;
 
                             html += `
-                            <div class="set-row" style="${borderStyle} margin-top: 8px; ${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.6fr 0.8fr;' : ''}">
+                            <div class="set-row" style="${borderStyle} margin-top: 8px;">
                                 ${setLabel}
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
@@ -2298,7 +2328,7 @@
                                         <div class="plate-indicator"></div>
                                     </button>`}
                                 </span>
-                                ${isMain ? `<span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>` : ''}
+                                <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
@@ -3335,9 +3365,54 @@
                     if (!isNaN(val)) {
                         let actualBests = safeParse('actualBests', {});
                         const reps = repsInput && repsInput.value ? parseFloat(repsInput.value) : (parseFloat(loadInput.dataset.reps) || 0);
+                        const rpeVal = rpeInput && rpeInput.value ? parseFloat(rpeInput.value) : 10;
                         
+                        let effectiveWeight = val;
+                        if (isBodyweightExercise(exName)) {
+                            const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                            if (bw > 0) effectiveWeight += bw;
+                        }
+
+                        // Calculate Estimated 1RM for true strength comparison
+                        const getSetE1RM = (w, r, rpe) => {
+                            if (!w || w <= 0 || !r || r <= 0) return 0;
+                            const rts = {
+                                10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
+                                9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
+                                9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
+                                8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
+                                8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
+                                7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
+                                7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
+                                6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
+                                6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
+                                5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
+                                5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                            };
+                            let parsed = isNaN(rpe) || rpe < 0 || rpe > 10 ? 10 : rpe;
+                            let rounded = Math.round(parsed * 2) / 2;
+                            let rIdx = Math.max(0, Math.min(11, r - 1));
+                            let pct = rounded >= 5 ? rts[rounded][rIdx] : Math.max(0.1, rts[5][rIdx] - ((5 - rounded) * 0.025));
+                            return w / pct;
+                        };
+
+                        const newE1RM = getSetE1RM(effectiveWeight, reps, rpeVal);
                         let oldRecord = actualBests[exName];
-                        if (!oldRecord || val > oldRecord.weight || (val === oldRecord.weight && reps > oldRecord.reps)) {
+                        
+                        let oldEffectiveWeight = oldRecord ? oldRecord.weight : 0;
+                        if (oldRecord && isBodyweightExercise(exName)) {
+                            const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                            if (bw > 0) oldEffectiveWeight += bw;
+                        }
+                        
+                        // Fallback to assuming the old record was an RPE 10 if it doesn't have an e1rm saved yet
+                        let oldE1RM = oldRecord ? (oldRecord.e1rm || getSetE1RM(oldEffectiveWeight, oldRecord.reps, 10)) : 0;
+                        
+                        // Buffer to avoid microscopic floating point math errors
+                        const isNewE1rmBetter = (newE1RM - oldE1RM) > 0.01;
+                        const isSameE1rmButHeavier = Math.abs(newE1RM - oldE1RM) <= 0.01 && val > oldRecord.weight;
+
+                        if (!oldRecord || isNewE1rmBetter || isSameE1rmButHeavier) {
                             
                             // Detect if this is a PR (only fire if beating a previously established record)
                             if (oldRecord) {
@@ -3345,7 +3420,7 @@
                                 showPRToast(exName, val, reps);
                             }
                             
-                            actualBests[exName] = { weight: val, reps: reps };
+                            actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM };
                             localStorage.setItem('actualBests', JSON.stringify(actualBests));
                         }
                     }
@@ -3705,7 +3780,7 @@
                         const clickedBlockMatch = clickedRowId.match(/_b(\d+)_/);
                         const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
 
-                        document.querySelectorAll(`.main-load[data-exid="${exId}"]`).forEach(loadInput => {
+                        document.querySelectorAll(`input[id$="_load"][data-exid="${exId}"]`).forEach(loadInput => {
                             const targetRowId = loadInput.dataset.rowid;
                             const checkCircle = document.getElementById(`${targetRowId}_check`);
                             
