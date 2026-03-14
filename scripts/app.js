@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1636";
+        const APP_VERSION = "v2026.03.14.1648";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1631,6 +1631,20 @@
             }
         };
         // ------------------------------------
+        window.updateOfficialSBD = async function() {
+            const confirmed = await showConfirm(
+                "Lock Official Total?",
+                "This will snapshot your current Squat, Bench Press, and Deadlift baselines and lock them in as your official SBD Total.",
+                "Lock Total",
+                "Cancel"
+            );
+            if (confirmed) {
+                let global1RMs = safeParse('global1RMs', {});
+                const newTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
+                localStorage.setItem('officialSBDTotal', newTotal);
+                renderStats();
+            }
+        };
         function renderStats() {
             const statsContainer = document.getElementById('stats-container');
             let global1RMs = safeParse('global1RMs', {});
@@ -1670,8 +1684,8 @@
             const savedBw = localStorage.getItem('userBodyweight') || '';
             const savedGender = localStorage.getItem('userGender') || 'M';
 
-            // 1. SBD Total Math (Strictly uses the normalized 'Bench Press')
-            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
+            // 1. SBD Total Math (Locked officially via button)
+            const sbdTotal = parseFloat(localStorage.getItem('officialSBDTotal')) || 0;
             
             let dotsScore = 0;
             if (savedBw && typeof calculateDOTS === 'function') {
@@ -1680,7 +1694,10 @@
                 dotsScore = window.calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
             }
 
-            let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Lifter Profile</h3>';
+            let html = '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
+            html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Lifter Profile</h3>';
+            html += '<button style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onclick="updateOfficialSBD()">↻ Lock Total</button>';
+            html += '</div>';
             
             html += `
             <div class="stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 15px;">
@@ -1701,7 +1718,6 @@
                     <div style="text-align: center; flex: 1; border-right: 1px dashed var(--border);">
                         <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">SBD Total</div>
                         <div style="font-size: 22px; font-weight: 900; color: var(--text-main);">${sbdTotal > 0 ? parseFloat(sbdTotal.toFixed(1)) + ' kg' : '--'}</div>
-                        <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">(Sum of 1RM Baselines)</div>
                     </div>
                     <div style="text-align: center; flex: 1;">
                         <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">DOTS Score</div>
