@@ -591,3 +591,31 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .app-version-display span {
     display: none;
 }
+
+/* --- LIVE PR DETECTOR TOAST --- */
+.pr-toast {
+    position: fixed;
+    top: -100px; /* Hidden off screen */
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card);
+    border: 2px solid #eab308; /* Powerlifting Gold */
+    box-shadow: 0 10px 40px rgba(234, 179, 8, 0.3);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 3000;
+    transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    white-space: nowrap;
+}
+.pr-toast.show {
+    top: 50px; /* Springs down into view */
+}
+.pr-icon { font-size: 24px; }
+.pr-text { display: flex; flex-direction: column; text-align: left; }
+.pr-title { font-size: 11px; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 1px; }
+.pr-desc { font-size: 15px; font-weight: 800; color: #fff; }
