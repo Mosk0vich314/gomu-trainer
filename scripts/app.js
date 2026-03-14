@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1129";
+        const APP_VERSION = "v2026.03.14.1135";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -453,6 +453,37 @@
             } else {
                 localStorage.removeItem('userBodyweight');
             }
+            renderStats(); // Auto-update the DOTS score when you type
+        };
+
+        window.updateGender = function(val) {
+            localStorage.setItem('userGender', val);
+            renderStats();
+        };
+
+        window.calculateDOTS = function(bw, total, gender) {
+            if (!bw || !total || bw <= 0 || total <= 0) return 0;
+            // Official IPF DOTS Coefficients
+            const A = gender === 'M' ? -307.47501 : -57.96288;
+            const B = gender === 'M' ? 24.0900756 : 13.6175032;
+            const C = gender === 'M' ? -0.1918759221 : -0.1126655495;
+            const D = gender === 'M' ? 0.0007391293 : 0.0005158568;
+            const E = gender === 'M' ? -0.000001093 : -0.0000010706;
+            
+            const denominator = A + (B * bw) + (C * Math.pow(bw, 2)) + (D * Math.pow(bw, 3)) + (E * Math.pow(bw, 4));
+            return parseFloat(((total * 500) / denominator).toFixed(2));
+        };
+
+        window.showPRToast = function(exName, weight, reps) {
+            const toast = document.getElementById('pr-toast-container');
+            const desc = document.getElementById('pr-toast-desc');
+            if (!toast || !desc) return;
+            
+            desc.innerText = `${exName}: ${weight}kg x ${reps}`;
+            toast.classList.add('show');
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Special PR Rumble
+            
+            setTimeout(() => toast.classList.remove('show'), 4000);
         };
 
         window.isNoPlateExercise = function(name) {
@@ -1600,17 +1631,36 @@
 
             const savedBw = localStorage.getItem('userBodyweight') || '';
 
+            const savedGender = localStorage.getItem('userGender') || 'M';
+            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
+            const dotsScore = savedBw ? calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender) : 0;
+
             let html = '<h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Lifter Profile</h3>';
             
             html += `
-            <div class="stat-card" style="padding: 12px 18px;">
-                <div style="flex: 1;">
-                    <span class="stat-name">Bodyweight</span>
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Used for pull-ups & dips</div>
+            <div class="stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="flex: 1;"><span class="stat-name">Bodyweight</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                        <input type="number" class="input-box" style="width: 70px; padding: 8px; font-size: 16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
+                        <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
+                        
+                        <select class="input-box" style="width: 50px; padding: 8px; font-size: 14px; margin-left: 5px; appearance: none; text-align: center;" onchange="updateGender(this.value)">
+                            <option value="M" ${savedGender === 'M' ? 'selected' : ''}>M</option>
+                            <option value="F" ${savedGender === 'F' ? 'selected' : ''}>F</option>
+                        </select>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                    <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
-                    <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed var(--border); padding-top: 15px;">
+                    <div style="text-align: center; flex: 1; border-right: 1px dashed var(--border);">
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">SBD Total</div>
+                        <div style="font-size: 22px; font-weight: 900; color: var(--text-main);">${sbdTotal > 0 ? sbdTotal + ' kg' : '--'}</div>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">DOTS Score</div>
+                        <div style="font-size: 22px; font-weight: 900; color: #eab308;">${dotsScore > 0 ? dotsScore : '--'}</div>
+                    </div>
                 </div>
             </div>`;
 
@@ -3224,7 +3274,16 @@
                     if (!isNaN(val)) {
                         let actualBests = safeParse('actualBests', {});
                         const reps = repsInput && repsInput.value ? parseFloat(repsInput.value) : (parseFloat(loadInput.dataset.reps) || 0);
-                        if (!actualBests[exName] || val > actualBests[exName].weight || (val === actualBests[exName].weight && reps > actualBests[exName].reps)) {
+                        
+                        let oldRecord = actualBests[exName];
+                        if (!oldRecord || val > oldRecord.weight || (val === oldRecord.weight && reps > oldRecord.reps)) {
+                            
+                            // Detect if this is a PR (only fire if beating a previously established record)
+                            if (oldRecord) {
+                                fireConfetti();
+                                showPRToast(exName, val, reps);
+                            }
+                            
                             actualBests[exName] = { weight: val, reps: reps };
                             localStorage.setItem('actualBests', JSON.stringify(actualBests));
                         }
