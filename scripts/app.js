@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.2";
+        const APP_VERSION = "v2026.03.14.1124";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
