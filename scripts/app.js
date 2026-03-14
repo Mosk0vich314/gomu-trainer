@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1153";
+        const APP_VERSION = "v2026.03.14.1156";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -641,11 +641,22 @@
             updateDashboard(); 
         }
 
+        window.normalizeExName = function(name) {
+            if (!name) return name;
+            const lower = name.toLowerCase().trim();
+            // Automatically merges aliases into the core "Big 3" names
+            if (lower === 'bench' || lower === 'bench press' || lower === 'bench press (barbell)') return 'Bench Press';
+            if (lower === 'squat' || lower === 'squat (barbell)') return 'Squat';
+            if (lower === 'deadlift' || lower === 'deadlift (barbell)') return 'Deadlift';
+            return name;
+        };
+
         function getResolved1RM(exName) {
             let saved1RMs = safeParse('global1RMs', {});
-            if (saved1RMs[exName]) return saved1RMs[exName];
+            const normName = normalizeExName(exName);
+            if (saved1RMs[normName]) return saved1RMs[normName];
             
-            const lowerName = exName.toLowerCase();
+            const lowerName = normName.toLowerCase();
             if (lowerName.includes('squat')) return saved1RMs['Squat'] || 0;
             if (lowerName.includes('bench')) return saved1RMs['Bench Press'] || 0;
             if (lowerName.includes('deadlift')) return saved1RMs['Deadlift'] || 0;
@@ -1625,18 +1636,43 @@
             let global1RMs = safeParse('global1RMs', {});
             let actualBests = safeParse('actualBests', {});
 
+            // --- AUTO-MIGRATION ALGORITHM ---
+            // Collapses any legacy "Bench" or "Bench Press (Barbell)" into "Bench Press"
+            let dataChanged = false;
+            ['global1RMs', 'actualBests'].forEach(storeKey => {
+                let store = storeKey === 'global1RMs' ? global1RMs : actualBests;
+                Object.keys(store).forEach(key => {
+                    const normKey = normalizeExName(key);
+                    if (key !== normKey) {
+                        if (storeKey === 'global1RMs') {
+                            store[normKey] = Math.max(store[normKey] || 0, store[key]);
+                        } else {
+                            if (!store[normKey] || store[key].weight > store[normKey].weight || (store[key].weight === store[normKey].weight && store[key].reps > store[normKey].reps)) {
+                                store[normKey] = store[key];
+                            }
+                        }
+                        delete store[key];
+                        dataChanged = true;
+                    }
+                });
+            });
+            if (dataChanged) {
+                localStorage.setItem('global1RMs', JSON.stringify(global1RMs));
+                localStorage.setItem('actualBests', JSON.stringify(actualBests));
+            }
+            // --------------------------------
+
             // Defaults
             if (!global1RMs['Squat']) global1RMs['Squat'] = 0;
-            if (!global1RMs['Bench']) global1RMs['Bench'] = 0;
+            if (!global1RMs['Bench Press']) global1RMs['Bench Press'] = 0;
             if (!global1RMs['Deadlift']) global1RMs['Deadlift'] = 0;
 
             const savedBw = localStorage.getItem('userBodyweight') || '';
             const savedGender = localStorage.getItem('userGender') || 'M';
 
-            // 1. SBD Total Math (Strict Exact Matches Only)
-            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench'] || 0) + (global1RMs['Deadlift'] || 0);
+            // 1. SBD Total Math (Strictly uses the normalized 'Bench Press')
+            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
             
-            // Safe DOTS Calculation
             let dotsScore = 0;
             if (savedBw && typeof calculateDOTS === 'function') {
                 dotsScore = calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
@@ -1677,9 +1713,9 @@
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current Baselines</h3>';
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
 
-            // 2. Sort Baselines (Exact SBD strictly pinned to the top)
+            // 2. Sort Baselines
             const all1RMKeys = Object.keys(global1RMs);
-            const exactSBD = ['Squat', 'Bench', 'Deadlift'];
+            const exactSBD = ['Squat', 'Bench Press', 'Deadlift'];
             let sorted1RMs = exactSBD.filter(k => all1RMKeys.includes(k));
             const other1RMs = all1RMKeys.filter(k => !exactSBD.includes(k)).sort();
             sorted1RMs = [...sorted1RMs, ...other1RMs];
@@ -3284,7 +3320,7 @@
                     const val = parseFloat(loadInput.value);
                     saveSessionState(loadInput.id, loadInput.value);
                     
-                    const exName = loadInput.dataset.exname;
+                    const exName = normalizeExName(loadInput.dataset.exname);
                     let lastUsed = safeParse('lastUsedWeights', {});
                     
                     // NEW: Convert old memory to object and save strictly by Set Number
@@ -3565,7 +3601,7 @@
                     saveSessionState(e.target.id, e.target.value);
                     if(e.target.id.includes('_load') && e.target.value) {
                         let lastUsed = safeParse('lastUsedWeights', {});
-                        const exName = e.target.dataset.exname;
+                        const exName = normalizeExName(e.target.dataset.exname);
                         
                         // NEW: Save strictly by Set Number when typing
                         if (typeof lastUsed[exName] !== 'object' || lastUsed[exName] === null) {
@@ -3651,7 +3687,7 @@
                 btn.addEventListener('click', (e) => {
                     const currentBtn = e.currentTarget;
                     const exId = currentBtn.dataset.exid;
-                    const exName = currentBtn.dataset.exname;
+                    const exName = normalizeExName(currentBtn.dataset.exname);
                     const e1rm = parseFloat(currentBtn.dataset.e1rm);
                     const clickedRowId = currentBtn.dataset.rowid;
                     
