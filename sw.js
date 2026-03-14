@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v8'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v9'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -41,14 +41,31 @@ self.addEventListener('activate', function(event) {
     );
 });
 
+// 3. FETCH: The "Self-Updating" Engine
 self.addEventListener('fetch', function(event) {
+    // We only want to handle standard GET requests (ignore API posts, etc.)
+    if (event.request.method !== 'GET') return;
+
     event.respondWith(
-        fetch(event.request).catch(function() {
-            return caches.match(event.request);
-        })
+        fetch(event.request)
+            .then(function(response) {
+                // THE MAGIC TRICK: Auto-Update the Cache!
+                // If we successfully get a fresh file from GitHub, we show it to you
+                // AND silently save a copy into the phone's memory for next time.
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return response;
+            })
+            .catch(function() {
+                // You have no internet (e.g., in the gym). Serve the saved files from the vault!
+                return caches.match(event.request);
+            })
     );
 });
-
 // 4. NOTIFICATION CLICK: Open or focus the app
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
