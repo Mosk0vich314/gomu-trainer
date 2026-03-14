@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v6'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v7'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -41,11 +41,10 @@ self.addEventListener('activate', function(event) {
     );
 });
 
-// 3. FETCH: Serve files from cache if offline
 self.addEventListener('fetch', function(event) {
     event.respondWith(
-        caches.match(event.request).then(function(response) {
-            return response || fetch(event.request);
+        fetch(event.request).catch(function() {
+            return caches.match(event.request);
         })
     );
 });
