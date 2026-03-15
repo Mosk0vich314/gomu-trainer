@@ -891,3 +891,67 @@ button, .pill, .check-circle, .stat-card {
     border-radius: 4px;
     font-size: 11px;
 }
+
+/* ========== ANIMATION ENHANCEMENTS ========== */
+
+/* --- 1. Set Completion Ripple --- */
+.check-circle { position: relative; overflow: visible; }
+.check-circle::before {
+    content: ''; position: absolute; inset: -2px; border-radius: 10px;
+    border: 3px solid var(--theme-color, var(--accent));
+    opacity: 0; transform: scale(1); pointer-events: none;
+}
+.check-circle.checked::before {
+    animation: rippleOut 0.6s ease-out forwards;
+}
+@keyframes rippleOut {
+    0%   { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(2.2); }
+}
+
+/* --- 2. Progress Bar Shimmer --- */
+.progress-fill { position: relative; overflow: hidden; }
+.progress-fill::after {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 200%; height: 100%;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+    transform: translateX(-100%);
+    animation: shimmer 2.5s ease-in-out infinite;
+    animation-delay: 0.6s;
+}
+@keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* --- 3. Slide-to-Complete Spark Trail --- */
+.slider-thumb.dragging {
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.6), 0 0 40px rgba(20, 184, 166, 0.3);
+    border-color: #5eead4; background: rgba(20, 184, 166, 0.15);
+    transition: none;
+}
+.slider-thumb.dragging::after {
+    content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%);
+    width: 30px; height: 100%; pointer-events: none; border-radius: 8px;
+    background: linear-gradient(to left, rgba(20, 184, 166, 0.4), transparent);
+}
+.slider-track.dragging {
+    background: linear-gradient(90deg, var(--teal), #5eead4);
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+}
+
+/* --- 4. Plate Loading Animation --- */
+.plate-balloon {
+    animation: balloonIn 0.2s ease-out;
+}
+@keyframes balloonIn {
+    from { opacity: 0; transform: translateX(-50%) scale(0.9); }
+    to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+.plate-anim {
+    animation: plateSlideIn 0.2s ease-out backwards;
+}
+@keyframes plateSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
