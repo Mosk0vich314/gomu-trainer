@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.15.2055";
+        const APP_VERSION = "v2026.03.15.2208";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -4077,13 +4077,14 @@
                 d.setDate(startOfStreak.getDate() + i);
                 
                 let isDone = workoutDates.includes(d.getTime());
-                let cls = isDone ? 's-dot active' : 's-dot';
+                let isToday = d.getTime() === today.getTime();
                 let content = isDone ? '✓' : dayLabels[i];
                 
                 // Dim future days so you know the week isn't over yet
                 if (d.getTime() > today.getTime()) {
                     html += `<div class="streak-day"><div class="s-dot" style="opacity: 0.3;">${dayLabels[i]}</div></div>`;
                 } else {
+                    let cls = isDone ? 's-dot active' : (isToday ? 's-dot today' : 's-dot');
                     html += `<div class="streak-day"><div class="${cls}">${content}</div></div>`;
                 }
             }

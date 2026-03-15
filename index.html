@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.03.15.2055">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.03.15.2208">
 </head>
 <body>
     <div id="login-screen">
@@ -213,15 +213,21 @@
 
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-library" onclick="switchTab('library-screen')">
-            <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+            <div class="nav-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+            </div>
             <span>Library</span>
         </button>
         <button class="nav-item active" id="nav-home" onclick="switchTab('home-screen')">
-            <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <div class="nav-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </div>
             <span>Home</span>
         </button>
         <button class="nav-item" id="nav-history" onclick="switchTab('history-screen')">
-            <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <div class="nav-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
             <span>History</span>
         </button>
     </nav>
@@ -238,6 +244,8 @@
     </div>
 
     <div id="home-screen" class="app-screen active">
+
+        <div class="dashboard-wordmark">GOMU<span>.</span></div>
         
         <div class="hero-card active-state" id="hero-resume" style="display: none;" onclick="resumeWorkout()">
             <span>In Progress</span>
@@ -524,8 +532,8 @@
         </div>
     </div>
 
-    <script src="scripts/database.js?v=2026.03.15.2055"></script>
+    <script src="scripts/database.js?v=2026.03.15.2208"></script>
 
-    <script src="scripts/app.js?v=2026.03.15.2055" defer></script>
+    <script src="scripts/app.js?v=2026.03.15.2208" defer></script>
 </body>
 </html>
