@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.14.1648";
+        const APP_VERSION = "v2026.03.15.0138";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -895,7 +895,14 @@
                     localStorage.setItem('activeProgram', currentProgram);
                 }
                 
-                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
+                // SNAPSHOT ENGINE: Backup global stats so they can be reverted if the workout is canceled
+                const backupState = {
+                    actualBests: safeParse('actualBests', {}),
+                    global1RMs: safeParse('global1RMs', {}),
+                    lastUsedWeights: safeParse('lastUsedWeights', {})
+                };
+                
+                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now(), backupState: backupState };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
@@ -921,7 +928,14 @@
             } else if (action === 'restart') {
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now() };
+                
+                const backupState = {
+                    actualBests: safeParse('actualBests', {}),
+                    global1RMs: safeParse('global1RMs', {}),
+                    lastUsedWeights: safeParse('lastUsedWeights', {})
+                };
+                
+                activeWorkout = { key, program: currentProgram, week: selectedWeek, day: selectedDay, startTime: Date.now(), backupState: backupState };
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
             }
             
@@ -1335,6 +1349,14 @@
             );
             if (confirmed) {
                 const key = getWorkoutKey();
+                
+                // REVERT ENGINE: Restore the snapshot if resetting the currently active day
+                if (activeWorkout && activeWorkout.key === key && activeWorkout.backupState) {
+                    localStorage.setItem('actualBests', JSON.stringify(activeWorkout.backupState.actualBests));
+                    localStorage.setItem('global1RMs', JSON.stringify(activeWorkout.backupState.global1RMs));
+                    localStorage.setItem('lastUsedWeights', JSON.stringify(activeWorkout.backupState.lastUsedWeights));
+                }
+
                 localStorage.removeItem(key);
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
@@ -3938,12 +3960,19 @@
         async function cancelActiveWorkout() {
             const confirmed = await showConfirm(
                 "Stop Workout?",
-                "Are you sure you want to cancel this active session? Your entered data for today will be cleared.",
+                "Are you sure you want to cancel this active session? Your entered data will be cleared, and any PRs hit today will be reverted.",
                 "Stop Workout",
                 "Keep Lifting",
                 true
             );
             if (confirmed) {
+                // REVERT ENGINE: Restore the snapshot from before the workout started
+                if (activeWorkout && activeWorkout.backupState) {
+                    localStorage.setItem('actualBests', JSON.stringify(activeWorkout.backupState.actualBests));
+                    localStorage.setItem('global1RMs', JSON.stringify(activeWorkout.backupState.global1RMs));
+                    localStorage.setItem('lastUsedWeights', JSON.stringify(activeWorkout.backupState.lastUsedWeights));
+                }
+
                 const key = getWorkoutKey();
                 localStorage.removeItem(key); // Clear the session state
                 activeWorkout = null;
