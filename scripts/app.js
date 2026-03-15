@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.15.1708";
+        const APP_VERSION = "v2026.03.15.2055";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -407,12 +407,12 @@
                 
                 Object.keys(customProgs).forEach(pid => {
                     html += `
-                    <div class="program-card" style="display: flex; justify-content: space-between; align-items: center;" onclick="startProgram('${pid}')">
-                        <div>
-                            <h3 class="program-title" style="margin-bottom: 4px;">${customProgs[pid].name}</h3>
-                            <p class="program-desc">Custom Template</p>
+                    <div class="program-card" data-program-id="${pid}" onclick="startProgram('${pid}')" style="cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <h3 class="program-title" style="margin: 0;">${customProgs[pid].name}</h3>
+                            <button onclick="event.stopPropagation(); deleteCustomProgram('${pid}')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">🗑️</button>
                         </div>
-                        <button onclick="event.stopPropagation(); deleteCustomProgram('${pid}')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s;">🗑️</button>
+                        <p class="program-desc" style="margin: 0;">Custom Template</p>
                     </div>`;
                 });
                 customFolderContent.innerHTML = html;
@@ -432,14 +432,63 @@
 
             document.querySelectorAll('#library-screen .program-card').forEach(card => {
                 const pid = card.dataset.programId;
-                const title = card.querySelector('.program-title');
+                if (!pid) return; // Safety check
                 
+                const title = card.querySelector('.program-title');
+                if (!title) return;
+                
+                // Cleanup old dynamic elements so they don't duplicate on re-renders
                 const existingBadge = title.querySelector('.active-badge');
                 if (existingBadge) existingBadge.remove();
+
+                const existingOverview = card.querySelector('.program-overview-ui');
+                if (existingOverview) existingOverview.remove();
 
                 if (pid === mainProgram && !isProgramFinished(pid)) {
                     card.style.borderColor = 'var(--accent)';
                     title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(249, 115, 22, 0.1); border-radius: 4px;">ACTIVE</span>';
+                    
+                    // --- NEW: INJECT QUICK OVERVIEW UI ---
+                    if (db[pid] && db[pid].weeks) {
+                        let totalDays = 0;
+                        let doneDays = 0;
+                        let nextW = null, nextD = null;
+                        
+                        const weeks = Object.keys(db[pid].weeks).sort((a,b) => a - b);
+                        for (let w of weeks) {
+                            const days = Object.keys(db[pid].weeks[w]).sort((a,b) => a - b);
+                            for (let d of days) {
+                                totalDays++;
+                                if (completedDays[`${pid}_w${w}_d${d}`]) {
+                                    doneDays++;
+                                } else if (!nextW) {
+                                    nextW = w;
+                                    nextD = d;
+                                }
+                            }
+                        }
+                        
+                        const pct = totalDays > 0 ? Math.round((doneDays / totalDays) * 100) : 0;
+                        
+                        const overviewHtml = `
+                        <div class="program-overview-ui" style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <span>Program Progress</span>
+                                <span style="color: var(--accent);">${pct}%</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div style="width: ${pct}%; height: 100%; background: var(--accent); border-radius: 3px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                <div><span style="color: var(--text-muted);">Up Next:</span> <span style="font-weight: 800; color: #fff;">W${nextW || '-'} D${nextD || '-'}</span></div>
+                                <div><span style="color: var(--text-muted);">Completed:</span> <span style="font-weight: 800; color: #fff;">${doneDays} / ${totalDays}</span></div>
+                            </div>
+                        </div>`;
+                        
+                        // Drop it directly into the bottom of the active card
+                        card.insertAdjacentHTML('beforeend', overviewHtml);
+                    }
+                    
                 } else {
                     card.style.borderColor = 'var(--border)';
                 }
@@ -525,6 +574,20 @@
                     progContainer.style.display = 'block';
                     progText.innerText = `${doneDays}/${totalDays} Workouts`;
                     setTimeout(() => { progFill.style.width = `${(doneDays / totalDays) * 100}%`; }, 100);
+                    
+                    // --- NEW: INTERACTIVE QUICK OVERVIEW ---
+                    progContainer.style.cursor = 'pointer';
+                    progContainer.onclick = window.openProgramOverview;
+                    
+                    // Safely rename "CURRENT BLOCK" to "CURRENT PROGRAM"
+                    progContainer.querySelectorAll('*').forEach(el => {
+                        el.childNodes.forEach(child => {
+                            if (child.nodeType === Node.TEXT_NODE && child.nodeValue.includes('CURRENT BLOCK')) {
+                                child.nodeValue = child.nodeValue.replace('CURRENT BLOCK', 'CURRENT PROGRAM');
+                            }
+                        });
+                    });
+
                 } else {
                     progContainer.style.display = 'none';
                 }
@@ -4340,6 +4403,170 @@
         // 3. Simple Close Function
         window.closeRpeModal = function() {
             document.getElementById('rpe-modal').style.display = 'none';
+        };
+
+        // --- HOME SCREEN: PROGRAM OVERVIEW MODAL ---
+        
+        // 1. New Accordion Function to toggle exercise lists
+        window.toggleOverviewDay = function(prog, w, d) {
+            const detailsDiv = document.getElementById(`overview-w${w}-details`);
+            if (!detailsDiv) return;
+            
+            const currentShowing = detailsDiv.dataset.showingDay;
+            const weekCard = detailsDiv.parentElement;
+            
+            // Remove highlight from all pills in this week
+            weekCard.querySelectorAll('.overview-day-pill').forEach(p => {
+                p.style.boxShadow = 'none';
+                p.style.transform = 'scale(1)';
+            });
+
+            if (currentShowing === d) {
+                // Close if clicking the same day
+                detailsDiv.style.display = 'none';
+                detailsDiv.dataset.showingDay = '';
+            } else {
+                // Open and populate
+                const exercises = db[prog]?.weeks[w]?.[d] || [];
+                
+                let exHtml = '';
+                
+                if (exercises.length === 0) {
+                    exHtml += `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 10px 0;">Rest Day / No Exercises</div>`;
+                } else {
+                    exHtml += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
+                    exercises.forEach((ex, idx) => {
+                        // Keep the color logic, but move it to a left-border stripe and the number
+                        const isMain = ex.type === 'main' || ex.name.toLowerCase().includes('squat') || ex.name.toLowerCase().includes('bench') || ex.name.toLowerCase().includes('deadlift');
+                        const stripeColor = isMain ? 'var(--accent)' : 'var(--teal)';
+
+                        exHtml += `
+                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); border-left: 3px solid ${stripeColor};">
+                            <div style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); color: ${stripeColor}; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${idx + 1}</div>
+                            <span style="flex: 1; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                        </div>`;
+                    });
+                    exHtml += `</div>`;
+                }
+
+                detailsDiv.innerHTML = exHtml;
+                detailsDiv.style.display = 'block';
+                detailsDiv.dataset.showingDay = d;
+
+                // Add a bold "pop" highlight to the active pill
+                const activePill = document.getElementById(`overview-pill-${w}-${d}`);
+                if (activePill) {
+                    activePill.style.boxShadow = '0 0 0 2px var(--input-bg), 0 0 0 4px var(--accent)';
+                    activePill.style.transform = 'scale(1.05)';
+                }
+            }
+        };
+
+        // 2. The Upgraded UI Generator
+        window.openProgramOverview = function() {
+            let mainProgram = localStorage.getItem('activeProgram');
+            if (activeWorkout && activeWorkout.program) mainProgram = activeWorkout.program;
+            if (!mainProgram || !db[mainProgram]) return;
+
+            let totalDays = 0;
+            let doneDays = 0;
+            let nextW = null, nextD = null;
+            
+            // Inject inline CSS to murder the scrollbar across all browsers
+            let gridHtml = '<style>#overview-scroller::-webkit-scrollbar { display: none; }</style>';
+            gridHtml += '<div id="overview-scroller" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; padding-right: 2px; scrollbar-width: none; -ms-overflow-style: none;">';
+
+            const weeks = Object.keys(db[mainProgram].weeks).sort((a,b) => a - b);
+            for (let w of weeks) {
+                // Wrap each week in a subtle card
+                gridHtml += `<div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">`;
+                gridHtml += `<div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; letter-spacing: 0.5px;">Week ${w}</div>`;
+                gridHtml += `<div style="display: flex; gap: 8px; flex-wrap: wrap;">`;
+                
+                const days = Object.keys(db[mainProgram].weeks[w]).sort((a,b) => a - b);
+                for (let d of days) {
+                    totalDays++;
+                    const isDone = completedDays[`${mainProgram}_w${w}_d${d}`];
+                    
+                    let bg = isDone ? 'var(--accent)' : 'rgba(255,255,255,0.05)';
+                    let color = isDone ? '#000' : 'var(--text-muted)';
+                    let border = isDone ? '1px solid var(--accent)' : '1px solid var(--border)';
+                    
+                    if (isDone) {
+                        doneDays++;
+                    } else if (!nextW) {
+                        nextW = w; 
+                        nextD = d;
+                        bg = 'transparent';
+                        color = 'var(--accent)';
+                        border = '1px dashed var(--accent)';
+                    }
+                    
+                    // Bind the Accordion click event to the pill
+                    gridHtml += `<div id="overview-pill-${w}-${d}" class="overview-day-pill" onclick="toggleOverviewDay('${mainProgram}', '${w}', '${d}')" style="width: 34px; height: 34px; border-radius: 6px; background: ${bg}; border: ${border}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s;">D${d}</div>`;
+                }
+                gridHtml += `</div>`;
+                
+                // The hidden Accordion dropdown container for this week
+                gridHtml += `<div id="overview-w${w}-details" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);"></div>`;
+                
+                gridHtml += `</div>`; // End Week Card
+            }
+            gridHtml += `</div>`;
+
+            const pct = totalDays > 0 ? Math.round((doneDays / totalDays) * 100) : 0;
+
+            let modal = document.getElementById('program-overview-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'program-overview-modal';
+                modal.style.display = 'none';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.background = 'rgba(0, 0, 0, 0.9)';
+                modal.style.zIndex = '2500';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.backdropFilter = 'blur(3px)';
+                document.body.appendChild(modal);
+                
+                modal.onclick = (e) => {
+                    if(e.target === modal) modal.style.display = 'none';
+                };
+            }
+
+            modal.innerHTML = `
+                <div style="background: var(--input-bg); border: 2px solid var(--border); border-radius: 12px; width: 90%; max-width: 380px; padding: 24px; color: var(--text-main); display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 900; color: #fff;">${db[mainProgram].name}</h2>
+                        <div style="color: var(--accent); font-size: 18px; font-weight: 900;">${pct}%</div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                        <div style="color: var(--text-muted);">Progress</div>
+                        <div style="font-weight: 800; color: #fff;">${doneDays} / ${totalDays} Workouts</div>
+                    </div>
+                    
+                    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${pct}%; height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease-out;"></div>
+                    </div>
+
+                    ${gridHtml}
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Up Next</div>
+                            <div style="font-size: 16px; font-weight: 900; color: var(--accent); margin-top: 2px;">W${nextW || '-'} D${nextD || '-'}</div>
+                        </div>
+                        <button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); margin: 0; padding: 10px 20px; font-size: 14px; width: auto;" onclick="document.getElementById('program-overview-modal').style.display='none'">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
         };
 
         initApp();
