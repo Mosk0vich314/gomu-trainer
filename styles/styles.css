@@ -637,3 +637,128 @@ button, .pill, .check-circle, .stat-card {
 .pr-text { display: flex; flex-direction: column; text-align: left; }
 .pr-title { font-size: 11px; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 1px; }
 .pr-desc { font-size: 15px; font-weight: 800; color: #fff; }
+
+/* --- RPE INFO MODAL --- */
+#rpe-modal {
+    display: none; /* Invisible by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); /* Dark backdrop */
+    z-index: 2000; /* Must sit on top of everything */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px); /* Glassmorphism blur */
+}
+
+#rpe-modal-content {
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 380px;
+    max-height: 80vh;
+    padding: 20px;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+#rpe-modal-header {
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-main);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#rpe-modal-scroller {
+    overflow-y: auto;
+    padding-right: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+
+/* Chrome, Safari and Opera */
+#rpe-modal-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+#rpe-modal-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 15px;
+    padding-top: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Clear, bold RPE cards based on Zone color coding */
+.rpe-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    padding: 12px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    cursor: default;
+    transition: background 0.2s;
+}
+
+.rpe-card-number {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+    width: 70px; /* Fixed width to align details */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.rpe-card-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.rpe-card-rir {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.rpe-card-cue {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+/* The Modal RPE Colors (EMERALD GREEN -> YELLOW -> DANGER RED) */
+.rpe-emerald { color: #10b981; border-left: 4px solid #10b981; }
+.rpe-yellow  { color: #eab308; border-left: 4px solid #eab308; }
+.rpe-red     { color: #ef4444; border-left: 4px solid #ef4444; }
+
+/* The RIR color badge for emphasis */
+.rpe-rir-badge {
+    color: #fff;
+    font-weight: 900;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 11px;
+}
