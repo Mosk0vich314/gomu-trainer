@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.16.0029";
+        const APP_VERSION = "v2026.03.16.0044";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1271,7 +1271,96 @@
                                    </svg>`;
         };
 
+    function renderHeatmap() {
+        const card = document.getElementById('volume-heatmap-card');
+        if (!card) return;
+
+        const history = safeParse('workoutHistory', []);
+        const WEEKS = 16;
+        const DAYS = 7;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Align start to the most recent Monday
+        const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0 … Sun=6
+        const gridStart = new Date(today);
+        gridStart.setDate(today.getDate() - dayOfWeek - (WEEKS - 1) * 7);
+
+        // Build volume map: 'YYYY-MM-DD' → total volume
+        const volMap = {};
+        history.forEach(log => {
+            const ts = parseInt(log.id);
+            if (isNaN(ts)) return;
+            const d = new Date(ts);
+            d.setHours(0, 0, 0, 0);
+            const key = d.toISOString().slice(0, 10);
+            volMap[key] = (volMap[key] || 0) + (log.volume || 0);
+        });
+
+        const maxVol = Math.max(...Object.values(volMap), 1);
+
+        // Build cells: week columns, day rows
+        const cells = [];
+        for (let w = 0; w < WEEKS; w++) {
+            const col = [];
+            for (let d = 0; d < DAYS; d++) {
+                const date = new Date(gridStart);
+                date.setDate(gridStart.getDate() + w * 7 + d);
+                const key = date.toISOString().slice(0, 10);
+                col.push({ key, vol: volMap[key] || 0, date });
+            }
+            cells.push(col);
+        }
+
+        // Month labels: detect when month changes across week columns
+        const monthLabels = cells.map((col, wi) => {
+            const firstDay = col[0].date;
+            const prevFirst = wi > 0 ? cells[wi - 1][0].date : null;
+            if (!prevFirst || firstDay.getMonth() !== prevFirst.getMonth()) {
+                return firstDay.toLocaleString('default', { month: 'short' });
+            }
+            return '';
+        });
+
+        const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+        const cellColor = (vol) => {
+            if (vol <= 0) return '#27272a';
+            const t = vol / maxVol;
+            if (t < 0.25) return 'rgba(20,184,166,0.30)';
+            if (t < 0.6)  return 'rgba(20,184,166,0.60)';
+            return '#14b8a6';
+        };
+
+        let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-weight:800; font-size:14px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#14b8a6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Volume Heatmap
+            </span>
+            <span style="font-size:11px; color:var(--text-muted);">last ${WEEKS} weeks</span>
+        </div>
+        <div style="display:flex; gap:3px;">
+            <div style="display:flex; flex-direction:column; gap:2px; margin-top:16px; margin-right:1px;">
+                ${dayLabels.map((l, i) => i % 2 === 0
+                    ? `<div style="width:10px; height:10px; font-size:7px; color:var(--text-muted); display:flex; align-items:center; justify-content:center;">${l}</div>`
+                    : `<div style="width:10px; height:10px;"></div>`
+                ).join('')}
+            </div>
+            <div style="display:flex; gap:2px; flex:1; overflow-x:auto; padding-bottom:2px;">
+                ${cells.map((col, wi) => `
+                <div style="display:flex; flex-direction:column; gap:2px; flex-shrink:0;">
+                    <div style="height:14px; font-size:7px; color:var(--text-muted); white-space:nowrap; overflow:hidden;">${monthLabels[wi]}</div>
+                    ${col.map(cell => `<div style="width:10px; height:10px; border-radius:2px; background:${cellColor(cell.vol)};" title="${cell.key}: ${cell.vol > 0 ? cell.vol.toLocaleString() + 'kg' : 'rest'}"></div>`).join('')}
+                </div>`).join('')}
+            </div>
+        </div>`;
+
+        card.innerHTML = html;
+    }
+
     function renderHistory() {
+            renderHeatmap();
             const historyContainer = document.getElementById('history-container');
             let history = safeParse('workoutHistory', []);
 
@@ -3930,12 +4019,23 @@
                     const e1rm = effectiveWeight / percentage;
 
                     btn.innerHTML = `<span class="e1rm-label">e1RM</span><span class="e1rm-value">${e1rm.toFixed(1)}</span>`;
-                    btn.dataset.e1rm = e1rm; 
+                    btn.dataset.e1rm = e1rm;
                     btn.classList.add('ready');
+
+                    // PR badge: light up if this e1rm beats the stored best
+                    const _actBests = safeParse('actualBests', {});
+                    const _best = _actBests[exName];
+                    const _bestE1rm = _best ? (_best.e1rm || 0) : 0;
+                    if (_bestE1rm > 0 && e1rm > _bestE1rm + 0.01) {
+                        btn.classList.add('pr');
+                    } else {
+                        btn.classList.remove('pr');
+                    }
                 } else {
                     btn.innerHTML = `<span class="e1rm-label">Calc</span><span class="e1rm-value">--</span>`;
-                    btn.dataset.e1rm = "0"; 
+                    btn.dataset.e1rm = "0";
                     btn.classList.remove('ready');
+                    btn.classList.remove('pr');
                 }
             };
 

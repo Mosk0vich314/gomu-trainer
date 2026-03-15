@@ -165,10 +165,6 @@ button, .pill, .check-circle, .stat-card {
     display: block;
     position: relative;
     z-index: 1;
-    background: linear-gradient(180deg, #ffffff 30%, #a1a1aa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
     filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.15));
 }
 .dashboard-wordmark span {
@@ -480,6 +476,8 @@ button, .pill, .check-circle, .stat-card {
 .acc-lift .e1rm-btn.ready { background: rgba(20, 184, 166, 0.08); }
 .e1rm-btn.ready .e1rm-label { opacity: 1; }
 .e1rm-btn:active { transform: scale(0.95); }
+.e1rm-btn.pr { position: relative; overflow: visible; }
+.e1rm-btn.pr::after { content: 'PR'; position: absolute; top: -7px; right: -5px; background: var(--theme-color, var(--accent)); color: #000; font-size: 7px; font-weight: 900; letter-spacing: 0.4px; padding: 1px 3px; border-radius: 3px; line-height: 1.4; pointer-events: none; }
 
 .check-circle { width: 30px; height: 30px; border: 2px solid #52525b; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0 auto; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); background: #18181b; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 .check-circle::after { content: '✓'; color: transparent; font-size: 18px; font-weight: 800; transition: 0.2s; }
