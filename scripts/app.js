@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.15.0138";
+        const APP_VERSION = "v2026.03.15.0151";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1917,63 +1917,123 @@
             const firstLoadInput = document.querySelector(`input[id$="_load"][data-exid="${exId}"]`);
             const targetWeight = parseFloat(firstLoadInput.value);
             
+            const firstRepsInput = firstLoadInput.closest('.set-row').querySelector('input[id$="_reps"]');
+            const targetReps = firstRepsInput && firstRepsInput.value ? parseFloat(firstRepsInput.value) : 5;
+            
             if (!targetWeight || targetWeight <= 0) {
                 alert("⚠️ Please enter your working weight in the first set block before generating warmups!");
                 return;
             }
             
-            // Set default scheme: 5 sets for main lifts, 2 for accessories
             if (!scheme) scheme = isMain ? 5 : 2;
 
             document.getElementById('warmup-title').innerText = `${exName} Warm-up`;
             
-            // Build the Toggle Pills
             let html = `
                 <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px;">
                     <button class="pill ${scheme === 5 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 5)" style="flex: 1; justify-content: center;">5 Sets</button>
                     <button class="pill ${scheme === 3 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 3)" style="flex: 1; justify-content: center;">3 Sets</button>
                     <button class="pill ${scheme === 2 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 2)" style="flex: 1; justify-content: center;">2 Sets</button>
                 </div>
-                <table class="warmup-table" style="margin-bottom: 20px;">
-                    <tr><th>Set</th><th>Load</th><th>Reps</th></tr>
+                <table class="warmup-table" style="margin-bottom: 20px; text-align: center; width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="padding-bottom: 10px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Set</th>
+                        <th style="padding-bottom: 10px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Load</th>
+                        <th style="padding-bottom: 10px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Reps</th>
+                    </tr>
             `;
             
             let sets = [];
             const roundToPlate = (w) => Math.round(w / 2.5) * 2.5;
 
-            // Define the Pyramids
+            const wReps1 = targetReps >= 8 ? 4 : 1;
+            const wReps2 = targetReps >= 8 ? 5 : 2;
+            const wReps3 = targetReps >= 8 ? 6 : 3;
+
             if (scheme === 5) {
                 sets = [
-                    { label: targetWeight > 20 ? "Empty Bar (20)" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.3), reps: 10 },
-                    { load: roundToPlate(targetWeight * 0.4), reps: 5 },
-                    { load: roundToPlate(targetWeight * 0.6), reps: 3 },
-                    { load: roundToPlate(targetWeight * 0.75), reps: 2 },
-                    { load: roundToPlate(targetWeight * 0.85), reps: 1 }
+                    { label: targetWeight > 20 ? "Bar" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.3), reps: Math.max(10, targetReps) },
+                    { load: roundToPlate(targetWeight * 0.4), reps: Math.max(5, wReps3) },
+                    { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
+                    { load: roundToPlate(targetWeight * 0.75), reps: wReps2 },
+                    { load: roundToPlate(targetWeight * 0.85), reps: wReps1 }
                 ];
             } else if (scheme === 3) {
                 sets = [
-                    { label: targetWeight > 20 ? "Empty Bar (20)" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.4), reps: 8 },
-                    { load: roundToPlate(targetWeight * 0.6), reps: 3 },
-                    { load: roundToPlate(targetWeight * 0.8), reps: 1 }
+                    { label: targetWeight > 20 ? "Bar" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.4), reps: Math.max(8, wReps3 + 2) },
+                    { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
+                    { load: roundToPlate(targetWeight * 0.8), reps: wReps1 }
                 ];
             } else {
-                // 2-set scheme for accessories
                 sets = [
-                    { load: roundToPlate(targetWeight * 0.5), reps: 6 },
-                    { load: roundToPlate(targetWeight * 0.75), reps: 3 }
+                    { load: roundToPlate(targetWeight * 0.5), reps: Math.max(6, targetReps - 2) },
+                    { load: roundToPlate(targetWeight * 0.75), reps: Math.max(3, wReps1 + 1) }
                 ];
             }
 
-            // Build the Table Rows
+            // Beautiful Plate Badge Generator
+            const getPlateBadges = (weight) => {
+                if (window.isNoPlateExercise && window.isNoPlateExercise(exName)) return '';
+                
+                let barWeight = typeof getBarbellWeight === 'function' ? getBarbellWeight() : 20;
+                if (weight <= barWeight) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">Empty Bar</div>`;
+                
+                let perSide = (weight - barWeight) / 2;
+                perSide = Math.round(perSide * 100) / 100;
+                
+                const available = typeof getActivePlates === 'function' ? getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w) : [
+                    {w: 25, c: '#ef4444', t: '#fff'}, {w: 20, c: '#3b82f6', t: '#fff'}, {w: 15, c: '#eab308', t: '#000'},
+                    {w: 10, c: '#22c55e', t: '#fff'}, {w: 5, c: '#f4f4f5', t: '#000'}, {w: 2.5, c: '#27272a', t: '#fff'}, {w: 1.25, c: '#52525b', t: '#fff'}
+                ];
+                
+                let plates = [];
+                for (let p of available) {
+                    while (perSide >= p.w) {
+                        plates.push(p);
+                        perSide = Math.round((perSide - p.w) * 100) / 100;
+                    }
+                }
+                
+                if (plates.length === 0) return '';
+                
+                let badges = `<div style="display: flex; gap: 3px; align-items: center; justify-content: center; margin-top: 4px;">`;
+                plates.forEach(p => {
+                    badges += `<div style="background: ${p.c}; color: ${p.t}; font-size: 8px; font-weight: 800; padding: 2px 4px; border-radius: 3px; line-height: 1; border: 1px solid rgba(0,0,0,0.3); box-shadow: 0 1px 2px rgba(0,0,0,0.2);">${p.w}</div>`;
+                });
+                if (perSide > 0.01) {
+                    badges += `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-left: 2px;">+${parseFloat(perSide.toFixed(2))}</div>`;
+                }
+                badges += `</div>`;
+                return badges;
+            };
+
             sets.forEach((s, i) => {
                 let displayLoad = s.label ? s.label : `${Math.max(0, s.load)} kg`;
-                html += `<tr><td>${i + 1}</td><td>${displayLoad}</td><td>${s.reps}</td></tr>`;
+                let badges = s.label ? '' : getPlateBadges(s.load);
+                html += `
+                <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px 0; font-size: 14px; font-weight: 600;">${i + 1}</td>
+                    <td style="padding: 10px 0;">
+                        <div style="color: var(--accent); font-weight: 800; font-size: 16px;">${displayLoad}</div>
+                        ${badges}
+                    </td>
+                    <td style="padding: 10px 0; font-size: 15px; font-weight: 700;">${s.reps}</td>
+                </tr>`;
             });
             
-            html += `<tr><td>Work</td><td>${targetWeight} kg</td><td>Target</td></tr>`;
-            html += `</table>`;
+            // Work Set Target row
+            let workBadges = getPlateBadges(targetWeight);
+            html += `
+                <tr style="border-top: 1px dashed var(--accent); background: rgba(249, 115, 22, 0.05);">
+                    <td style="padding: 12px 0; font-size: 12px; font-weight: 800; color: var(--accent);">WORK</td>
+                    <td style="padding: 12px 0;">
+                        <div style="color: #fff; font-weight: 900; font-size: 16px;">${targetWeight} kg</div>
+                        ${workBadges}
+                    </td>
+                    <td style="padding: 12px 0; font-size: 15px; font-weight: 700;">${targetReps}</td>
+                </tr>
+            </table>`;
             
-            // Build the Action Buttons
             html += `
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="action-btn" style="background: var(--input-bg); color: var(--text-main); margin: 0; padding: 10px 16px; font-size: 14px; width: auto;" onclick="document.getElementById('warmup-modal').style.display = 'none'">Close</button>
@@ -1993,7 +2053,23 @@
         window.closeWarmupModal = function(e) {
             if (e.target.id === 'warmup-modal') e.target.style.display = 'none';
         };
-
+        window.colorizeRpe = function(input) {
+            const target = parseFloat(input.dataset.targetrpe);
+            const val = parseFloat(input.value);
+            
+            if (isNaN(target) || isNaN(val)) {
+                input.style.color = '';
+                return;
+            }
+            
+            if (val <= target) {
+                input.style.color = '#10b981'; // Perfect / Under (Emerald Green)
+            } else if (val <= target + 0.5) {
+                input.style.color = '#eab308'; // Slightly over (Warning Yellow)
+            } else {
+                input.style.color = '#ef4444'; // Way over (Danger Red)
+            }
+        };
         function renderWorkout() {
             const container = document.getElementById('workout-container');
             container.innerHTML = '';
@@ -2307,7 +2383,7 @@
                         <div class="set-row">
                             <span>${s}</span>
                             <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
-                            <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
+                            <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe || ''}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                             <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                 <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                 ${isNoPlateExercise(ex.name) ? '' : `
@@ -2358,7 +2434,7 @@
                             <div class="set-row" style="${borderStyle} margin-top: 8px;">
                                 ${setLabel}
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
-                                <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger" style="color: ${themeColor}; opacity: ${eDisabledAttr ? '0.6' : '1'}; -webkit-text-fill-color: ${eDisabledAttr ? themeColor : ''};" data-rowid="${extraRowId}" value="${eRpeValue}" step="0.5" inputmode="decimal" ${eDisabledAttr}></span>
+                                <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
                                     ${isNoPlateExercise(ex.name) ? '' : `
@@ -2428,6 +2504,11 @@
                 const timerEl = document.getElementById('workout-duration');
                 if (timerEl) timerEl.style.display = 'none';
             }
+            
+            // Init RPE colors
+            document.querySelectorAll('.input-rpe').forEach(el => {
+                if (typeof window.colorizeRpe === 'function') window.colorizeRpe(el);
+            });
         }
 
         function setupSlider() {
