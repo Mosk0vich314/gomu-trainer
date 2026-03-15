@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.16.0000";
+        const APP_VERSION = "v2026.03.16.0029";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -2117,21 +2117,7 @@
             if (e.target.id === 'warmup-modal') e.target.style.display = 'none';
         };
         window.colorizeRpe = function(input) {
-            const target = parseFloat(input.dataset.targetrpe);
-            const val = parseFloat(input.value);
-            
-            if (isNaN(target) || isNaN(val)) {
-                input.style.color = '';
-                return;
-            }
-            
-            if (val <= target) {
-                input.style.color = '#10b981'; // Perfect / Under (Emerald Green)
-            } else if (val <= target + 0.5) {
-                input.style.color = '#eab308'; // Slightly over (Warning Yellow)
-            } else {
-                input.style.color = '#ef4444'; // Way over (Danger Red)
-            }
+            input.style.color = '';
         };
         function renderWorkout() {
             const container = document.getElementById('workout-container');
@@ -2616,7 +2602,7 @@
                 if (diff > maxSlide) diff = maxSlide;
                 
                 thumb.style.transform = `translateX(${diff}px)`;
-                track.style.width = `${diff + 38}px`; 
+                track.style.width = `${diff + 76}px`;
                 
                 const text = container.querySelector('.slider-text');
                 if (text) text.style.opacity = 1 - (diff / maxSlide);
@@ -4087,7 +4073,7 @@
                 
                 let isDone = workoutDates.includes(d.getTime());
                 let isToday = d.getTime() === today.getTime();
-                let content = isDone ? '✓' : dayLabels[i];
+                let content = isDone ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : dayLabels[i];
                 
                 // Dim future days so you know the week isn't over yet
                 if (d.getTime() > today.getTime()) {
