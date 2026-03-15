@@ -2601,6 +2601,8 @@
                 startX = e.type.includes('mouse') ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
                 thumb.style.transition = 'none';
                 track.style.transition = 'none';
+                thumb.classList.add('dragging');
+                track.classList.add('dragging');
             };
 
             const onThumbMove = (e) => {
@@ -2621,6 +2623,8 @@
 
                 if (diff >= maxSlide - 5) {
                     isDraggingThumb = false;
+                    thumb.classList.remove('dragging');
+                    track.classList.remove('dragging');
                     toggleWorkoutState('finish');
                 }
             };
@@ -2628,6 +2632,8 @@
             const onThumbEnd = () => {
                 if (!isDraggingThumb) return;
                 isDraggingThumb = false;
+                thumb.classList.remove('dragging');
+                track.classList.remove('dragging');
                 thumb.style.transition = 'transform 0.3s ease';
                 track.style.transition = 'width 0.3s ease';
                 thumb.style.transform = `translateX(0px)`;
@@ -3238,11 +3244,11 @@
                             <div style="display: flex; align-items: center; height: 10px; background: #71717a; border-radius: 0 4px 4px 0; padding-left: 1px; padding-right: 15px; min-width: 25px;">`;
                 
                 // Draw dynamic plates!
-                plates.forEach(p => {
+                plates.forEach((p, i) => {
                     let h = p.w >= 20 ? 54 : p.w >= 15 ? 46 : p.w >= 10 ? 36 : p.w >= 5 ? 26 : p.w >= 2.5 ? 20 : 16;
                     let w = p.w >= 10 ? 14 : 10;
                     let f = p.w >= 10 ? 9 : 8;
-                    html += `<div style="width: ${w}px; height: ${h}px; background: ${p.c}; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; margin-right: 1px; flex-shrink: 0; box-shadow: inset -1px 0 3px rgba(0,0,0,0.3); z-index: 3;">
+                    html += `<div class="plate-anim" style="animation-delay: ${i * 60}ms; width: ${w}px; height: ${h}px; background: ${p.c}; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; margin-right: 1px; flex-shrink: 0; box-shadow: inset -1px 0 3px rgba(0,0,0,0.3); z-index: 3;">
                                 <span style="font-size: ${f}px; font-weight: 800; color: ${p.t}; transform: rotate(-90deg); letter-spacing: -0.5px;">${p.w}</span>
                              </div>`;
                 });
@@ -3258,7 +3264,10 @@
             balloon.innerHTML = html;
             balloon.dataset.activeInput = loadInputId;
             balloon.style.display = 'flex';
-            
+            balloon.style.animation = 'none';
+            balloon.offsetHeight; // reflow trigger to re-fire animation
+            balloon.style.animation = '';
+
             // Smart Positioning (Centers directly above the button you clicked)
             const rect = e.currentTarget.getBoundingClientRect();
             const top = rect.top + window.scrollY - balloon.offsetHeight - 14;
