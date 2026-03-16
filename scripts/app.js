@@ -10,41 +10,70 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.16.2245";
-        // --- HONESTY DOOR LOGIC ---
-        const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
+        const APP_VERSION = "v2026.03.16.2300";
+        // --- ENCRYPTED DATABASE LOGIC ---
+        const PBKDF2_ITERATIONS = 100000;
 
-        // Immediately check if they've logged in before
-        const isAuth = localStorage.getItem('gomu_auth_passed');
-        if (isAuth === 'true') {
-            document.getElementById('login-screen').style.display = 'none';
+        async function decryptDatabase(password) {
+            const resp = await fetch('./scripts/database.enc?v=' + APP_VERSION);
+            const b64 = await resp.text();
+            const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+            const salt = raw.slice(0, 16);
+            const iv = raw.slice(16, 28);
+            const ciphertext = raw.slice(28);
+
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
+            );
+            const key = await crypto.subtle.deriveKey(
+                { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['decrypt']
+            );
+            const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+            const code = new TextDecoder().decode(decrypted);
+            new Function(code)();
+        }
+
+        async function bootWithPassword(password, silent) {
+            try {
+                await decryptDatabase(password);
+                sessionStorage.setItem('gomu_key', password);
+                localStorage.setItem('gomu_auth_passed', 'true');
+                if (!silent) {
+                    const loginScreen = document.getElementById('login-screen');
+                    loginScreen.style.transition = 'opacity 0.4s ease';
+                    loginScreen.style.opacity = '0';
+                    setTimeout(() => { loginScreen.style.display = 'none'; }, 400);
+                } else {
+                    document.getElementById('login-screen').style.display = 'none';
+                }
+                await initApp();
+            } catch (e) {
+                if (silent) {
+                    // sessionStorage key is stale/wrong — show login
+                    sessionStorage.removeItem('gomu_key');
+                    localStorage.removeItem('gomu_auth_passed');
+                    document.getElementById('login-screen').style.display = '';
+                } else {
+                    const errorText = document.getElementById('login-error');
+                    const card = document.getElementById('login-card');
+                    errorText.style.display = 'block';
+                    card.style.transform = 'translateX(-10px)';
+                    setTimeout(() => card.style.transform = 'translateX(10px)', 50);
+                    setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
+                    setTimeout(() => card.style.transform = 'translateX(10px)', 150);
+                    setTimeout(() => card.style.transform = 'translateX(0)', 200);
+                }
+            }
         }
 
         window.checkLogin = function() {
             const input = document.getElementById('login-password').value;
-            const errorText = document.getElementById('login-error');
-            const card = document.getElementById('login-card');
-            
-            if (input === COACH_PASSWORD) {
-                // Success! Remember them and smoothly fade out the wall
-                localStorage.setItem('gomu_auth_passed', 'true');
-                
-                const loginScreen = document.getElementById('login-screen');
-                loginScreen.style.transition = 'opacity 0.4s ease';
-                loginScreen.style.opacity = '0';
-                
-                setTimeout(() => {
-                    loginScreen.style.display = 'none';
-                }, 400);
-            } else {
-                // Failure! Show error and shake the card aggressively
-                errorText.style.display = 'block';
-                card.style.transform = 'translateX(-10px)';
-                setTimeout(() => card.style.transform = 'translateX(10px)', 50);
-                setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
-                setTimeout(() => card.style.transform = 'translateX(10px)', 150);
-                setTimeout(() => card.style.transform = 'translateX(0)', 200);
-            }
+            bootWithPassword(input, false);
         };
 
         // --- INDEXED DB ENGINE (Unlimited Storage) ---
@@ -4747,4 +4776,9 @@
             modal.style.display = 'flex';
         };
 
-        initApp();
+        // Boot: try sessionStorage key first (page reload), else show login
+        const cachedKey = sessionStorage.getItem('gomu_key');
+        if (cachedKey) {
+            bootWithPassword(cachedKey, true);
+        }
+        // If no cached key, login screen is already visible — user enters password → checkLogin()

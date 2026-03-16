@@ -30,6 +30,12 @@ update_file('index.html', r'\?v=[\d\.]+', f'?v={new_version}')
 update_file('scripts/app.js', r'const APP_VERSION = "v[^"]+";', f'const APP_VERSION = "v{new_version}";')
 update_file('sw.js', r"const CACHE_NAME = 'gomu-trainer-v[^']+';", f"const CACHE_NAME = 'gomu-trainer-v{new_version}';")
 
+# --- 2.5. ENCRYPT DATABASE ---
+print("🔐 Encrypting database...")
+encrypt_script = os.path.join(os.path.dirname(__file__), 'encrypt_db.py')
+subprocess.run([sys.executable, encrypt_script], check=True)
+print("✅ Database encrypted")
+
 
 # --- 3. DETERMINE COMMIT MESSAGE ---
 commit_msg = f"Auto-deploy build v{new_version}"
