@@ -1,10 +1,10 @@
-const CACHE_NAME = 'gomu-trainer-v2026.03.16.2245'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.03.16.2300'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
   './styles/styles.css',
   './scripts/app.js',
-  './scripts/database.js',
+  './scripts/database.enc',
   './assets/manifest.json',
   './assets/logo.png',
   './assets/audio/ding.mp3',
