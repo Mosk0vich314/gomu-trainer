@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.16.0116";
+        const APP_VERSION = "v2026.03.16.2245";
         // --- HONESTY DOOR LOGIC ---
         const COACH_PASSWORD = "cristoimbecille"; // CHANGE THIS TO WHATEVER YOU WANT!
 
@@ -1271,6 +1271,19 @@
                                    </svg>`;
         };
 
+    function getMuscleGroup(name) {
+        const n = name.toLowerCase();
+        if (/squat|leg press|lunge|bulgarian|hack squat|zercher|split squat|leg extension|box squat/.test(n)) return 'Quads';
+        if (/deadlift|rdl|romanian|stiff.?leg|leg curl|good morning|back extension|low back/.test(n)) return 'Hamstrings';
+        if (/row|pull.?up|pulldown|lat pull|chin.?up|rack chin/.test(n)) return 'Back';
+        if (/bench|chest|fly|flys|dip|larsen|slingshot|spoto|board press/.test(n)) return 'Chest';
+        if (/overhead press|ohp|shoulder press|press away|seated press|strict press|military|clean and press/.test(n)) return 'Shoulders';
+        if (/bicep|curl|tricep|skull|pushdown|kickback|preacher/.test(n)) return 'Arms';
+        if (/plank|crunch|ab |core|rolling plank|side plank/.test(n)) return 'Core';
+        if (/calf|shrug|farmer|carry|pull apart|rear delt|face pull|hip thrust|glute|snatch/.test(n)) return 'Accessories';
+        return null;
+    }
+
     function renderHeatmap() {
         const card = document.getElementById('volume-heatmap-card');
         if (!card) return;
@@ -1286,8 +1299,9 @@
         const gridStart = new Date(today);
         gridStart.setDate(today.getDate() - dayOfWeek - (WEEKS - 1) * 7);
 
-        // Build volume map: 'YYYY-MM-DD' → total volume
+        // Build volume map and muscle breakdown map
         const volMap = {};
+        const muscleMap = {}; // 'YYYY-MM-DD' → { MuscleGroup: vol }
         history.forEach(log => {
             const ts = parseInt(log.id);
             if (isNaN(ts)) return;
@@ -1295,7 +1309,17 @@
             d.setHours(0, 0, 0, 0);
             const key = d.toISOString().slice(0, 10);
             volMap[key] = (volMap[key] || 0) + (log.volume || 0);
+            if (!muscleMap[key]) muscleMap[key] = {};
+            if (log.details && Array.isArray(log.details)) {
+                log.details.forEach(ex => {
+                    const group = getMuscleGroup(ex.name || '');
+                    if (!group) return;
+                    const exVol = (ex.sets || []).reduce((sum, s) => sum + ((s.load || 0) * (s.reps || 0)), 0);
+                    muscleMap[key][group] = (muscleMap[key][group] || 0) + exVol;
+                });
+            }
         });
+        window.heatmapMuscleData = muscleMap;
 
         const maxVol = Math.max(...Object.values(volMap), 1);
 
@@ -1312,7 +1336,7 @@
             cells.push(col);
         }
 
-        // Month labels: detect when month changes across week columns
+        // Month labels
         const monthLabels = cells.map((col, wi) => {
             const firstDay = col[0].date;
             const prevFirst = wi > 0 ? cells[wi - 1][0].date : null;
@@ -1351,13 +1375,71 @@
                 ${cells.map((col, wi) => `
                 <div style="display:flex; flex-direction:column; gap:2px; flex-shrink:0;">
                     <div style="height:14px; font-size:7px; color:var(--text-muted); white-space:nowrap; overflow:hidden;">${monthLabels[wi]}</div>
-                    ${col.map(cell => `<div style="width:10px; height:10px; border-radius:2px; background:${cellColor(cell.vol)};" title="${cell.key}: ${cell.vol > 0 ? cell.vol.toLocaleString() + 'kg' : 'rest'}"></div>`).join('')}
+                    ${col.map(cell => `<div style="width:10px; height:10px; border-radius:2px; background:${cellColor(cell.vol)}; cursor:${cell.vol > 0 ? 'pointer' : 'default'};" onclick="showHeatmapTooltip(event,'${cell.key}')"></div>`).join('')}
                 </div>`).join('')}
             </div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:3px; margin-top:8px;">
+            <span style="font-size:8px; color:var(--text-muted);">0</span>
+            <div style="width:10px;height:10px;border-radius:2px;background:#27272a;border:1px solid #3f3f46;"></div>
+            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol * 0.25 / 100) * 100 || '—'}</span>
+            <div style="width:10px;height:10px;border-radius:2px;background:rgba(20,184,166,0.30);"></div>
+            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol * 0.6 / 100) * 100 || '—'}</span>
+            <div style="width:10px;height:10px;border-radius:2px;background:rgba(20,184,166,0.60);"></div>
+            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol / 100) * 100 || '—'}kg</span>
+            <div style="width:10px;height:10px;border-radius:2px;background:#14b8a6;"></div>
         </div>`;
 
         card.innerHTML = html;
     }
+
+    window.showHeatmapTooltip = function(e, dateKey) {
+        const data = (window.heatmapMuscleData || {})[dateKey];
+        if (!data || Object.keys(data).length === 0) return;
+        e.stopPropagation();
+
+        // Remove existing tooltip
+        const existing = document.getElementById('heatmap-tooltip');
+        if (existing) existing.remove();
+
+        const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+        const rows = entries.map(([group, vol]) =>
+            `<div style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
+                <span style="color:#a1a1aa;font-size:11px;">${group}</span>
+                <span style="color:#fff;font-size:11px;font-weight:700;">${Math.round(vol).toLocaleString()} kg</span>
+            </div>`
+        ).join('');
+
+        const [y, m, day] = dateKey.split('-');
+        const label = new Date(+y, +m - 1, +day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        const tip = document.createElement('div');
+        tip.id = 'heatmap-tooltip';
+        tip.innerHTML = `
+            <div style="font-size:11px;font-weight:800;color:var(--teal,#14b8a6);margin-bottom:6px;letter-spacing:0.5px;">${label}</div>
+            ${rows}`;
+        tip.style.cssText = `position:fixed;background:#18181b;border:1px solid #3f3f46;border-radius:10px;padding:10px 12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:140px;pointer-events:none;`;
+
+        document.body.appendChild(tip);
+
+        // Position: above the clicked cell, centered
+        const rect = e.target.getBoundingClientRect();
+        const tipW = 160;
+        let left = rect.left + rect.width / 2 - tipW / 2;
+        let top = rect.top - tip.offsetHeight - 8;
+        if (left < 8) left = 8;
+        if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+        if (top < 8) top = rect.bottom + 8;
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+        tip.style.width = tipW + 'px';
+
+        // Dismiss on next tap/click anywhere
+        setTimeout(() => document.addEventListener('click', () => {
+            const t = document.getElementById('heatmap-tooltip');
+            if (t) t.remove();
+        }, { once: true }), 0);
+    };
 
     function renderHistory() {
             renderHeatmap();
