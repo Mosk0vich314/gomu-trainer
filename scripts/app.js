@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.16.2324";
+        const APP_VERSION = "v2026.03.17.0000";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -1300,17 +1300,51 @@
                                    </svg>`;
         };
 
-    function getMuscleGroup(name) {
-        const n = name.toLowerCase();
-        if (/squat|leg press|lunge|bulgarian|hack squat|zercher|split squat|leg extension|box squat/.test(n)) return 'Quads';
-        if (/deadlift|rdl|romanian|stiff.?leg|leg curl|good morning|back extension|low back/.test(n)) return 'Hamstrings';
-        if (/row|pull.?up|pulldown|lat pull|chin.?up|rack chin/.test(n)) return 'Back';
-        if (/bench|chest|fly|flys|dip|larsen|slingshot|spoto|board press/.test(n)) return 'Chest';
-        if (/overhead press|ohp|shoulder press|press away|seated press|strict press|military|clean and press/.test(n)) return 'Shoulders';
-        if (/bicep|curl|tricep|skull|pushdown|kickback|preacher/.test(n)) return 'Arms';
-        if (/plank|crunch|ab |core|rolling plank|side plank/.test(n)) return 'Core';
-        if (/calf|shrug|farmer|carry|pull apart|rear delt|face pull|hip thrust|glute|snatch/.test(n)) return 'Accessories';
+    // Muscle involvement rules: pattern → { muscle: percentage }
+    const MUSCLE_RULES = [
+        { p: /squat|box squat|zercher|tempo squat|pause.*squat|safety bar|no belt.*squat|highbar|2.count pause.*squat|3.0.0 tempo.*squat|3.2.0.*squat|4.0.0.*squat|6.0.0.*squat/i, m: { quads: .45, glutes: .30, hamstrings: .15, core: .10 } },
+        { p: /leg press|single leg press/i, m: { quads: .55, glutes: .30, hamstrings: .15 } },
+        { p: /leg extension/i, m: { quads: .95, core: .05 } },
+        { p: /lunge|bulgarian|split squat|reverse lunge/i, m: { quads: .40, glutes: .35, hamstrings: .20, core: .05 } },
+        { p: /front squat/i, m: { quads: .55, glutes: .20, core: .15, hamstrings: .10 } },
+        { p: /standard height|conventional.*dead|vs bands.*dead|pause.*dead|2ct pause.*dead|non comp.*dead|deficit dead|5.3.0.*dead/i, m: { back: .25, glutes: .25, hamstrings: .25, quads: .15, forearms: .10 } },
+        { p: /romanian|rdl|stiff.?leg|single leg rdl|3.0.0 tempo.*dead|4.0.0.*stiff|6.0.0.*stiff|snatch.grip.*dead/i, m: { hamstrings: .40, glutes: .30, back: .20, forearms: .10 } },
+        { p: /good morning/i, m: { hamstrings: .40, glutes: .30, lowerBack: .25, core: .05 } },
+        { p: /leg curl|single.leg.*curl/i, m: { hamstrings: .85, calves: .15 } },
+        { p: /back extension|low back/i, m: { lowerBack: .50, glutes: .30, hamstrings: .20 } },
+        { p: /hip thrust|glute/i, m: { glutes: .65, hamstrings: .25, core: .10 } },
+        { p: /bench|spoto|larsen|slingshot|board|touch and go|feet.?up|pin bench|overload.*bench|wide grip.*bench|pause.*bench|tempo bench|2ct pause bench|3.count.*bench|5ct pause.*bench|6.0.0 bench|4.0.0 tempo.*bench|3.0.0 tempo.*bench|machine chest press/i, m: { chest: .55, triceps: .25, frontDelts: .20 } },
+        { p: /close grip bench|2ct pause close grip/i, m: { triceps: .45, chest: .35, frontDelts: .20 } },
+        { p: /chest.?fly|cable.?chest/i, m: { chest: .85, frontDelts: .15 } },
+        { p: /dip/i, m: { chest: .40, triceps: .40, frontDelts: .20 } },
+        { p: /overhead press|ohp|shoulder press|seated.*press|strict press|military|clean and press|press away|seated bb ohp|seated pin press|seated strict/i, m: { frontDelts: .40, triceps: .30, chest: .15, core: .15 } },
+        { p: /barbell row|pendlay|meadows|power row|seated.*row|chest supported|strict.*row|wide grip.*row|1.arm.*row/i, m: { back: .55, biceps: .25, rearDelts: .20 } },
+        { p: /pull.?up|chin.?up|lat.?pull|rack chin|neutral grip|wide grip pull/i, m: { back: .50, biceps: .30, rearDelts: .10, forearms: .10 } },
+        { p: /bicep|curl|preacher/i, m: { biceps: .85, forearms: .15 } },
+        { p: /tricep|skull|pushdown|kickback|overhead.*extension/i, m: { triceps: .90, frontDelts: .10 } },
+        { p: /rear delt/i, m: { rearDelts: .80, back: .20 } },
+        { p: /face pull|pull apart|band pull/i, m: { rearDelts: .50, back: .30, biceps: .20 } },
+        { p: /shrug/i, m: { traps: .85, forearms: .15 } },
+        { p: /calf/i, m: { calves: 1.0 } },
+        { p: /plank|crunch|ab|core|rolling plank|cable crunch/i, m: { core: 1.0 } },
+        { p: /farmer|carry/i, m: { forearms: .30, traps: .25, core: .25, glutes: .20 } },
+        { p: /snatch|one arm.*snatch/i, m: { back: .25, traps: .25, frontDelts: .20, glutes: .15, hamstrings: .15 } },
+    ];
+
+    function getMuscleSplit(name) {
+        const n = (name || '').toLowerCase();
+        for (const rule of MUSCLE_RULES) {
+            if (rule.p.test(n)) return rule.m;
+        }
         return null;
+    }
+
+    // Helper: local YYYY-MM-DD (avoids UTC shift from toISOString)
+    function localDateKey(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     }
 
     function renderHeatmap() {
@@ -1324,27 +1358,29 @@
         today.setHours(0, 0, 0, 0);
 
         // Align start to the most recent Monday
-        const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0 … Sun=6
+        const dayOfWeek = (today.getDay() + 6) % 7;
         const gridStart = new Date(today);
         gridStart.setDate(today.getDate() - dayOfWeek - (WEEKS - 1) * 7);
 
-        // Build volume map and muscle breakdown map
+        // Build volume map and muscle breakdown map using LOCAL dates
         const volMap = {};
-        const muscleMap = {}; // 'YYYY-MM-DD' → { MuscleGroup: vol }
+        const muscleMap = {};
         history.forEach(log => {
             const ts = parseInt(log.id);
             if (isNaN(ts)) return;
             const d = new Date(ts);
             d.setHours(0, 0, 0, 0);
-            const key = d.toISOString().slice(0, 10);
+            const key = localDateKey(d);
             volMap[key] = (volMap[key] || 0) + (log.volume || 0);
             if (!muscleMap[key]) muscleMap[key] = {};
             if (log.details && Array.isArray(log.details)) {
                 log.details.forEach(ex => {
-                    const group = getMuscleGroup(ex.name || '');
-                    if (!group) return;
+                    const split = getMuscleSplit(ex.name || '');
+                    if (!split) return;
                     const exVol = (ex.sets || []).reduce((sum, s) => sum + ((s.load || 0) * (s.reps || 0)), 0);
-                    muscleMap[key][group] = (muscleMap[key][group] || 0) + exVol;
+                    Object.entries(split).forEach(([muscle, pct]) => {
+                        muscleMap[key][muscle] = (muscleMap[key][muscle] || 0) + exVol * pct;
+                    });
                 });
             }
         });
@@ -1352,14 +1388,14 @@
 
         const maxVol = Math.max(...Object.values(volMap), 1);
 
-        // Build cells: week columns, day rows
+        // Build cells using local dates
         const cells = [];
         for (let w = 0; w < WEEKS; w++) {
             const col = [];
             for (let d = 0; d < DAYS; d++) {
                 const date = new Date(gridStart);
                 date.setDate(gridStart.getDate() + w * 7 + d);
-                const key = date.toISOString().slice(0, 10);
+                const key = localDateKey(date);
                 col.push({ key, vol: volMap[key] || 0, date });
             }
             cells.push(col);
@@ -1385,6 +1421,9 @@
             return '#14b8a6';
         };
 
+        // Colorbar labels
+        const fmtVol = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : Math.round(v)) + ' kg';
+
         let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-weight:800; font-size:14px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
@@ -1407,63 +1446,130 @@
                     ${col.map(cell => `<div style="width:10px; height:10px; border-radius:2px; background:${cellColor(cell.vol)}; cursor:${cell.vol > 0 ? 'pointer' : 'default'};" onclick="showHeatmapTooltip(event,'${cell.key}')"></div>`).join('')}
                 </div>`).join('')}
             </div>
-        </div>
-        <div style="display:flex; align-items:center; justify-content:flex-end; gap:3px; margin-top:8px;">
-            <span style="font-size:8px; color:var(--text-muted);">0</span>
-            <div style="width:10px;height:10px;border-radius:2px;background:#27272a;border:1px solid #3f3f46;"></div>
-            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol * 0.25 / 100) * 100 || '—'}</span>
-            <div style="width:10px;height:10px;border-radius:2px;background:rgba(20,184,166,0.30);"></div>
-            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol * 0.6 / 100) * 100 || '—'}</span>
-            <div style="width:10px;height:10px;border-radius:2px;background:rgba(20,184,166,0.60);"></div>
-            <span style="font-size:8px; color:var(--text-muted);">${Math.round(maxVol / 100) * 100 || '—'}kg</span>
-            <div style="width:10px;height:10px;border-radius:2px;background:#14b8a6;"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px; margin-left:4px; gap:0;">
+                <span style="font-size:7px; color:var(--text-muted); margin-bottom:2px;">${fmtVol(maxVol)}</span>
+                <div style="width:8px; flex:1; border-radius:4px; background:linear-gradient(to bottom, #14b8a6, rgba(20,184,166,0.60), rgba(20,184,166,0.30), #27272a); min-height:60px;"></div>
+                <span style="font-size:7px; color:var(--text-muted); margin-top:2px;">0</span>
+            </div>
         </div>`;
 
         card.innerHTML = html;
     }
+
+    // SVG anatomy: muscle color based on volume
+    function mc(vol, maxV) {
+        if (!vol || vol <= 0) return '#1e1e22';
+        const t = Math.min(vol / maxV, 1);
+        return `rgba(20,184,166,${(0.15 + 0.85 * t).toFixed(2)})`;
+    }
+
+    function bodyFrontSVG(d, mx) {
+        const c = (m) => mc(d[m], mx);
+        return `<svg viewBox="0 0 80 170" width="90" height="190" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="40" cy="14" rx="9" ry="10" fill="#2a2a2e" stroke="#3f3f46" stroke-width="0.5"/>
+            <rect x="36" y="24" width="8" height="5" rx="2" fill="#2a2a2e"/>
+            <ellipse cx="16" cy="38" rx="7" ry="5.5" fill="${c('frontDelts')}"/>
+            <ellipse cx="64" cy="38" rx="7" ry="5.5" fill="${c('frontDelts')}"/>
+            <ellipse cx="28" cy="44" rx="9" ry="7" fill="${c('chest')}"/>
+            <ellipse cx="52" cy="44" rx="9" ry="7" fill="${c('chest')}"/>
+            <ellipse cx="9" cy="52" rx="4.5" ry="10" fill="${c('biceps')}"/>
+            <ellipse cx="71" cy="52" rx="4.5" ry="10" fill="${c('biceps')}"/>
+            <ellipse cx="6" cy="72" rx="3.5" ry="9" fill="${c('forearms')}"/>
+            <ellipse cx="74" cy="72" rx="3.5" ry="9" fill="${c('forearms')}"/>
+            <rect x="28" y="52" width="24" height="22" rx="3" fill="${c('core')}"/>
+            <ellipse cx="31" cy="92" rx="8" ry="18" fill="${c('quads')}"/>
+            <ellipse cx="49" cy="92" rx="8" ry="18" fill="${c('quads')}"/>
+            <ellipse cx="29" cy="128" rx="5.5" ry="14" fill="${c('calves')}"/>
+            <ellipse cx="51" cy="128" rx="5.5" ry="14" fill="${c('calves')}"/>
+            <text x="40" y="166" fill="#52525b" font-size="8" text-anchor="middle" font-family="Inter,sans-serif">FRONT</text>
+        </svg>`;
+    }
+
+    function bodyBackSVG(d, mx) {
+        const c = (m) => mc(d[m], mx);
+        return `<svg viewBox="0 0 80 170" width="90" height="190" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="40" cy="14" rx="9" ry="10" fill="#2a2a2e" stroke="#3f3f46" stroke-width="0.5"/>
+            <rect x="36" y="24" width="8" height="5" rx="2" fill="#2a2a2e"/>
+            <path d="M33,28 L28,34 L40,36 L52,34 L47,28 Z" fill="${c('traps')}"/>
+            <ellipse cx="16" cy="38" rx="7" ry="5.5" fill="${c('rearDelts')}"/>
+            <ellipse cx="64" cy="38" rx="7" ry="5.5" fill="${c('rearDelts')}"/>
+            <ellipse cx="30" cy="46" rx="8" ry="9" fill="${c('back')}"/>
+            <ellipse cx="50" cy="46" rx="8" ry="9" fill="${c('back')}"/>
+            <ellipse cx="9" cy="52" rx="4.5" ry="10" fill="${c('triceps')}"/>
+            <ellipse cx="71" cy="52" rx="4.5" ry="10" fill="${c('triceps')}"/>
+            <ellipse cx="6" cy="72" rx="3.5" ry="9" fill="${c('forearms')}"/>
+            <ellipse cx="74" cy="72" rx="3.5" ry="9" fill="${c('forearms')}"/>
+            <rect x="30" y="56" width="20" height="16" rx="3" fill="${c('lowerBack')}"/>
+            <ellipse cx="32" cy="78" rx="8" ry="6" fill="${c('glutes')}"/>
+            <ellipse cx="48" cy="78" rx="8" ry="6" fill="${c('glutes')}"/>
+            <ellipse cx="31" cy="98" rx="7" ry="16" fill="${c('hamstrings')}"/>
+            <ellipse cx="49" cy="98" rx="7" ry="16" fill="${c('hamstrings')}"/>
+            <ellipse cx="29" cy="128" rx="5.5" ry="14" fill="${c('calves')}"/>
+            <ellipse cx="51" cy="128" rx="5.5" ry="14" fill="${c('calves')}"/>
+            <text x="40" y="166" fill="#52525b" font-size="8" text-anchor="middle" font-family="Inter,sans-serif">BACK</text>
+        </svg>`;
+    }
+
+    // Pretty muscle names for legend
+    const MUSCLE_LABELS = {
+        chest:'Chest', quads:'Quads', hamstrings:'Hamstrings', back:'Back', glutes:'Glutes',
+        frontDelts:'Front Delts', rearDelts:'Rear Delts', triceps:'Triceps', biceps:'Biceps',
+        core:'Core', forearms:'Forearms', calves:'Calves', traps:'Traps', lowerBack:'Lower Back'
+    };
 
     window.showHeatmapTooltip = function(e, dateKey) {
         const data = (window.heatmapMuscleData || {})[dateKey];
         if (!data || Object.keys(data).length === 0) return;
         e.stopPropagation();
 
-        // Remove existing tooltip
         const existing = document.getElementById('heatmap-tooltip');
         if (existing) existing.remove();
 
-        const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
-        const rows = entries.map(([group, vol]) =>
-            `<div style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
-                <span style="color:#a1a1aa;font-size:11px;">${group}</span>
-                <span style="color:#fff;font-size:11px;font-weight:700;">${Math.round(vol).toLocaleString()} kg</span>
-            </div>`
-        ).join('');
+        const maxV = Math.max(...Object.values(data));
+        const entries = Object.entries(data).filter(([,v]) => v > 0).sort((a, b) => b[1] - a[1]);
+        const totalVol = entries.reduce((s, [,v]) => s + v, 0);
 
         const [y, m, day] = dateKey.split('-');
         const label = new Date(+y, +m - 1, +day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+        // Legend: top muscles with colored dots
+        const legend = entries.slice(0, 6).map(([muscle, vol]) => {
+            const pct = Math.round(vol / totalVol * 100);
+            const color = mc(vol, maxV);
+            return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                <div style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+                <span style="color:#a1a1aa;font-size:9px;flex:1;">${MUSCLE_LABELS[muscle] || muscle}</span>
+                <span style="color:#fff;font-size:9px;font-weight:700;">${pct}%</span>
+            </div>`;
+        }).join('');
+
         const tip = document.createElement('div');
         tip.id = 'heatmap-tooltip';
         tip.innerHTML = `
-            <div style="font-size:11px;font-weight:800;color:var(--teal,#14b8a6);margin-bottom:6px;letter-spacing:0.5px;">${label}</div>
-            ${rows}`;
-        tip.style.cssText = `position:fixed;background:#18181b;border:1px solid #3f3f46;border-radius:10px;padding:10px 12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:140px;pointer-events:none;`;
+            <div style="font-size:11px;font-weight:800;color:var(--teal,#14b8a6);margin-bottom:8px;letter-spacing:0.5px;text-align:center;">${label}</div>
+            <div style="display:flex;gap:4px;justify-content:center;margin-bottom:8px;">
+                ${bodyFrontSVG(data, maxV)}
+                ${bodyBackSVG(data, maxV)}
+            </div>
+            <div style="border-top:1px solid #2a2a2e;padding-top:6px;">
+                ${legend}
+            </div>
+            <div style="text-align:center;margin-top:4px;font-size:8px;color:#52525b;">${Math.round(totalVol).toLocaleString()} kg total</div>`;
+        tip.style.cssText = `position:fixed;background:#18181b;border:1px solid #3f3f46;border-radius:12px;padding:12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none;`;
 
         document.body.appendChild(tip);
 
-        // Position: above the clicked cell, centered
         const rect = e.target.getBoundingClientRect();
-        const tipW = 160;
+        const tipW = tip.offsetWidth;
+        const tipH = tip.offsetHeight;
         let left = rect.left + rect.width / 2 - tipW / 2;
-        let top = rect.top - tip.offsetHeight - 8;
+        let top = rect.top - tipH - 8;
         if (left < 8) left = 8;
         if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
         if (top < 8) top = rect.bottom + 8;
         tip.style.left = left + 'px';
         tip.style.top = top + 'px';
-        tip.style.width = tipW + 'px';
 
-        // Dismiss on next tap/click anywhere
         setTimeout(() => document.addEventListener('click', () => {
             const t = document.getElementById('heatmap-tooltip');
             if (t) t.remove();
