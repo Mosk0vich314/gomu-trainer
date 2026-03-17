@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.03.17.0027">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.03.17.0911">
 </head>
 <body>
     <div id="login-screen">
@@ -288,7 +288,8 @@
         </div>
 
         <button class="stats-launch-btn" onclick="switchTab('stats-screen')">
-            The Iron Vault <span style="font-size: 18px;">⛓️</span>
+            The Iron Vault
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </button>
     </div>
 
@@ -375,9 +376,12 @@
     </div>
 
     <div id="history-screen" class="app-screen">
-        <div class="screen-header">
+        <div class="screen-header" style="position:relative;">
             <h1 class="screen-title">History</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your completed training sessions.</p>
+            <button onclick="openDataSheet()" style="position:absolute;top:0;right:0;background:none;border:none;padding:8px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;border-radius:8px;" title="Data Management">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
         </div>
         <div class="history-card" style="padding: 20px 20px 25px 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
@@ -395,19 +399,27 @@
         <div id="history-container">
             </div>
 
-        <div style="margin-top: 50px; border-top: 1px solid var(--border); padding-top: 30px; margin-bottom: 20px;">
-            <h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 15px;">Data Management</h3>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Backup your PRs, history, and active sessions so you never lose them.</p>
-            
-            <button class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border);" onclick="exportData()">💾 Export Backup (.json)</button>
-            
-            <label class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); display: block; text-align: center; cursor: pointer;">
-                📂 Import Backup
-                <input type="file" style="display:none;" accept=".json" onchange="importData(event)">
-            </label>
-            
-            <button class="reset-btn" style="width: 100%; padding: 18px; margin-top: 15px; text-align: center; border: 1px solid var(--danger); color: var(--danger);" onclick="clearAllPRs()">⚠️ Factory Reset App</button>
-        </div>
+    </div>
+
+    <!-- Data Management Bottom Sheet -->
+    <div id="data-sheet-overlay" onclick="closeDataSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;backdrop-filter:blur(2px);"></div>
+    <div id="data-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:501;border-top:1px solid var(--border);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);">
+        <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+        <h3 style="color:var(--text-main);font-size:16px;font-weight:800;margin-bottom:6px;">Data Management</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Backup your PRs, history, and active sessions.</p>
+        <button class="action-btn" style="background:var(--input-bg);color:var(--text-main);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;" onclick="exportData()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Backup (.json)
+        </button>
+        <label class="action-btn" style="background:var(--input-bg);color:var(--text-main);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import Backup
+            <input type="file" style="display:none;" accept=".json" onchange="importData(event)">
+        </label>
+        <button class="reset-btn" style="width:100%;padding:16px;margin-top:10px;text-align:center;border:1px solid var(--danger);color:var(--danger);display:flex;align-items:center;justify-content:center;gap:8px;" onclick="clearAllPRs()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Factory Reset App
+        </button>
     </div>
 
     <div id="stats-screen" class="app-screen">
@@ -456,7 +468,7 @@
 
         <details class="warmup-card" id="program-management-card" style="margin-bottom: 20px;">
             <summary class="warmup-summary" style="color: var(--text-muted);">
-                <span>⚙️ Program Management</span>
+                <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Program Management</span>
                 <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
             </summary>
             
@@ -467,17 +479,17 @@
                 </div>
                 
                 <div class="warmup-charcoal-box" style="display: flex; flex-direction: column; gap: 10px;">
-                    <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()">⏹ Stop & Exit Program</button>
-                    <button class="reset-btn" onclick="clearCurrentDay()">↻ Reset This Day</button>
-                    <button class="reset-btn" onclick="clearCurrentWeek()">↻ Reset This Week</button>
-                    <button class="reset-btn" style="border-color: var(--danger); color: var(--danger);" onclick="clearCurrentProgram()">⚠️ Reset Entire Program</button>
+                    <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Stop &amp; Exit Program</button>
+                    <button class="reset-btn" onclick="clearCurrentDay()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg> Reset This Day</button>
+                    <button class="reset-btn" onclick="clearCurrentWeek()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg> Reset This Week</button>
+                    <button class="reset-btn" style="border-color: var(--danger); color: var(--danger);" onclick="clearCurrentProgram()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Reset Entire Program</button>
                 </div>
             </div>
         </details>
 
         <details class="warmup-card" id="standard-warmup-card" style="margin-bottom: 25px;">
             <summary class="warmup-summary">
-                <span>🔥 Standard Warm-Up Routine</span>
+                <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Standard Warm-Up Routine</span>
                 <span class="warmup-arrow">▼</span>
             </summary>
             
@@ -533,6 +545,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.03.17.0027" defer></script>
+    <script src="scripts/app.js?v=2026.03.17.0911" defer></script>
 </body>
 </html>
