@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.17.0911";
+        const APP_VERSION = "v2026.03.17.2035";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3780,7 +3780,8 @@
             
             updateTimerDisplay();
             banner.classList.add('active');
-            
+            document.getElementById('home-screen').classList.add('timer-active');
+
             // --- TRIGGER BREATHING FAB ---
             const fab = document.querySelector('.global-timer-fab');
             if (fab && seconds > 0) fab.classList.add('timer-active');
@@ -3837,8 +3838,9 @@
         }
 
         function closeTimer() {
-            timerWorker.postMessage('stop'); 
+            timerWorker.postMessage('stop');
             document.getElementById('rest-timer-banner').classList.remove('active');
+            document.getElementById('home-screen').classList.remove('timer-active');
             
             const fab = document.querySelector('.global-timer-fab');
             if (fab) fab.classList.remove('timer-active'); // Stop Breathing
