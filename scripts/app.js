@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.17.2035";
+        const APP_VERSION = "v2026.03.17.2054";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -1283,16 +1283,23 @@
                 return weight / percentage;
             };
 
-            let data = [];
+            // Group by calendar day — keep only the highest e1RM per day
+            let dayMap = {};
             history.forEach(log => {
                 let exMatch = log.details.find(e => e.name === exName);
                 if(exMatch && exMatch.sets && exMatch.sets.length > 0) {
-                    // Calculate e1RM for every set in the workout and plot the highest one
                     let maxE1RM = Math.max(...exMatch.sets.map(s => getE1RM(s.load, s.reps, s.rpe)));
-                    if(maxE1RM > 0) data.push({ value: parseFloat(maxE1RM.toFixed(1)) });
+                    if(maxE1RM > 0) {
+                        const ts = parseInt(log.id);
+                        const dateKey = localDateKey(new Date(ts));
+                        if(!dayMap[dateKey] || maxE1RM > dayMap[dateKey].value) {
+                            dayMap[dateKey] = { value: parseFloat(maxE1RM.toFixed(1)), ts };
+                        }
+                    }
                 }
             });
-            
+            let data = Object.values(dayMap).sort((a, b) => a.ts - b.ts).slice(-7);
+
             if(data.length < 2) {
                 container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size:13px; font-style: italic;">Need 2 sessions of this lift to plot progress.</div>`;
                 return;
@@ -1327,11 +1334,17 @@
                 return `${x},${y}`;
             }).join(' ');
             
+            const fmtDate = ts => {
+                const d = new Date(ts);
+                return d.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            };
+
             let circles = data.map((d, i) => {
                 let x = (i / (data.length - 1)) * (w - 40) + 20;
                 let y = h - padding - ((d.value - minV) / range) * (h - 2 * padding);
                 return `<circle cx="${x}" cy="${y}" r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
-                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.value}kg</text>`;
+                        <text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.value}kg</text>
+                        <text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Inter">${fmtDate(d.ts)}</text>`;
             }).join('');
             
             container.innerHTML = `<svg width="100%" height="${h}" style="overflow:visible;">
@@ -2506,6 +2519,7 @@
         function renderWorkout() {
             const container = document.getElementById('workout-container');
             container.innerHTML = '';
+            renderWarmupList();
             
             document.getElementById('workout-program-title').innerText = db[currentProgram]?.name || "Workout";
             
@@ -4961,6 +4975,106 @@
             
             modal.style.display = 'flex';
         };
+
+        // ── Standard Warm-Up Routine (editable, persisted) ──────────────────
+        const DEFAULT_WARMUP = [
+            "Calf Raises",
+            "Dead Bugs, Side Planks, Bird-Dog",
+            "90/90 Stretch + Rotation / Pec Stretch",
+            "Plank and Push-Ups",
+            "KB Single-Leg DLs",
+            "KB Single-Arm Rows",
+            "Elevated Reverse Lunges",
+            "Band Dislocates",
+            "Band Y's & Pull-aparts"
+        ];
+
+        let warmupEditMode = false;
+
+        function getWarmupItems() {
+            return safeParse('warmupRoutine', DEFAULT_WARMUP);
+        }
+
+        function saveWarmupItems(items) {
+            localStorage.setItem('warmupRoutine', JSON.stringify(items));
+        }
+
+        window.renderWarmupList = function() {
+            const container = document.getElementById('warmup-list');
+            if (!container) return;
+            const items = getWarmupItems();
+
+            if (!warmupEditMode) {
+                container.innerHTML = `
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+                        <button onclick="window.toggleWarmupEdit()" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--text-muted);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                        </button>
+                    </div>
+                    ${items.map((item, i) => `
+                        <div class="warmup-item">
+                            <span class="warmup-num">${i + 1}</span>
+                            <span class="warmup-item-text">${item}</span>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="margin-bottom:12px;">
+                        ${items.map((item, i) => `
+                            <div class="warmup-edit-row">
+                                <input class="warmup-edit-input" value="${item.replace(/"/g, '&quot;')}"
+                                    onchange="window.updateWarmupItem(${i}, this.value)" />
+                                <button class="warmup-del-btn" onclick="window.deleteWarmupItem(${i})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button onclick="window.addWarmupItem()" style="width:100%;padding:10px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">+ Add Exercise</button>
+                    <button onclick="window.toggleWarmupEdit()" style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">Done</button>
+                `;
+            }
+        };
+
+        window.toggleWarmupEdit = function() {
+            if (warmupEditMode) {
+                // Flush all input values before leaving edit mode
+                const inputs = document.querySelectorAll('#warmup-list .warmup-edit-input');
+                const items = getWarmupItems();
+                inputs.forEach((inp, i) => { if (items[i] !== undefined) items[i] = inp.value; });
+                saveWarmupItems(items);
+            }
+            warmupEditMode = !warmupEditMode;
+            renderWarmupList();
+        };
+
+        window.updateWarmupItem = function(index, value) {
+            const items = getWarmupItems();
+            items[index] = value;
+            saveWarmupItems(items);
+        };
+
+        window.deleteWarmupItem = function(index) {
+            const items = getWarmupItems();
+            items.splice(index, 1);
+            saveWarmupItems(items);
+            renderWarmupList();
+        };
+
+        window.addWarmupItem = function() {
+            const items = getWarmupItems();
+            // Flush current inputs first
+            const inputs = document.querySelectorAll('#warmup-list .warmup-edit-input');
+            inputs.forEach((inp, i) => { if (items[i] !== undefined) items[i] = inp.value; });
+            items.push('');
+            saveWarmupItems(items);
+            renderWarmupList();
+            // Focus the new input
+            const allInputs = document.querySelectorAll('#warmup-list .warmup-edit-input');
+            if (allInputs.length) allInputs[allInputs.length - 1].focus();
+        };
+
+        renderWarmupList();
 
         // Boot: try sessionStorage key first (page reload), else show login
         const cachedKey = sessionStorage.getItem('gomu_key');
