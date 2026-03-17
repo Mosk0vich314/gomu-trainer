@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.17.2144";
+        const APP_VERSION = "v2026.03.17.2336";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -1740,17 +1740,23 @@
 
                 const dur = fmtDuration(log.duration);
                 const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
+                const safeId  = (log.id  || '').replace(/'/g, "\\'");
+                const safeKey = (log.key || '').replace(/'/g, "\\'");
                 return `
-                <details class="history-card">
-                    <summary class="history-summary">
-                        <span class="history-date">${log.date}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
-                        <h3 class="history-title">${log.programName} (W${log.week} D${log.day})</h3>
-                        <div class="history-stats">${log.sets} Sets • ${volDisplay} Volume</div>
-                        <button class="history-delete" onclick="event.preventDefault(); deleteHistoryLog('${log.id}', '${log.key}')">🗑️</button>
-                        <div class="history-expand-indicator">▼ Expand</div>
-                    </summary>
-                    ${detailsHtml}
-                </details>
+                <div class="swipe-wrapper hist-swipe">
+                    <div class="swipe-delete-bg" style="right:15px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </div>
+                    <details class="history-card hist-swipable" data-id="${safeId}" data-key="${safeKey}">
+                        <summary class="history-summary">
+                            <span class="history-date">${log.date}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
+                            <h3 class="history-title">${log.programName} (W${log.week} D${log.day})</h3>
+                            <div class="history-stats">${log.sets} Sets • ${volDisplay} Volume</div>
+                            <div class="history-expand-indicator">▼ Expand</div>
+                        </summary>
+                        ${detailsHtml}
+                    </details>
+                </div>
                 `;
             }).join('');
 
@@ -1775,6 +1781,63 @@
             if (showButtons) html += buttonsHtml;
 
             historyContainer.innerHTML = html;
+            setupHistorySwipe();
+        }
+
+        function setupHistorySwipe() {
+            document.querySelectorAll('.hist-swipable').forEach(el => {
+                let startX = 0, startY = 0, currentX = 0, isDragging = false, isScrolling = false;
+
+                const startDrag = (e) => {
+                    if (e.target.closest('button')) return;
+                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    isDragging = true; isScrolling = false;
+                    el.classList.add('swiping');
+                };
+
+                const moveDrag = (e) => {
+                    if (!isDragging) return;
+                    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                    const diffX = clientX - startX;
+                    const diffY = Math.abs(clientY - startY);
+                    if (!isScrolling && diffY > 10 && diffY > Math.abs(diffX)) isScrolling = true;
+                    if (isScrolling) return;
+                    currentX = diffX;
+                    if (currentX < 0) {
+                        if (e.cancelable) e.preventDefault();
+                        el.style.transform = `translateX(${currentX}px)`;
+                    }
+                };
+
+                const endDrag = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    el.classList.remove('swiping');
+                    const moved = Math.abs(currentX) > 5;
+                    if (!isScrolling && currentX < -80) {
+                        el.style.transform = `translateX(-100%)`;
+                        setTimeout(() => deleteHistoryLog(el.dataset.id, el.dataset.key), 200);
+                    } else {
+                        el.style.transform = `translateX(0px)`;
+                    }
+                    if (moved && !isScrolling) {
+                        el.dataset.swipeMoved = '1';
+                        setTimeout(() => delete el.dataset.swipeMoved, 100);
+                    }
+                    currentX = 0;
+                };
+
+                el.addEventListener('touchstart', startDrag, {passive: true});
+                el.addEventListener('touchmove', moveDrag, {passive: false});
+                el.addEventListener('touchend', endDrag);
+                el.addEventListener('mousedown', startDrag);
+                el.addEventListener('mousemove', moveDrag);
+                el.addEventListener('mouseup', endDrag);
+                el.addEventListener('mouseleave', endDrag);
+                el.addEventListener('click', (e) => { if (el.dataset.swipeMoved) e.preventDefault(); });
+            });
         }
 
         window.loadMoreHistory = function() {
@@ -1813,7 +1876,9 @@
 
                 renderHistory();
                 updateDashboard();
-                renderDayPills(); 
+                renderDayPills();
+            } else {
+                renderHistory(); // Snap swiped card back
             }
         }
 
