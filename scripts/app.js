@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.17.0027";
+        const APP_VERSION = "v2026.03.17.0911";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -425,6 +425,47 @@
             
             updateBanners();
         }
+        // Data management bottom sheet
+        window.openDataSheet = function() {
+            const overlay = document.getElementById('data-sheet-overlay');
+            const sheet = document.getElementById('data-sheet');
+            overlay.style.display = 'block';
+            sheet.style.display = 'block';
+            requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+        };
+        window.closeDataSheet = function() {
+            const sheet = document.getElementById('data-sheet');
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                document.getElementById('data-sheet-overlay').style.display = 'none';
+                sheet.style.display = 'none';
+            }, 300);
+        };
+
+        // Swipe navigation between main tabs
+        (function() {
+            const TABS = ['library-screen', 'home-screen', 'history-screen'];
+            const WORKOUT_SCREENS = new Set(['workout-screen', 'stats-screen', 'summary-screen']);
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }, { passive: true });
+            document.addEventListener('touchend', function(e) {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                const dt = Date.now() - touchStartTime;
+                if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.8 || dt > 400) return;
+                const active = document.querySelector('.app-screen.active');
+                if (!active || WORKOUT_SCREENS.has(active.id)) return;
+                const idx = TABS.indexOf(active.id);
+                if (idx === -1) return;
+                if (dx < 0 && idx < TABS.length - 1) switchTab(TABS[idx + 1]);
+                if (dx > 0 && idx > 0) switchTab(TABS[idx - 1]);
+            }, { passive: true });
+        })();
+
         function updateLibraryUI() {
             const mainProgram = localStorage.getItem('activeProgram'); 
             
