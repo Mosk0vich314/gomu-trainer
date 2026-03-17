@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap');
 
 :root { 
     --bg: #09090b; 
@@ -205,7 +205,7 @@ button, .pill, .check-circle, .stat-card {
 .analytics-header { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
 .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
 .a-val {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 30px;
     font-weight: 400;
     letter-spacing: 1px;
@@ -383,7 +383,7 @@ button, .pill, .check-circle, .stat-card {
 #home-screen.timer-active { padding-bottom: 280px; }
 .rest-timer-banner.finished { background: var(--accent); border-color: #fff; }
 .rest-timer-banner.finished .timer-display { color: #000; }
-.timer-display { font-family: 'Bebas Neue', sans-serif; font-size: 34px; font-weight: 400; color: var(--accent); letter-spacing: 2px; }
+.timer-display { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
 .timer-controls { display: flex; gap: 8px; }
 .timer-controls button { background: #27272a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
 .timer-controls button:active { background: #3f3f46; }
@@ -645,7 +645,7 @@ button, .pill, .check-circle, .stat-card {
     text-transform: uppercase; opacity: 0.75; margin-bottom: 4px;
 }
 .dots-score-val {
-    font-family: 'Bebas Neue', sans-serif; font-size: 80px; line-height: 1;
+    font-family: 'Space Grotesk', sans-serif; font-size: 80px; line-height: 1;
     letter-spacing: 2px; margin: 0;
 }
 .dots-score-lbl { font-size: 10px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
@@ -655,7 +655,7 @@ button, .pill, .check-circle, .stat-card {
 }
 .dots-sbd-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .dots-sbd-col span { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
-.dots-sbd-col strong { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
+.dots-sbd-col strong { font-family: 'Space Grotesk', sans-serif; font-size: 22px; letter-spacing: 1px; }
 
 /* ── PR Achievement Cards (SBD) ───────────────────── */
 .pr-sbd-row { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -666,7 +666,7 @@ button, .pill, .check-circle, .stat-card {
 }
 .pr-sbd-card:active { border-color: var(--accent); }
 .pr-sbd-lift { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-.pr-sbd-weight { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; letter-spacing: 1px; }
+.pr-sbd-weight { font-family: 'Space Grotesk', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; letter-spacing: 1px; }
 .pr-sbd-unit { font-size: 13px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; }
 .pr-sbd-detail { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
 .pr-sbd-date { font-size: 10px; color: var(--text-muted); margin-top: 2px; opacity: 0.7; }
@@ -715,7 +715,7 @@ button, .pill, .check-circle, .stat-card {
     0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
     100% { transform: translateY(340px) rotate(600deg); opacity: 0; }
 }
-.s-stat strong { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 36px; font-weight: 400; letter-spacing: 1px; }
+.s-stat strong { color: var(--accent); font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700; letter-spacing: 1px; }
 /* GLOBAL FLOATING TIMER BUTTON */
 .global-timer-fab {
     position: fixed;
