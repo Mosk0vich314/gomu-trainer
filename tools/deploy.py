@@ -4,6 +4,9 @@ import sys
 from datetime import datetime
 import subprocess
 
+# Fix emoji output on Windows terminals
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 # 1. Generate the exact moment in time as our version (e.g., 2026.03.14.1130)
 now = datetime.now()
 new_version = now.strftime("%Y.%m.%d.%H%M")

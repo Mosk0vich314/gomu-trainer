@@ -372,6 +372,7 @@ button, .pill, .check-circle, .stat-card {
 
 .rest-timer-banner { position: fixed; bottom: -120px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1e1e20; border: 2px solid var(--accent); border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1001; box-shadow: 0 -8px 25px rgba(0,0,0,0.5); transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-sizing: border-box;}
 .rest-timer-banner.active { bottom: 90px; }
+#home-screen.timer-active { padding-bottom: 280px; }
 .rest-timer-banner.finished { background: var(--accent); border-color: #fff; }
 .rest-timer-banner.finished .timer-display { color: #000; }
 .timer-display { font-size: 26px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
