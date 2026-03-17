@@ -294,15 +294,13 @@ button, .pill, .check-circle, .stat-card {
 .pill.active .indicator-active { color: #000; }
 
 /* EXPANDABLE HISTORY CARDS */
-.history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 15px; overflow: hidden; }
+.history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 0; overflow: hidden; }
 .history-summary { padding: 20px; position: relative; cursor: pointer; display: flex; flex-direction: column; gap: 8px; list-style: none; }
 .history-summary::-webkit-details-marker { display: none; }
 .history-date { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-.history-title { font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main); padding-right: 40px; }
+.history-title { font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main); }
 .history-stats { color: var(--text-muted); font-size: 14px; font-weight: 600; }
-.history-delete { position: absolute; top: 20px; right: 20px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: 0.2s; z-index: 2;}
-.history-delete:active { background: #ef4444; color: #fff; }
-.history-expand-indicator { position: absolute; right: 20px; bottom: 20px; color: var(--text-muted); font-size: 12px; font-weight: 600;}
+.history-expand-indicator { position: absolute; right: 20px; bottom: 20px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
 .history-card[open] .history-expand-indicator { display: none; }
 
 .history-details { padding: 0 20px 20px 20px; border-top: 1px dashed var(--border); margin-top: 5px; padding-top: 15px; }
@@ -418,6 +416,10 @@ button, .pill, .check-circle, .stat-card {
 .stat-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; width: 100%; position: relative; z-index: 2; box-sizing: border-box; }
 .stat-swipable.swiping { transition: none; }
 .swipe-wrapper.stat-swipe { background: var(--danger); border-radius: 12px; margin-bottom: 12px; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: none; }
+/* HISTORY SWIPE STYLES */
+.hist-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; width: 100%; position: relative; z-index: 2; margin-bottom: 0; }
+.hist-swipable.swiping { transition: none; }
+.swipe-wrapper.hist-swipe { background: var(--danger); border-radius: 16px; margin-bottom: 15px; position: relative; overflow: hidden; }
 /* Exercises & Sets Revamped */
 .exercise-container { margin-bottom: 30px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--card); box-shadow: 0 8px 16px rgba(0,0,0,0.4); position: relative;}
 
