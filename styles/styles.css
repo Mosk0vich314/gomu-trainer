@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap');
 
 :root { 
     --bg: #09090b; 
@@ -27,7 +27,10 @@ button, .pill, .check-circle, .stat-card {
 .app-screen { display: none; padding: 20px; padding-bottom: 180px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative; }
 .app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
 
-@keyframes slideInScreen { from { opacity: 0; left: 20px; } to { opacity: 1; left: 0px; } }
+@keyframes slideInScreen   { from { opacity: 0; left:  20px; } to { opacity: 1; left: 0; } }
+@keyframes slideInFromLeft { from { opacity: 0; left: -20px; } to { opacity: 1; left: 0; } }
+.app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
+.app-screen.active.slide-left { animation: slideInFromLeft 0.25s ease-out forwards; }
 
 /* PERFECTED DASHBOARD BACKGROUND */
 #home-screen {
@@ -183,22 +186,29 @@ button, .pill, .check-circle, .stat-card {
 .progress-container { background: var(--input-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
 .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 .progress-header span:last-child { color: var(--accent); }
-.progress-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease-out; border-radius: 4px; }
+.progress-track { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 2px; }
+.p-dot { width: 9px; height: 9px; border-radius: 2px; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+.p-dot.done { background: var(--accent); }
+.p-dot.done:last-of-type { box-shadow: 0 0 6px rgba(249,115,22,0.6); }
 
 /* ANALYTICS BLOCKS & STREAK */
 .streak-container { display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; position: relative; z-index: 1; }
 .streak-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .s-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--text-muted); transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 .s-dot.active { background: transparent; color: var(--accent); border-color: var(--accent); box-shadow: none; }
+.s-dot.today { border-color: var(--accent); color: var(--accent); background: rgba(249,115,22,0.08); animation: todayPulse 2s ease-in-out infinite; }
+@keyframes todayPulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(249,115,22,0.2); }
+    50% { box-shadow: 0 0 0 5px rgba(249,115,22,0.08); }
+}
 .analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); position: relative; z-index: 1; }
 .analytics-header { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
 .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
 .a-val {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: 1px;
     color: var(--accent);
     white-space: nowrap;
     line-height: 1;
@@ -375,7 +385,7 @@ button, .pill, .check-circle, .stat-card {
 #home-screen.timer-active { padding-bottom: 280px; }
 .rest-timer-banner.finished { background: var(--accent); border-color: #fff; }
 .rest-timer-banner.finished .timer-display { color: #000; }
-.timer-display { font-size: 26px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.timer-display { font-family: 'Bebas Neue', sans-serif; font-size: 34px; font-weight: 400; color: var(--accent); letter-spacing: 2px; }
 .timer-controls { display: flex; gap: 8px; }
 .timer-controls button { background: #27272a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
 .timer-controls button:active { background: #3f3f46; }
@@ -618,17 +628,92 @@ button, .pill, .check-circle, .stat-card {
 .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 12px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s;}
 .reset-btn:active { background: rgba(255,255,255,0.05); }
 
+/* ── DOTS Trophy Card ─────────────────────────────── */
+.dots-trophy-card {
+    border-radius: 20px; border: 1.5px solid; padding: 24px 20px 18px;
+    text-align: center; margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.dots-trophy-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, currentColor 0%, transparent 70%);
+    opacity: 0.06; pointer-events: none;
+}
+.dots-level-tag {
+    font-size: 10px; font-weight: 900; letter-spacing: 3px;
+    text-transform: uppercase; opacity: 0.75; margin-bottom: 4px;
+}
+.dots-score-val {
+    font-family: 'Bebas Neue', sans-serif; font-size: 80px; line-height: 1;
+    letter-spacing: 2px; margin: 0;
+}
+.dots-score-lbl { font-size: 10px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+.dots-sbd-row {
+    display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 14px; margin-top: 4px;
+}
+.dots-sbd-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.dots-sbd-col span { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+.dots-sbd-col strong { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
+
+/* ── PR Achievement Cards (SBD) ───────────────────── */
+.pr-sbd-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.pr-sbd-card {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 10px; text-align: center;
+    cursor: pointer; transition: border-color 0.2s;
+}
+.pr-sbd-card:active { border-color: var(--accent); }
+.pr-sbd-lift { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.pr-sbd-weight { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; letter-spacing: 1px; }
+.pr-sbd-unit { font-size: 13px; color: var(--text-muted); font-family: 'DM Sans', sans-serif; }
+.pr-sbd-detail { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+.pr-sbd-date { font-size: 10px; color: var(--text-muted); margin-top: 2px; opacity: 0.7; }
+
+/* ── PR Timeline ──────────────────────────────────── */
+.pr-timeline { margin: 8px 0 4px 0; padding: 10px 12px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); }
+.pr-tl-entry { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+.pr-tl-entry:last-child { border-bottom: none; }
+.pr-tl-val { font-weight: 800; color: var(--text-main); }
+.pr-tl-date { color: var(--text-muted); font-size: 11px; }
+
+/* ── Duration Badge (History) ─────────────────────── */
+.duration-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 700; color: var(--text-muted); vertical-align: middle; margin-left: 6px; }
+
+/* ── kg/lbs toggle ────────────────────────────────── */
+.unit-toggle-btn { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; letter-spacing: 0.5px; }
+.unit-toggle-btn:active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* ── Bodyweight Chart ─────────────────────────────── */
+.bw-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 16px 8px; margin-bottom: 20px; }
+
 .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 .stat-name { font-weight: 600; font-size: 16px; color: var(--text-main); }
 .stat-value { color: var(--accent); font-size: 18px; font-weight: 800; }
 
 /* SUMMARY SCREEN UI */
-.summary-card { background: var(--card); border: 2px solid var(--accent); border-radius: 24px; padding: 40px 20px; margin-top: 40px; box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2); text-align: center; }
+.summary-card { background: var(--card); border: 2px solid var(--accent); border-radius: 24px; padding: 40px 20px; margin-top: 40px; box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2); text-align: center; position: relative; overflow: hidden; }
 .summary-card h2 { color: var(--text-main); margin-top: 0; font-size: 28px; letter-spacing: -0.5px; }
 .summary-stats { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px; margin: 40px 0; }
 .s-stat { display: flex; flex-direction: column; gap: 8px; width: 40%; }
 .s-stat span { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; }
-.s-stat strong { color: var(--accent); font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.s-stat { opacity: 0; animation: statReveal 0.4s ease-out forwards; }
+.s-stat:nth-child(1) { animation-delay: 0.3s; }
+.s-stat:nth-child(2) { animation-delay: 0.45s; }
+.s-stat:nth-child(3) { animation-delay: 0.6s; }
+.s-stat:nth-child(4) { animation-delay: 0.75s; }
+.s-stat:nth-child(5) { animation-delay: 0.9s; }
+@keyframes statReveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+/* Confetti particles */
+.confetti-piece {
+    position: absolute; width: 8px; height: 8px; border-radius: 2px;
+    top: 0; pointer-events: none;
+    animation: confettiFall 2.2s ease-in forwards;
+}
+@keyframes confettiFall {
+    0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(340px) rotate(600deg); opacity: 0; }
+}
+.s-stat strong { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 36px; font-weight: 400; letter-spacing: 1px; }
 /* GLOBAL FLOATING TIMER BUTTON */
 .global-timer-fab {
     position: fixed;
@@ -757,6 +842,13 @@ button, .pill, .check-circle, .stat-card {
 /* Apply to the banner ONLY while it is actively counting down */
 #rest-timer-banner.active:not(.finished) {
     animation: pulseRing 2s infinite cubic-bezier(0.25, 1, 0.5, 1);
+}
+#rest-timer-banner.active:not(.finished) .timer-display {
+    animation: timerGlow 2s ease-in-out infinite;
+}
+@keyframes timerGlow {
+    0%, 100% { text-shadow: 0 0 8px rgba(249,115,22,0.3); }
+    50% { text-shadow: 0 0 22px rgba(249,115,22,0.85), 0 0 44px rgba(249,115,22,0.25); }
 }
 
 /* Ensure the old FAB animation is completely killed */
@@ -999,6 +1091,16 @@ button, .pill, .check-circle, .stat-card {
 @keyframes thumbShimmer {
     to { left: 200%; }
 }
+@keyframes drawChartLine {
+    from { stroke-dashoffset: 3000; }
+    to   { stroke-dashoffset: 0; }
+}
+.chart-line {
+    stroke-dasharray: 3000;
+    animation: drawChartLine 1s ease-out forwards;
+}
+.chart-fill { animation: chartFadeIn 0.8s ease-out forwards; }
+@keyframes chartFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* --- 4. Plate Loading Animation --- */
 .plate-balloon {
