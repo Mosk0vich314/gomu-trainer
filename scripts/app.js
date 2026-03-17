@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.17.2054";
+        const APP_VERSION = "v2026.03.17.2144";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -401,11 +401,19 @@
             `;
         }
 
+        const TAB_ORDER = ['library-screen', 'home-screen', 'history-screen'];
         function switchTab(tabId) {
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
+            const currentScreen = document.querySelector('.app-screen.active');
+            const fromIdx = TAB_ORDER.indexOf(currentScreen?.id ?? '');
+            const toIdx   = TAB_ORDER.indexOf(tabId);
+            const slideLeft = fromIdx !== -1 && toIdx !== -1 && toIdx < fromIdx;
+
+            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active', 'slide-left'));
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
+
+            const next = document.getElementById(tabId);
+            next.classList.add('active');
+            if (slideLeft) next.classList.add('slide-left');
             
             if(tabId === 'home-screen') {
                 document.getElementById('nav-home').classList.add('active');
@@ -569,10 +577,15 @@
             let bw = parseFloat(val);
             if (!isNaN(bw) && bw > 0) {
                 localStorage.setItem('userBodyweight', bw);
+                const bwHist = safeParse('bwHistory', []);
+                const today = new Date().toISOString().split('T')[0];
+                const filtered = bwHist.filter(e => e.d !== today);
+                filtered.push({ d: today, w: bw, ts: Date.now() });
+                localStorage.setItem('bwHistory', JSON.stringify(filtered));
             } else {
                 localStorage.removeItem('userBodyweight');
             }
-            renderStats(); // Auto-update the DOTS score when you type
+            renderStats();
         };
 
         window.updateGender = function(val) {
@@ -643,7 +656,9 @@
                 if (totalDays > 0) {
                     progContainer.style.display = 'block';
                     progText.innerText = `${doneDays}/${totalDays} Workouts`;
-                    setTimeout(() => { progFill.style.width = `${(doneDays / totalDays) * 100}%`; }, 100);
+                    const track = progFill ? progFill.parentElement : progContainer.querySelector('.progress-track');
+                    if (track) track.innerHTML = Array.from({length: totalDays}, (_, i) =>
+                        `<div class="p-dot${i < doneDays ? ' done' : ''}"></div>`).join('');
                     
                     // --- NEW: INTERACTIVE QUICK OVERVIEW ---
                     progContainer.style.cursor = 'pointer';
@@ -1240,9 +1255,12 @@
         window.drawChart = function() {
             const container = document.getElementById('chart-container');
             if(!container) return;
-            if(!currentChartEx) { 
-                container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size: 13px; font-style: italic;">Complete a workout to plot progress.</div>'; 
-                return; 
+            if(!currentChartEx) {
+                container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 0;color:var(--text-muted);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span style="font-size:13px;font-style:italic;">Complete a workout to plot progress.</span>
+                </div>`;
+                return;
             }
             
             let exName = currentChartEx;
@@ -1301,7 +1319,10 @@
             let data = Object.values(dayMap).sort((a, b) => a.ts - b.ts).slice(-7);
 
             if(data.length < 2) {
-                container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding-top:50px; font-size:13px; font-style: italic;">Need 2 sessions of this lift to plot progress.</div>`;
+                container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 0;color:var(--text-muted);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span style="font-size:13px;font-style:italic;">Need 2 sessions of this lift to plot progress.</span>
+                </div>`;
                 return;
             }
             
@@ -1347,9 +1368,24 @@
                         <text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Inter">${fmtDate(d.ts)}</text>`;
             }).join('');
             
+            // Build gradient fill polygon (line points + bottom corners)
+            const ptArr = data.map((d, i) => {
+                let x = (i / (data.length - 1)) * (w - 40) + 20;
+                let y = h - padding - ((d.value - minV) / range) * (h - 2 * padding);
+                return `${x},${y}`;
+            });
+            const fillPoly = [...ptArr, `${(w-40)+20},${h-padding}`, `20,${h-padding}`].join(' ');
+
             container.innerHTML = `<svg width="100%" height="${h}" style="overflow:visible;">
+                                      <defs>
+                                        <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="0%"   stop-color="var(--accent)" stop-opacity="0.25"/>
+                                          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+                                        </linearGradient>
+                                      </defs>
                                       ${gridHtml}
-                                      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <polygon points="${fillPoly}" fill="url(#chartFill)" class="chart-fill"/>
+                                      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="chart-line"/>
                                       ${circles}
                                    </svg>`;
         };
@@ -1692,7 +1728,7 @@
                             detailsHtml += `
                             <div class="hd-set-row">
                                 <span>Set ${i+1}</span>
-                                <span>${set.load}kg x ${set.reps}</span>
+                                <span>${kgDisp(set.load)} ${unitSuffix()} × ${set.reps}</span>
                                 <span>${rpeText}</span>
                             </div>`;
                         });
@@ -1702,12 +1738,14 @@
                     detailsHtml = `<div class="history-details"><div class="hd-set-row"><span>No detailed set data available for this legacy log.</span></div></div>`;
                 }
 
+                const dur = fmtDuration(log.duration);
+                const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
                 return `
                 <details class="history-card">
                     <summary class="history-summary">
-                        <span class="history-date">${log.date}</span>
+                        <span class="history-date">${log.date}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
                         <h3 class="history-title">${log.programName} (W${log.week} D${log.day})</h3>
-                        <div class="history-stats">${log.sets} Sets • ${log.volume.toLocaleString()} kg Volume</div>
+                        <div class="history-stats">${log.sets} Sets • ${volDisplay} Volume</div>
                         <button class="history-delete" onclick="event.preventDefault(); deleteHistoryLog('${log.id}', '${log.key}')">🗑️</button>
                         <div class="history-expand-indicator">▼ Expand</div>
                     </summary>
@@ -2176,37 +2214,73 @@
                 dotsScore = window.calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
             }
 
-            let html = '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Lifter Profile</h3>';
-            html += '<button style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onclick="updateOfficialSBD()">↻ Lock Total</button>';
-            html += '</div>';
-            
-            html += `
-            <div class="stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div style="flex: 1;"><span class="stat-name">Bodyweight</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                        <input type="number" class="input-box" style="width: 70px; padding: 8px; font-size: 16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
-                        <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
-                        
-                        <select class="input-box" style="width: 50px; padding: 8px; font-size: 14px; margin-left: 5px; appearance: none; text-align: center;" onchange="updateGender(this.value)">
-                            <option value="M" ${savedGender === 'M' ? 'selected' : ''}>M</option>
-                            <option value="F" ${savedGender === 'F' ? 'selected' : ''}>F</option>
-                        </select>
-                    </div>
+            const level = dotsLevel(dotsScore);
+            const squat1RM  = global1RMs['Squat']       || 0;
+            const bench1RM  = global1RMs['Bench Press'] || 0;
+            const dead1RM   = global1RMs['Deadlift']    || 0;
+            const currentUnit = getUnit();
+
+            let html = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="color:var(--text-main);font-size:18px;margin:0;">Lifter Profile</h3>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="unit-toggle-btn" onclick="window.toggleUnit()">${currentUnit === 'kg' ? 'kg → lbs' : 'lbs → kg'}</button>
+                    <button style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;" onclick="updateOfficialSBD()">↻ Lock Total</button>
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed var(--border); padding-top: 15px;">
-                    <div style="text-align: center; flex: 1; border-right: 1px dashed var(--border);">
-                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">SBD Total</div>
-                        <div style="font-size: 22px; font-weight: 900; color: var(--text-main);">${sbdTotal > 0 ? parseFloat(sbdTotal.toFixed(1)) + ' kg' : '--'}</div>
-                    </div>
-                    <div style="text-align: center; flex: 1;">
-                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">DOTS Score</div>
-                        <div style="font-size: 22px; font-weight: 900; color: #eab308;">${dotsScore > 0 ? dotsScore : '--'}</div>
-                    </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                <input type="number" class="input-box" style="width:70px;padding:8px;font-size:16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
+                <span style="color:var(--text-muted);font-size:13px;font-weight:700;">kg BW</span>
+                <select class="input-box" style="width:50px;padding:8px;font-size:14px;appearance:none;text-align:center;" onchange="updateGender(this.value)">
+                    <option value="M" ${savedGender === 'M' ? 'selected' : ''}>M</option>
+                    <option value="F" ${savedGender === 'F' ? 'selected' : ''}>F</option>
+                </select>
+            </div>
+            <div class="dots-trophy-card" style="border-color:${level.color};color:${level.color};">
+                <div class="dots-level-tag">${level.label}</div>
+                <div class="dots-score-val" style="color:${level.color};">${dotsScore > 0 ? dotsScore : '--'}</div>
+                <div class="dots-score-lbl">DOTS Score</div>
+                <div class="dots-sbd-row">
+                    <div class="dots-sbd-col"><span>Squat</span><strong style="color:var(--text-main);">${squat1RM > 0 ? kgDisp(squat1RM) : '--'}</strong></div>
+                    <div class="dots-sbd-col"><span>Bench</span><strong style="color:var(--text-main);">${bench1RM > 0 ? kgDisp(bench1RM) : '--'}</strong></div>
+                    <div class="dots-sbd-col"><span>Deadlift</span><strong style="color:var(--text-main);">${dead1RM > 0 ? kgDisp(dead1RM) : '--'}</strong></div>
+                    <div class="dots-sbd-col"><span>Total</span><strong style="color:var(--accent);">${sbdTotal > 0 ? kgDisp(sbdTotal) : '--'}</strong></div>
                 </div>
             </div>`;
+
+            // ── Bodyweight history mini-chart ─────────────────────────────────
+            const bwHist = safeParse('bwHistory', []).slice(-15).sort((a,b) => a.ts - b.ts);
+            if (bwHist.length >= 2) {
+                const bwVals = bwHist.map(e => currentUnit === 'lbs' ? e.w * 2.2046 : e.w);
+                const bwMin = Math.min(...bwVals), bwMax = Math.max(...bwVals);
+                const bwRange = bwMax - bwMin || 5;
+                const cw = 320, ch = 60, pad = 10;
+                const bwPts = bwVals.map((v, i) => {
+                    const x = (i / (bwVals.length - 1)) * (cw - pad*2) + pad;
+                    const y = ch - pad - ((v - bwMin) / bwRange) * (ch - pad*2);
+                    return `${x},${y}`;
+                }).join(' ');
+                const fillPts = bwVals.map((v, i) => {
+                    const x = (i / (bwVals.length - 1)) * (cw - pad*2) + pad;
+                    const y = ch - pad - ((v - bwMin) / bwRange) * (ch - pad*2);
+                    return `${x},${y}`;
+                });
+                fillPts.push(`${(cw-pad)},${ch-pad}`, `${pad},${ch-pad}`);
+                html += `<div class="bw-chart-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Bodyweight Trend</span>
+                        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${parseFloat(bwVals[bwVals.length-1].toFixed(1))} ${currentUnit}</span>
+                    </div>
+                    <svg width="100%" viewBox="0 0 ${cw} ${ch}" style="overflow:visible;">
+                        <defs><linearGradient id="bwFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+                        </linearGradient></defs>
+                        <polygon points="${fillPts.join(' ')}" fill="url(#bwFill)"/>
+                        <polyline points="${bwPts}" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line"/>
+                    </svg>
+                </div>`;
+            }
 
             html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current Baselines</h3>';
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
@@ -2236,38 +2310,61 @@
                 </div>`;
             });
 
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 40px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">All-Time Heaviest Lifts</h3>';
+            html += '<h3 style="color:var(--text-main);font-size:18px;margin-top:40px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px;">All-Time Heaviest Lifts</h3>';
 
-            // 3. Sort Bests & Add Subtle Highlight
+            // 3. Sort Bests
             const allBestKeys = Object.keys(actualBests);
             let sbdKeysBest = exactSBD.filter(k => allBestKeys.includes(k));
             const otherKeysBest = allBestKeys.filter(k => !exactSBD.includes(k)).sort();
             const bestKeys = [...sbdKeysBest, ...otherKeysBest];
 
             if (bestKeys.length === 0) {
-                html += '<div class="empty-stats" style="color: var(--text-muted); font-style: italic; font-size: 14px; text-align: center; padding: 20px;">No completed sets logged yet. Your heaviest actual lifts will automatically appear here.</div>';
+                html += `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 0;color:var(--text-muted);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                    <span style="font-size:13px;font-style:italic;">No completed sets yet. Your PRs will appear here.</span>
+                </div>`;
             } else {
-                bestKeys.forEach(ex => {
+                // SBD achievement cards (3-column row)
+                const sbdPresent = exactSBD.filter(k => allBestKeys.includes(k));
+                if (sbdPresent.length > 0) {
+                    html += '<div class="pr-sbd-row">';
+                    sbdPresent.forEach(ex => {
+                        const b = actualBests[ex];
+                        const safeExJS = ex.replace(/'/g, "\\'");
+                        const tlId = 'prtl-' + encodeURIComponent(ex);
+                        html += `<div class="pr-sbd-card" onclick="window.togglePRTimeline('${safeExJS}')">
+                            <div class="pr-sbd-lift">${ex === 'Bench Press' ? 'Bench' : ex}</div>
+                            <div class="pr-sbd-weight">${kgDisp(b.weight)}<span class="pr-sbd-unit"> ${unitSuffix()}</span></div>
+                            <div class="pr-sbd-detail">× ${b.reps} rep${b.reps > 1 ? 's' : ''}</div>
+                            <div class="pr-sbd-date">${b.date ? fmtShortDate(b.date) : ''}</div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    // PR timelines (hidden, one per SBD lift)
+                    sbdPresent.forEach(ex => {
+                        const tlId = 'prtl-' + encodeURIComponent(ex);
+                        html += `<div class="pr-timeline" id="${tlId}" style="display:none;margin-bottom:10px;"></div>`;
+                    });
+                }
+
+                // Non-SBD rows with date
+                const nonSBD = otherKeysBest.filter(k => allBestKeys.includes(k));
+                nonSBD.forEach(ex => {
                     const b = actualBests[ex];
                     const safeExHTML = ex.replace(/"/g, '&quot;');
-                    
-                    const isSBD = exactSBD.includes(ex);
-                    // Minimalist highlight: just an orange line on the left!
-                    const borderStyle = isSBD ? 'border-left: 3px solid var(--accent);' : '';
-                    const titleColor = isSBD ? 'color: var(--text-main); font-weight: 800;' : '';
-                    const iconHTML = isSBD ? '<span style="font-size: 14px; margin-right: 6px;">🏆</span>' : '';
-                    const valColor = isSBD ? 'var(--accent)' : 'var(--teal)';
-
+                    const safeExJS   = ex.replace(/'/g, "\\'");
+                    const tlId = 'prtl-' + encodeURIComponent(ex);
                     html += `
                     <div class="swipe-wrapper stat-swipe">
-                        <div class="swipe-delete-bg" style="right: 15px;">
+                        <div class="swipe-delete-bg" style="right:15px;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </div>
-                        <div class="stat-card stat-swipable" style="padding: 16px 18px; margin-bottom: 0; ${borderStyle}" data-exname="${safeExHTML}">
-                            <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3; ${titleColor}">${iconHTML}${ex}</span>
-                            <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; white-space: nowrap;">
-                                <span class="stat-value" style="color: ${valColor}; white-space: nowrap;">${b.weight} kg <span style="font-size: 14px; color: var(--text-muted);">x ${b.reps}</span></span>
+                        <div class="stat-card stat-swipable" style="padding:14px 18px;margin-bottom:0;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;" data-exname="${safeExHTML}" onclick="window.togglePRTimeline('${safeExJS}')">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span class="stat-name" style="flex:1;padding-right:10px;word-break:break-word;line-height:1.3;">${ex}</span>
+                                <span class="stat-value" style="color:var(--teal);white-space:nowrap;">${kgDisp(b.weight)} ${unitSuffix()} <span style="font-size:13px;color:var(--text-muted);">× ${b.reps}${b.date ? ` · ${fmtShortDate(b.date)}` : ''}</span></span>
                             </div>
+                            <div class="pr-timeline" id="${tlId}" style="display:none;"></div>
                         </div>
                     </div>`;
                 });
@@ -4005,8 +4102,14 @@
                                 showPRToast(exName, val, reps);
                             }
                             
-                            actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM };
+                            actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM, date: Date.now() };
                             localStorage.setItem('actualBests', JSON.stringify(actualBests));
+                            // Append to PR timeline history
+                            const prHist = safeParse('prHistory', {});
+                            if (!prHist[exName]) prHist[exName] = [];
+                            prHist[exName].push({ weight: val, reps: reps, e1rm: parseFloat(newE1RM.toFixed(1)), date: Date.now() });
+                            if (prHist[exName].length > 30) prHist[exName] = prHist[exName].slice(-30);
+                            localStorage.setItem('prHistory', JSON.stringify(prHist));
                         }
                     }
                 }
@@ -5075,6 +5178,119 @@
         };
 
         renderWarmupList();
+
+        // ── Unit helpers ─────────────────────────────────────────────────────
+        function getUnit()  { return localStorage.getItem('preferredUnit') || 'kg'; }
+        function unitSuffix() { return getUnit(); }
+        function kgDisp(kg, dec = 1) {
+            if (kg === null || kg === undefined || isNaN(kg)) return '--';
+            const v = getUnit() === 'lbs' ? kg * 2.2046 : kg;
+            return dec === 0 ? Math.round(v) : parseFloat(v.toFixed(dec));
+        }
+        window.toggleUnit = function() {
+            localStorage.setItem('preferredUnit', getUnit() === 'kg' ? 'lbs' : 'kg');
+            renderStats();
+            renderHistory();
+        };
+        function dotsLevel(score) {
+            if (score >= 500) return { label: 'World Class', color: '#f97316' };
+            if (score >= 400) return { label: 'Elite',       color: '#eab308' };
+            if (score >= 300) return { label: 'Advanced',    color: '#a78bfa' };
+            if (score >= 200) return { label: 'Intermediate',color: '#60a5fa' };
+            if (score >    0) return { label: 'Beginner',    color: '#71717a' };
+            return { label: 'Unranked', color: '#3f3f46' };
+        }
+        function fmtDuration(ms) {
+            if (!ms || ms <= 0) return null;
+            const m = Math.floor(ms / 60000);
+            const h = Math.floor(m / 60);
+            return h > 0 ? `${h}h ${m % 60}m` : `${m}m`;
+        }
+        function fmtShortDate(ts) {
+            if (!ts) return '';
+            return new Date(ts).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' });
+        }
+
+        // ── PR Timeline toggle ────────────────────────────────────────────────
+        function renderPRTimelineEl(exName, el) {
+            const prHist = safeParse('prHistory', {});
+            const entries = (prHist[exName] || []).slice().reverse();
+            if (entries.length === 0) {
+                el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0;">No PR history yet — tracked going forward.</div>';
+            } else {
+                const safeExJS = exName.replace(/'/g, "\\'");
+                el.innerHTML = entries.map(e => `
+                    <div class="pr-tl-entry">
+                        <span class="pr-tl-val">${kgDisp(e.weight)} ${unitSuffix()} × ${e.reps} <span style="color:var(--text-muted);font-size:11px;">(${kgDisp(e.e1rm)} e1RM)</span></span>
+                        <span style="display:flex;align-items:center;gap:10px;">
+                            <span class="pr-tl-date">${fmtShortDate(e.date)}</span>
+                            <button onclick="event.stopPropagation();window.deletePREntry('${safeExJS}',${e.date})" style="background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0;opacity:0.5;" title="Delete this PR">×</button>
+                        </span>
+                    </div>`).join('');
+            }
+        }
+
+        window.togglePRTimeline = function(exName) {
+            const id = 'prtl-' + encodeURIComponent(exName);
+            const el = document.getElementById(id);
+            if (!el) return;
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) renderPRTimelineEl(exName, el);
+        };
+
+        window.deletePREntry = function(exName, entryDate) {
+            const prHist = safeParse('prHistory', {});
+            if (!prHist[exName]) return;
+
+            // Remove the specific entry
+            prHist[exName] = prHist[exName].filter(e => e.date !== entryDate);
+            localStorage.setItem('prHistory', JSON.stringify(prHist));
+
+            // Check if this was the current best and update actualBests
+            let actualBests = safeParse('actualBests', {});
+            const cur = actualBests[exName];
+            if (cur && cur.date === entryDate) {
+                const remaining = prHist[exName];
+                if (remaining.length === 0) {
+                    delete actualBests[exName];
+                } else {
+                    const newBest = remaining.reduce((best, e) => e.e1rm > best.e1rm ? e : best, remaining[0]);
+                    actualBests[exName] = { weight: newBest.weight, reps: newBest.reps, e1rm: newBest.e1rm, date: newBest.date };
+                }
+                localStorage.setItem('actualBests', JSON.stringify(actualBests));
+                renderStats(); // Full re-render since the header card changed
+            } else {
+                // Just update the timeline in-place
+                const id = 'prtl-' + encodeURIComponent(exName);
+                const el = document.getElementById(id);
+                if (el) renderPRTimelineEl(exName, el);
+            }
+        };
+
+        // Confetti burst for workout complete
+        window.fireConfetti = function() {
+            const card = document.querySelector('.summary-card');
+            if (!card) return;
+            // Remove any old pieces
+            card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+            const colors = ['#f97316','#fb923c','#fbbf24','#14b8a6','#ffffff','#ef4444'];
+            const count = 22;
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.cssText = `
+                    left: ${8 + Math.random() * 84}%;
+                    background: ${colors[i % colors.length]};
+                    width: ${6 + Math.random() * 6}px;
+                    height: ${6 + Math.random() * 6}px;
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                    animation-delay: ${(Math.random() * 0.6).toFixed(2)}s;
+                    animation-duration: ${(1.8 + Math.random() * 1).toFixed(2)}s;
+                `;
+                card.appendChild(el);
+            }
+        };
 
         // Boot: try sessionStorage key first (page reload), else show login
         const cachedKey = sessionStorage.getItem('gomu_key');
