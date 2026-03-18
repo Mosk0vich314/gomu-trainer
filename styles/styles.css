@@ -294,7 +294,8 @@ button, .pill, .check-circle, .stat-card {
 .pill.active .indicator-active { color: #000; }
 
 /* EXPANDABLE HISTORY CARDS */
-.history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 0; overflow: hidden; }
+.history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 15px; overflow: hidden; }
+.swipe-wrapper .history-card { margin-bottom: 0; }
 .history-summary { padding: 20px; position: relative; cursor: pointer; display: flex; flex-direction: column; gap: 8px; list-style: none; }
 .history-summary::-webkit-details-marker { display: none; }
 .history-date { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
