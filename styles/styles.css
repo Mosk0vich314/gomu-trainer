@@ -435,7 +435,7 @@ button, .pill, .check-circle, .stat-card {
 .acc-lift .lift-logo { color: var(--teal); }
 
 .coach-notes { text-align: center; color: var(--text-muted); font-size: 14px; font-style: italic; padding: 0 20px 20px 20px; margin: 0; }
-.global-e1rm { text-align: center; color: var(--theme-color, var(--accent)); font-weight: 800; font-size: 14px; padding: 12px 0; background: rgba(249, 115, 22, 0.08); text-transform: uppercase; letter-spacing: 1px; }
+.global-e1rm { text-align: center; color: var(--theme-color, var(--accent)); font-weight: 800; font-size: 14px; padding: 12px 16px; background: rgba(249, 115, 22, 0.08); text-transform: uppercase; letter-spacing: 1px; }
 .acc-lift .global-e1rm { background: rgba(20, 184, 166, 0.08); }
 
 .exercise-container.main-lift { 

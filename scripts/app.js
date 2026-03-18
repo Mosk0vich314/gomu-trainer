@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.18.2222";
+        const APP_VERSION = "v2026.03.18.2234";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2678,6 +2678,50 @@
         window.colorizeRpe = function(input) {
             input.style.color = '';
         };
+        // --- RPE DRIFT INDICATOR ---
+        // Compares average RPE at similar loads across recent sessions to detect fatigue/adaptation
+        function getRpeDrift(exName) {
+            const history = safeParse('workoutHistory', []);
+            // Collect sessions where this exercise was performed with RPE data
+            let sessions = [];
+            for (let log of history) {
+                if (!log.details) continue;
+                const ex = log.details.find(e => e.name === exName);
+                if (!ex || !ex.sets || ex.sets.length === 0) continue;
+                // Only consider sets that have both load AND RPE
+                const validSets = ex.sets.filter(s => s.load > 0 && s.rpe && parseFloat(s.rpe) > 0);
+                if (validSets.length === 0) continue;
+                const avgLoad = validSets.reduce((sum, s) => sum + s.load, 0) / validSets.length;
+                const avgRpe = validSets.reduce((sum, s) => sum + parseFloat(s.rpe), 0) / validSets.length;
+                sessions.push({ date: log.date, avgLoad, avgRpe });
+                if (sessions.length >= 6) break; // Last 6 sessions max
+            }
+            if (sessions.length < 2) return null;
+            // sessions[0] is most recent, sessions[last] is oldest
+            // Find pairs with similar loads (within 10%) and compare RPE
+            const recent = sessions[0];
+            let drifts = [];
+            for (let i = 1; i < sessions.length; i++) {
+                const older = sessions[i];
+                const loadDiff = Math.abs(recent.avgLoad - older.avgLoad) / Math.max(older.avgLoad, 1);
+                if (loadDiff <= 0.15) { // Within 15% load similarity
+                    drifts.push(recent.avgRpe - older.avgRpe);
+                }
+            }
+            // If no similar-load comparisons, compare e1RM trend instead
+            if (drifts.length === 0) {
+                // Fall back: compare most recent vs average of older sessions
+                const recentRpe = sessions[0].avgRpe;
+                const olderAvgRpe = sessions.slice(1).reduce((s, x) => s + x.avgRpe, 0) / (sessions.length - 1);
+                drifts.push(recentRpe - olderAvgRpe);
+            }
+            const avgDrift = drifts.reduce((s, d) => s + d, 0) / drifts.length;
+            // Threshold: ±0.4 RPE is meaningful
+            if (avgDrift >= 0.4) return { dir: 'up', label: 'Fatiguing', delta: avgDrift };
+            if (avgDrift <= -0.4) return { dir: 'down', label: 'Adapting', delta: avgDrift };
+            return { dir: 'stable', label: 'Stable', delta: avgDrift };
+        }
+
         function renderWorkout() {
             const container = document.getElementById('workout-container');
             container.innerHTML = '';
@@ -2794,7 +2838,17 @@
 
                 const resolved1RM = getResolved1RM(ex.name);
                 const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${resolved1RM.toFixed(1)}kg` : '1RM --';
-                
+
+                // RPE Drift indicator
+                let driftHtml = '';
+                const drift = getRpeDrift(ex.name);
+                if (drift) {
+                    const arrow = drift.dir === 'up' ? '▲' : drift.dir === 'down' ? '▼' : '—';
+                    const color = drift.dir === 'up' ? 'var(--danger)' : drift.dir === 'down' ? 'var(--teal)' : 'var(--text-muted)';
+                    const delta = Math.abs(drift.delta).toFixed(1);
+                    driftHtml = `<span style="margin-left:auto; font-size:11px; font-weight:800; color:${color}; display:inline-flex; align-items:center; gap:3px; letter-spacing:0.5px;">${arrow} ${drift.label} <span style="opacity:0.7; font-weight:600;">(${delta})</span></span>`;
+                }
+
                 const notesHtml = ex.notes ? `<div class="coach-notes">${ex.notes}</div>` : ''; 
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
@@ -2866,7 +2920,7 @@
                         
                         ${displayNotesHtml}
                         
-                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}">${historical1RM}</div>` : ''}
+                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}" style="display:flex; align-items:center; justify-content:center; gap:8px;"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
                     `;
 
                 const numBlocks = ex.blocks.length;
