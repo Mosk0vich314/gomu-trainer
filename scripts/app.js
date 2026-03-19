@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.19.2058";
+        const APP_VERSION = "v2026.03.19.2112";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3023,7 +3023,7 @@
                             </button>
                             `}
                             
-                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; display: inline-block; padding-bottom: 2px; margin-bottom: -3px;'}">
+                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
                                 ${ex.name}
                             </h2>
                             
@@ -4168,8 +4168,7 @@
             const absTime = Math.abs(timeLeft);
             const m = Math.floor(absTime / 60).toString().padStart(2, '0');
             const s = (absTime % 60).toString().padStart(2, '0');
-            const sign = timeLeft < 0 ? "-" : "";
-            document.getElementById('timer-display').innerText = `${sign}${m}:${s}`;
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
         }
 
         function adjustTimer(seconds) {
@@ -5190,7 +5189,7 @@
                         exHtml += `
                         <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); border-left: 3px solid ${stripeColor};">
                             <div style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); color: ${stripeColor}; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${idx + 1}</div>
-                            <span style="flex: 1; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                            <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
                         </div>`;
                     });
                     exHtml += `</div>`;
