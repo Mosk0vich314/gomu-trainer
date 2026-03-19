@@ -367,7 +367,7 @@ button, .pill, .check-circle, .stat-card {
     text-align: left;
     overflow: hidden;
 }
-.fb-title { font-weight: 800; font-size: 14px; color: var(--text-main); line-height: 1.2; }
+.fb-title { font-weight: 800; font-size: 14px; color: var(--text-main); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fb-subtitle { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .fb-action {
@@ -917,9 +917,9 @@ button, .pill, .check-circle, .stat-card {
     top: 50px; /* Springs down into view */
 }
 .pr-icon { font-size: 24px; }
-.pr-text { display: flex; flex-direction: column; text-align: left; }
+.pr-text { display: flex; flex-direction: column; text-align: left; min-width: 0; overflow: hidden; }
 .pr-title { font-size: 11px; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 1px; }
-.pr-desc { font-size: 15px; font-weight: 800; color: #fff; }
+.pr-desc { font-size: 15px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* --- RPE INFO MODAL --- */
 #rpe-modal {
