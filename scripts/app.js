@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.18.2234";
+        const APP_VERSION = "v2026.03.19.1546";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2047,6 +2047,36 @@
                 renderStats(); // Snaps the swiped card back to normal if cancelled
             }
         };
+        window.deleteTopPR = async function(exName) {
+            const actualBests = safeParse('actualBests', {});
+            const best = actualBests[exName];
+            if (!best) { renderStats(); return; }
+            const prHist = safeParse('prHistory', {});
+            const remaining = (prHist[exName] || []).filter(e => e.date !== best.date);
+            const msg = remaining.length > 0
+                ? `Remove the current best for ${exName}? The next-best PR will become your new record.`
+                : `Remove the only PR record for ${exName}?`;
+            const confirmed = await showConfirm(
+                "Delete Top PR?",
+                msg,
+                "Delete",
+                "Cancel",
+                true
+            );
+            if (confirmed) {
+                // Handle deletion directly to guarantee renderStats is always called
+                prHist[exName] = remaining;
+                localStorage.setItem('prHistory', JSON.stringify(prHist));
+                if (remaining.length === 0) {
+                    delete actualBests[exName];
+                } else {
+                    const newBest = remaining.reduce((a, b) => b.e1rm > a.e1rm ? b : a, remaining[0]);
+                    actualBests[exName] = { weight: newBest.weight, reps: newBest.reps, e1rm: newBest.e1rm, date: newBest.date };
+                }
+                localStorage.setItem('actualBests', JSON.stringify(actualBests));
+            }
+            renderStats(); // Always re-render (both confirm and cancel)
+        };
         function setupStatsSwipe() {
             const bindSwipe = (el, threshold, onTrigger) => {
                 let startX = 0, startY = 0, currentX = 0, isDragging = false, isScrolling = false;
@@ -2099,7 +2129,7 @@
             };
 
             document.querySelectorAll('.stat-swipable').forEach(el => {
-                bindSwipe(el, -80, () => resetSpecificLift(el.dataset.exname));
+                bindSwipe(el, -80, () => deleteTopPR(el.dataset.exname));
             });
         }
         // --- NEW: PHYSIQUE TRACKING ENGINE ---
@@ -2230,7 +2260,90 @@
                 renderStats();
             }
         };
+        function rebuildPRHistoryFromWorkouts() {
+            const history = workoutHistoryCache || [];
+            if (history.length === 0) return;
+            // One-time migration: wipe prHistory calculated with wrong RTS table
+            if (!localStorage.getItem('prHistoryRTS_v2')) {
+                localStorage.removeItem('prHistory');
+                localStorage.setItem('prHistoryRTS_v2', '1');
+            }
+            const actualBests = safeParse('actualBests', {});
+            const prHist = safeParse('prHistory', {});
+            // Only rebuild for exercises missing prHistory
+            const needsRebuild = Object.keys(actualBests).some(ex => !prHist[ex] || prHist[ex].length === 0);
+            if (!needsRebuild) return;
+
+            const rts = {
+                10:[1.000,0.960,0.920,0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.690],
+                9.5:[0.980,0.940,0.910,0.880,0.850,0.820,0.800,0.770,0.750,0.720,0.690,0.670],
+                9:[0.960,0.920,0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.680,0.650],
+                8.5:[0.940,0.910,0.880,0.850,0.820,0.800,0.770,0.750,0.720,0.690,0.670,0.640],
+                8:[0.920,0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.680,0.650,0.630],
+                7.5:[0.910,0.880,0.850,0.820,0.800,0.770,0.750,0.720,0.690,0.670,0.640,0.610],
+                7:[0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.680,0.650,0.630,0.600],
+                6.5:[0.880,0.850,0.820,0.800,0.770,0.750,0.720,0.690,0.670,0.640,0.610,0.580],
+                6:[0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.680,0.650,0.630,0.600,0.570],
+                5.5:[0.850,0.820,0.800,0.770,0.750,0.720,0.690,0.670,0.640,0.610,0.580,0.550],
+                5:[0.840,0.810,0.790,0.760,0.740,0.710,0.680,0.650,0.630,0.600,0.570,0.540]
+            };
+            const calcE1RM = (w, r, rpe) => {
+                if (!w || w <= 0 || !r || r <= 0) return 0;
+                let p = isNaN(rpe) || rpe < 0 || rpe > 10 ? 10 : rpe;
+                let rounded = Math.round(p * 2) / 2;
+                let rIdx = Math.max(0, Math.min(11, r - 1));
+                let pct = rounded >= 5 ? rts[rounded][rIdx] : Math.max(0.1, rts[5][rIdx] - ((5 - rounded) * 0.025));
+                return w / pct;
+            };
+
+            // Sort oldest-first
+            const sorted = [...history].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+            const runningBest = {};
+            const rebuilt = {};
+
+            sorted.forEach(workout => {
+                const ts = parseInt(workout.id) || Date.parse(workout.date) || 0;
+                if (!workout.details) return;
+                workout.details.forEach(ex => {
+                    const exName = normalizeExName(ex.name);
+                    if (!ex.sets) return;
+                    ex.sets.forEach(set => {
+                        const w = set.load || 0;
+                        const r = set.reps || 0;
+                        const rpe = parseFloat(set.rpe) || 10;
+                        let effectiveW = w;
+                        if (isBodyweightExercise(exName)) {
+                            const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                            if (bw > 0) effectiveW += bw;
+                        }
+                        const e1rm = calcE1RM(effectiveW, r, rpe);
+                        if (e1rm <= 0) return;
+                        const cur = runningBest[exName];
+                        const isBetter = !cur || (e1rm - cur.e1rm) > 0.01 || (Math.abs(e1rm - cur.e1rm) <= 0.01 && w > cur.weight);
+                        if (isBetter) {
+                            runningBest[exName] = { weight: w, reps: r, e1rm: parseFloat(e1rm.toFixed(1)), date: ts };
+                            if (!rebuilt[exName]) rebuilt[exName] = [];
+                            rebuilt[exName].push({ weight: w, reps: r, e1rm: parseFloat(e1rm.toFixed(1)), date: ts });
+                        }
+                    });
+                });
+            });
+
+            // Fill in missing prHistory from rebuilt data
+            let changed = false;
+            Object.keys(actualBests).forEach(ex => {
+                if ((!prHist[ex] || prHist[ex].length === 0) && rebuilt[ex]) {
+                    prHist[ex] = rebuilt[ex].slice(-30);
+                    changed = true;
+                }
+            });
+            if (changed) {
+                localStorage.setItem('prHistory', JSON.stringify(prHist));
+            }
+        }
+
         function renderStats() {
+            rebuildPRHistoryFromWorkouts();
             const statsContainer = document.getElementById('stats-container');
             let global1RMs = safeParse('global1RMs', {});
             let actualBests = safeParse('actualBests', {});
@@ -2395,13 +2508,18 @@
                     html += '<div class="pr-sbd-row">';
                     sbdPresent.forEach(ex => {
                         const b = actualBests[ex];
+                        const safeExHTML = ex.replace(/"/g, '&quot;');
                         const safeExJS = ex.replace(/'/g, "\\'");
-                        const tlId = 'prtl-' + encodeURIComponent(ex);
-                        html += `<div class="pr-sbd-card" onclick="window.togglePRTimeline('${safeExJS}')">
-                            <div class="pr-sbd-lift">${ex === 'Bench Press' ? 'Bench' : ex}</div>
-                            <div class="pr-sbd-weight">${kgDisp(b.weight)}<span class="pr-sbd-unit"> ${unitSuffix()}</span></div>
-                            <div class="pr-sbd-detail">× ${b.reps} rep${b.reps > 1 ? 's' : ''}</div>
-                            <div class="pr-sbd-date">${b.date ? fmtShortDate(b.date) : ''}</div>
+                        html += `<div class="swipe-wrapper sbd-swipe">
+                            <div class="swipe-delete-bg" style="right:8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </div>
+                            <div class="pr-sbd-card stat-swipable" data-exname="${safeExHTML}" onclick="window.togglePRTimeline('${safeExJS}')">
+                                <div class="pr-sbd-lift">${ex === 'Bench Press' ? 'Bench' : ex}</div>
+                                <div class="pr-sbd-weight">${kgDisp(b.weight)}<span class="pr-sbd-unit"> ${unitSuffix()}</span></div>
+                                <div class="pr-sbd-detail">× ${b.reps} rep${b.reps > 1 ? 's' : ''}</div>
+                                <div class="pr-sbd-date">${b.date ? fmtShortDate(b.date) : ''}</div>
+                            </div>
                         </div>`;
                     });
                     html += '</div>';
@@ -4178,17 +4296,17 @@
                         const getSetE1RM = (w, r, rpe) => {
                             if (!w || w <= 0 || !r || r <= 0) return 0;
                             const rts = {
-                                10:   [1.000, 0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675],
-                                9.5:  [0.975, 0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650],
-                                9:    [0.950, 0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650],
-                                8.5:  [0.925, 0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625],
-                                8:    [0.925, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625],
-                                7.5:  [0.900, 0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600],
-                                7:    [0.875, 0.850, 0.850, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600],
-                                6.5:  [0.875, 0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.650, 0.625, 0.600, 0.575],
-                                6:    [0.850, 0.825, 0.800, 0.775, 0.750, 0.700, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575],
-                                5.5:  [0.850, 0.825, 0.800, 0.775, 0.750, 0.725, 0.700, 0.675, 0.625, 0.600, 0.575, 0.550],
-                                5:    [0.825, 0.800, 0.800, 0.750, 0.725, 0.700, 0.675, 0.650, 0.625, 0.600, 0.575, 0.550]
+                                10:   [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690],
+                                9.5:  [0.980, 0.940, 0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670],
+                                9:    [0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650],
+                                8.5:  [0.940, 0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640],
+                                8:    [0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630],
+                                7.5:  [0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610],
+                                7:    [0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600],
+                                6.5:  [0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610, 0.580],
+                                6:    [0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600, 0.570],
+                                5.5:  [0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610, 0.580, 0.550],
+                                5:    [0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600, 0.570, 0.540]
                             };
                             let parsed = isNaN(rpe) || rpe < 0 || rpe > 10 ? 10 : rpe;
                             let rounded = Math.round(parsed * 2) / 2;
@@ -5335,7 +5453,7 @@
             const prHist = safeParse('prHistory', {});
             const entries = (prHist[exName] || []).slice().reverse();
             if (entries.length === 0) {
-                el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0;">No PR history yet — tracked going forward.</div>';
+                el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0;">No PR progression recorded yet.</div>';
             } else {
                 const safeExJS = exName.replace(/'/g, "\\'");
                 el.innerHTML = entries.map(e => `
