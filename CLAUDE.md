@@ -106,10 +106,13 @@ Screen transitions use `switchTab(tabId)` which applies directional slide animat
 ## UI patterns
 
 ### Swipe-to-delete
-Three separate implementations for different card types — all follow the same pattern: `.swipe-wrapper` (red bg) + `.swipable-element` (the card) + `.swipe-delete-bg` (trash icon). Implementations:
+Four separate implementations for different card types — all follow the same pattern: `.swipe-wrapper` (red bg) + `.swipable-element` (the card) + `.swipe-delete-bg` (trash icon). Implementations:
 - Exercise blocks: `setupSwipeToDelete()` → `.exercise-container.swipable`
-- Stats PR rows: `setupStatsSwipe()` → `.stat-swipable`
+- Stats PR rows (non-SBD): `setupStatsSwipe()` → `.stat-swipable` — calls `deleteTopPR(exName)`, removes only the current best PR entry
+- Stats SBD cards: also use `.stat-swipable` inside `.swipe-wrapper.sbd-swipe` — same `deleteTopPR` behavior
 - History cards: `setupHistorySwipe()` → `.hist-swipable` (wraps `<details>` element; blocks details toggle on swipe via `el.dataset.swipeMoved`)
+
+**SBD swipe layout note:** SBD cards are in a flex row (`.pr-sbd-row`). Each card is wrapped in `.swipe-wrapper.sbd-swipe` which has `display: flex` so the inner `.pr-sbd-card` stretches to full height. Without `display: flex` on the wrapper the red background bleeds out at the bottom.
 
 ### PR system
 PRs are tracked when a set's e1RM exceeds the stored best. On PR:
@@ -118,14 +121,35 @@ PRs are tracked when a set's e1RM exceeds the stored best. On PR:
 
 PR timeline is toggled by clicking the exercise card (`window.togglePRTimeline`). Individual PR entries can be deleted via `window.deletePREntry(exName, date)` — if the deleted entry was the current best, `actualBests` is recalculated from remaining history.
 
+`window.deleteTopPR(exName)` — swipe action for both SBD and non-SBD cards. Deletes only the current best entry, falls back to next-best. Handles deletion directly (does not delegate to `deletePREntry`) to guarantee `renderStats()` is always called.
+
+`rebuildPRHistoryFromWorkouts()` — called at the top of `renderStats()`. Scans `workoutHistoryCache` (oldest-first), recomputes e1RM for every logged set using the RTS table, and fills in `prHistory` for any exercise that is missing it. Runs only when needed (checks if any `actualBests` entry lacks `prHistory`). localStorage flag `prHistoryRTS_v2` gates a one-time wipe of old prHistory built with the wrong RTS table.
+
+### RTS table
+There is **one canonical RTS table** used throughout the app. The correct first row is:
+`10: [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690]`
+Any deviation from this (e.g. `0.950, 0.925` in the RPE-10 row) is the **old wrong table** — do not use it. All six occurrences of the RTS table in app.js must match.
+
 ### Charts
 `drawChart(exName)` in `history-screen`: groups e1RM data by day (`localDateKey`), takes last 7 data points, renders SVG with gradient fill + animated draw (`stroke-dashoffset`). Empty state shows an SVG icon + italic message.
 
 ### Stats screen sections (in order)
 1. Lifter Profile — DOTS trophy card (score + level), bodyweight trend mini-chart, BW input
 2. Manual 1RM overrides — swipable rows
-3. All-Time Heaviest Lifts — SBD 3-card row (clickable, expands PR timeline) + non-SBD swipable rows (clickable, expand PR timeline)
+3. All-Time Heaviest Lifts — SBD 3-card row (swipable + clickable, expands PR timeline) + non-SBD swipable rows (clickable, expand PR timeline)
 4. Physique Tracking — privacy-gated photo gallery
+
+### Exercise type / color logic
+`ex.type === 'main'` → orange (`--accent`). `ex.type === 'accessory'` or anything else → teal (`--teal`). **Always check `ex.type` first.** Do not infer type from the exercise name (e.g. "Single Leg RDL (deadlift)" is accessory despite containing the word "deadlift"). The name-based fallback is only a last resort when `ex.type` is absent, and should only match exact SBD names.
+
+### Timer
+Rest timer counts down to 0, beeps, then continues counting up (overtime). The display always shows absolute value — no minus sign — so `00:30` means either "30 seconds left" or "30 seconds overtime" depending on context. The `.finished` class on the banner signals overtime.
+
+### Overflow / mobile layout rules
+- All `position: fixed` banners/toasts that size to content must have `max-width: calc(100vw - Xpx)` and `box-sizing: border-box`.
+- Text nodes inside flex items that could be long must have `min-width: 0` on the flex item and `overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on the text element.
+- Exercise title in workout cards (`.ex-title`) uses `width: 100%` (block) — not `display: inline-block` — so the container's `padding: 16px 50px` correctly keeps it clear of the absolutely-positioned icon buttons.
+- SBD swipe wrappers need `display: flex` to prevent red background bleeding below shorter cards in the same flex row.
 
 ## Key conventions
 - Version format: `YYYY.MM.DD.HHMM` — generated automatically by `deploy.py`.
