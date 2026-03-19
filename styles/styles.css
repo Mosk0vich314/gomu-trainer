@@ -385,8 +385,8 @@ button, .pill, .check-circle, .stat-card {
 .rest-timer-banner.finished { background: var(--accent); border-color: #fff; }
 .rest-timer-banner.finished .timer-display { color: #000; }
 .timer-display { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
-.timer-controls { display: flex; gap: 8px; }
-.timer-controls button { background: #27272a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.timer-controls { display: flex; gap: 8px; flex-shrink: 0; }
+.timer-controls button { background: #27272a; color: white; border: none; padding: 10px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; white-space: nowrap; }
 .timer-controls button:active { background: #3f3f46; }
 
 /* Custom Teal Start Button */
@@ -910,7 +910,8 @@ button, .pill, .check-circle, .stat-card {
     z-index: 3000;
     transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
-    white-space: nowrap;
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
 }
 .pr-toast.show {
     top: 50px; /* Springs down into view */
