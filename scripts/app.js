@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.19.2112";
+        const APP_VERSION = "v2026.03.19.2124";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -5183,7 +5183,7 @@
                     exHtml += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
                     exercises.forEach((ex, idx) => {
                         // Keep the color logic, but move it to a left-border stripe and the number
-                        const isMain = ex.type === 'main' || ex.name.toLowerCase().includes('squat') || ex.name.toLowerCase().includes('bench') || ex.name.toLowerCase().includes('deadlift');
+                        const isMain = ex.type ? ex.type === 'main' : (ex.name.toLowerCase() === 'squat' || ex.name.toLowerCase() === 'bench press' || ex.name.toLowerCase() === 'deadlift');
                         const stripeColor = isMain ? 'var(--accent)' : 'var(--teal)';
 
                         exHtml += `

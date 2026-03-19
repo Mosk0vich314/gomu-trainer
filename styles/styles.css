@@ -397,10 +397,10 @@ button, .pill, .check-circle, .stat-card {
 .status-header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 18px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); }
 
 /* SLEEK RECTANGULAR SLIDER (TEAL ACCENT) */
-.slider-container { position: relative; width: 100%; height: 64px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 10px; margin-bottom: 25px; user-select: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); touch-action: none;}
-.slider-text { position: absolute; width: 100%; height: 100%; line-height: 62px; text-align: center; color: var(--text-muted); font-weight: 800; font-size: 14px; pointer-events: none; z-index: 1; text-transform: uppercase; letter-spacing: 2px; transition: opacity 0.2s;}
-.slider-track { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(20,184,166,0.18); z-index: 0; }
-.slider-thumb { position: absolute; left: 6px; top: 6px; width: 70px; height: 50px; background: #18181b; border: 2px solid var(--teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; z-index: 2; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.2s; color: var(--teal); box-sizing: border-box; overflow: hidden;}
+.slider-container { position: relative; width: 100%; height: 64px; background: var(--input-bg); border: 1px solid var(--teal); border-radius: 16px; overflow: hidden; margin-top: 10px; margin-bottom: 25px; user-select: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 0 1px rgba(20,184,166,0.15); touch-action: none;}
+.slider-text { position: absolute; width: 100%; height: 100%; line-height: 62px; text-align: center; color: var(--teal); font-weight: 800; font-size: 14px; pointer-events: none; z-index: 1; text-transform: uppercase; letter-spacing: 2px; transition: opacity 0.2s; opacity: 0.7;}
+.slider-track { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(20,184,166,0.50); z-index: 0; }
+.slider-thumb { position: absolute; left: 6px; top: 6px; width: 70px; height: 50px; background: #2e2e32; border: 2px solid var(--teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; z-index: 2; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.2s; color: var(--teal); box-sizing: border-box; overflow: hidden;}
 .slider-thumb:active { cursor: grabbing; }
 
 /* UNLOCK PREVIEW MODE FOR EDITING */
