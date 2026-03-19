@@ -417,8 +417,8 @@ button, .pill, .check-circle, .stat-card {
 .stat-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; width: 100%; position: relative; z-index: 2; box-sizing: border-box; }
 .stat-swipable.swiping { transition: none; }
 .swipe-wrapper.stat-swipe { background: var(--danger); border-radius: 12px; margin-bottom: 12px; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: none; }
-.swipe-wrapper.sbd-swipe { flex: 1; background: var(--danger); border-radius: 14px; position: relative; overflow: hidden; margin-bottom: 0; box-shadow: none; }
-.swipe-wrapper.sbd-swipe .pr-sbd-card { margin-bottom: 0; }
+.swipe-wrapper.sbd-swipe { flex: 1; background: var(--danger); border-radius: 14px; position: relative; overflow: hidden; margin-bottom: 0; box-shadow: none; display: flex; }
+.swipe-wrapper.sbd-swipe .pr-sbd-card { margin-bottom: 0; flex: 1; }
 /* HISTORY SWIPE STYLES */
 .hist-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; width: 100%; position: relative; z-index: 2; margin-bottom: 0; }
 .hist-swipable.swiping { transition: none; }
