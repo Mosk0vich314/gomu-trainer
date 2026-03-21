@@ -432,6 +432,10 @@ button, .pill, .check-circle, .stat-card {
 .lift-logo { position: absolute; top: 16px; left: 16px; }
 .btn-warmup-icon { position: absolute; top: 16px; right: 16px; background: #27272a; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 14px; cursor: pointer; font-weight: 800; transition: 0.2s; }
 .btn-warmup-icon:active { background: var(--accent); color: #000; }
+.eq-cycle-chip { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 1px 8px; font-size: 9px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: 0.15s; font-family: 'Space Grotesk', sans-serif; }
+.eq-cycle-chip:active { background: var(--border); color: var(--text-main); }
+.target-dismiss-chip { background: none; border: 1px solid color-mix(in srgb, var(--tc) 40%, transparent); color: var(--tc); border-radius: 6px; padding: 4px 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; line-height: 1; font-family: 'Space Grotesk', sans-serif; opacity: 0.7; transition: 0.15s; }
+.target-dismiss-chip:active { opacity: 1; background: color-mix(in srgb, var(--tc) 15%, transparent); }
 
 .main-lift .lift-logo { color: var(--accent); }
 .acc-lift .lift-logo { color: var(--teal); }
