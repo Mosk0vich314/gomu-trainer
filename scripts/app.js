@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.19.2325";
+        const APP_VERSION = "v2026.03.21.1619";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -626,6 +626,39 @@
         window.isBodyweightExercise = function(name) {
             if (!name) return false;
             return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
+        };
+
+        window.getEquipmentMode = function(exName) {
+            const modes = safeParse('equipmentModes', {});
+            if (modes[exName]) return modes[exName];
+            // Auto-detect default from exercise name
+            if (/dumbbell|dumbell|\bdb\b/i.test(exName)) return '1db';
+            if (/cable|machine|pulldown|lat pull|tricep push|face pull/i.test(exName)) return 'cable';
+            return 'bb';
+        };
+
+        window.setEquipmentMode = function(exName, mode) {
+            const modes = safeParse('equipmentModes', {});
+            modes[exName] = mode;
+            localStorage.setItem('equipmentModes', JSON.stringify(modes));
+            renderWorkout();
+        };
+
+        window.cycleEquipmentMode = function(exName) {
+            const order = ['bb', '1db', '2db', 'cable'];
+            const current = getEquipmentMode(exName);
+            const next = order[(order.indexOf(current) + 1) % order.length];
+            setEquipmentMode(exName, next);
+        };
+
+        window.roundForEquipment = function(weight, exName) {
+            const mode = getEquipmentMode(exName);
+            switch (mode) {
+                case '1db':  return Math.round(weight / 2) * 2;
+                case '2db':  return Math.round(weight / 4) * 4;
+                case 'cable': return parseFloat(weight.toFixed(1));
+                default:     return Math.round(weight / 2.5) * 2.5;
+            }
         };
 
         function updateDashboard() {
@@ -2382,8 +2415,8 @@
             const savedBw = localStorage.getItem('userBodyweight') || '';
             const savedGender = localStorage.getItem('userGender') || 'M';
 
-            // 1. SBD Total Math (Locked officially via button)
-            const sbdTotal = parseFloat(localStorage.getItem('officialSBDTotal')) || 0;
+            // 1. SBD Total Math (always computed live from current 1RMs)
+            const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
             
             let dotsScore = 0;
             if (savedBw && typeof calculateDOTS === 'function') {
@@ -2684,7 +2717,7 @@
             `;
             
             let sets = [];
-            const roundToPlate = (w) => Math.round(w / 2.5) * 2.5;
+            const roundToPlate = (w) => roundForEquipment(w, exName);
 
             const wReps1 = targetReps >= 8 ? 4 : 1;
             const wReps2 = targetReps >= 8 ? 5 : 2;
@@ -3035,9 +3068,16 @@
                             </button>
                             `}
                         </div>
-                        
+
+                        ${!isNonExercise ? (() => {
+                            const eqMode = getEquipmentMode(ex.name);
+                            const safeExJS = ex.name.replace(/'/g, "\\'");
+                            const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
+                            return `<div style="text-align:center;padding:2px 0;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button></div>`;
+                        })() : ''}
+
                         ${displayNotesHtml}
-                        
+
                         ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}" style="display:flex; align-items:center; justify-content:center; gap:8px;"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
                     `;
 
@@ -3106,7 +3146,7 @@
                     for(let s = 1; s <= block.sets; s++) {
                         let smartDefaultLoad = '';
                         if (block.pct && resolved1RM > 0) {
-                            smartDefaultLoad = Math.round((resolved1RM * block.pct) / 2.5) * 2.5;
+                            smartDefaultLoad = roundForEquipment(resolved1RM * block.pct, ex.name);
                         } else if (block.targetRpe && resolved1RM > 0) {
                             // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
                             const rtsChart = {
@@ -3133,7 +3173,7 @@
                             }
                             
                             if (targetPct > 0) {
-                                let calcWeight = Math.round((resolved1RM * targetPct) / 2.5) * 2.5;
+                                let calcWeight = roundForEquipment(resolved1RM * targetPct, ex.name);
                                 if (isBodyweightExercise(ex.name)) {
                                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
                                     if (bw > 0) calcWeight = Math.max(0, calcWeight - bw);
@@ -3213,8 +3253,11 @@
                             const themeColor = isMain ? 'var(--accent)' : 'var(--teal)';
 
                             const isLatestExtra = (eIdx === extrasArray.length - 1);
-                            const setLabel = isLatestExtra ? 
-                                `<span style="color: ${themeColor}; font-size: 11px; line-height: 1; text-align: center; font-weight:800;">TARGET<br>SET</span>` : 
+                            const canDismiss = isLatestExtra && !eIsChecked;
+                            const setLabel = canDismiss ?
+                                `<button class="target-dismiss-chip" style="--tc:${themeColor};" onclick="event.stopPropagation();dismissTargetSet(${exIndex},${bIndex},'s${s}',${eIdx})">SKIP</button>` :
+                                isLatestExtra ?
+                                `<span style="color: ${themeColor}; font-size: 11px; line-height: 1; text-align: center; font-weight:800;">TARGET<br>SET</span>` :
                                 `<span>${s}.${eIdx + 1}</span>`;
                                 
                             const borderStyle = isLatestExtra ? `border: 1px dashed ${themeColor};` : `border: 1px solid transparent;`;
@@ -4490,6 +4533,20 @@
             localStorage.setItem(workoutKey, JSON.stringify(savedSession));
         }
 
+        window.dismissTargetSet = function(exIndex, bIndex, setId, extraIndex) {
+            const workoutKey = getWorkoutKey();
+            let savedSession = safeParse(workoutKey, {});
+            const extrasKey = `extras_${exIndex}_${bIndex}_${setId}`;
+            let extrasArray = savedSession[extrasKey] || [];
+            if (extraIndex >= 0 && extraIndex < extrasArray.length) {
+                // Remove this and all subsequent extras
+                extrasArray = extrasArray.slice(0, extraIndex);
+                savedSession[extrasKey] = extrasArray;
+                localStorage.setItem(workoutKey, JSON.stringify(savedSession));
+                renderWorkout();
+            }
+        };
+
         function checkAndAddTargetRpeSet(rowId, weight, inputRpe, reps) {
             // Match standard set (s1) or an extra set attached to it (s1_extra_0)
             const match = rowId.match(/ex-(\d+)_b(\d+)_(s\d+)(?:_extra_(\d+))?/);
@@ -4554,13 +4611,16 @@
                 }
 
                 const e1rm = effectiveWeight / currentPct;
-                let targetEffectiveWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                let targetEffectiveWeight = roundForEquipment(e1rm * targetPct, ex.name);
                 
                 let newWeight = targetEffectiveWeight;
                 if (isBodyweightExercise(ex.name)) {
                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
                     if (bw > 0) newWeight = Math.max(0, targetEffectiveWeight - bw); // Subtract BW back out so it just tells you the added plate weight!
                 }
+
+                // Skip if rounded weight is the same as what was just lifted
+                if (newWeight === weight) return;
 
                 extrasArray = extrasArray.slice(0, currentExtraIndex + 1);
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
@@ -4767,7 +4827,7 @@
 
                             // Calculate weight based on percentage
                             if (targetPct > 0) {
-                                let targetWeight = Math.round((e1rm * targetPct) / 2.5) * 2.5;
+                                let targetWeight = roundForEquipment(e1rm * targetPct, exName);
                                 
                                 if (isBodyweightExercise(exName)) {
                                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
