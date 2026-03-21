@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.21.1619";
+        const APP_VERSION = "v2026.03.21.1635";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2220,21 +2220,250 @@
             reader.readAsDataURL(file);
         };
 
+        // --- PATTERN LOCK FOR PHYSIQUE GALLERY ---
+        window.patternLockState = { sequence: [], isDrawing: false, savedPattern: null };
+
+        window.getPatternLockSaved = function() {
+            const raw = localStorage.getItem('physiquePattern');
+            return raw ? JSON.parse(raw) : null;
+        };
+
         window.togglePhysiquePrivacy = function() {
-            window.physiquePrivacy = !window.physiquePrivacy;
-            const gallery = document.getElementById('physique-gallery');
-            const btn = document.getElementById('privacy-toggle-btn');
-            
-            if (window.physiquePrivacy) {
+            const saved = getPatternLockSaved();
+            if (window.physiquePrivacy && saved) {
+                // Show pattern lock overlay to unlock
+                showPatternLock('unlock');
+            } else if (window.physiquePrivacy && !saved) {
+                // No pattern set — first time, prompt to set one
+                showPatternLock('set');
+            } else {
+                // Re-lock
+                window.physiquePrivacy = true;
+                const gallery = document.getElementById('physique-gallery');
+                const btn = document.getElementById('privacy-toggle-btn');
                 gallery.classList.add('privacy-hidden');
                 btn.innerText = '🙈 Hidden';
                 btn.style.color = 'var(--text-muted)';
                 btn.style.borderColor = 'var(--border)';
+            }
+        };
+
+        window.showPatternLock = function(mode) {
+            // mode: 'set' (first time), 'unlock' (verify), 'confirm' (confirm new pattern)
+            const existing = document.getElementById('pattern-lock-overlay');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'pattern-lock-overlay';
+            overlay.className = 'pattern-lock-overlay';
+
+            const title = mode === 'set' ? 'SET PATTERN' : mode === 'confirm' ? 'CONFIRM PATTERN' : 'DRAW TO UNLOCK';
+            const subtitle = mode === 'set' ? 'Draw a pattern to protect your photos' : mode === 'confirm' ? 'Draw the same pattern again' : '';
+
+            overlay.innerHTML = `
+                <div class="pattern-lock-modal">
+                    <div class="pattern-lock-header">
+                        <div class="pattern-lock-title">${title}</div>
+                        <div class="pattern-lock-subtitle" id="pattern-subtitle">${subtitle}</div>
+                    </div>
+                    <div class="pattern-lock-grid" id="pattern-grid">
+                        <svg class="pattern-lock-lines" id="pattern-lines" viewBox="0 0 240 240"></svg>
+                        ${[0,1,2,3,4,5,6,7,8].map(i => {
+                            const row = Math.floor(i / 3), col = i % 3;
+                            const cx = col * 90 + 30, cy = row * 90 + 30;
+                            return `<div class="pattern-dot" data-index="${i}" style="left:${cx - 20}px;top:${cy - 20}px;">
+                                <div class="pattern-dot-inner"></div>
+                                <div class="pattern-dot-ring"></div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div class="pattern-lock-actions">
+                        ${mode === 'set' || mode === 'confirm' ? '<button class="pattern-lock-btn pattern-lock-cancel" onclick="closePatternLock()">Cancel</button>' : '<button class="pattern-lock-btn pattern-lock-cancel" onclick="closePatternLock()">Cancel</button>'}
+                        ${mode === 'set' || mode === 'confirm' ? '' : '<button class="pattern-lock-btn pattern-lock-reset" onclick="resetPatternLock()">Reset Pattern</button>'}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.dataset.mode = mode;
+
+            // Store first pattern for confirmation
+            window.patternLockState.sequence = [];
+            window.patternLockState.isDrawing = false;
+
+            requestAnimationFrame(() => overlay.classList.add('visible'));
+            setupPatternListeners();
+        };
+
+        window.setupPatternListeners = function() {
+            const grid = document.getElementById('pattern-grid');
+            if (!grid) return;
+            const dots = grid.querySelectorAll('.pattern-dot');
+            let activeSequence = [];
+            let isDrawing = false;
+            const lines = document.getElementById('pattern-lines');
+            let liveLine = null;
+
+            function getDotCenter(idx) {
+                const row = Math.floor(idx / 3), col = idx % 3;
+                return { x: col * 90 + 30, y: row * 90 + 30 };
+            }
+
+            function updateLines() {
+                let svgContent = '';
+                for (let i = 1; i < activeSequence.length; i++) {
+                    const from = getDotCenter(activeSequence[i-1]);
+                    const to = getDotCenter(activeSequence[i]);
+                    svgContent += `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" opacity="0.7"/>`;
+                }
+                if (liveLine) svgContent += liveLine;
+                lines.innerHTML = svgContent;
+            }
+
+            function hitTest(x, y) {
+                const rect = grid.getBoundingClientRect();
+                const px = x - rect.left, py = y - rect.top;
+                for (let i = 0; i < 9; i++) {
+                    const c = getDotCenter(i);
+                    const dx = px - c.x, dy = py - c.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < 30 && !activeSequence.includes(i)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
+            function activateDot(idx) {
+                activeSequence.push(idx);
+                dots[idx].classList.add('active');
+                updateLines();
+            }
+
+            function onStart(e) {
+                e.preventDefault();
+                isDrawing = true;
+                activeSequence = [];
+                liveLine = null;
+                dots.forEach(d => d.classList.remove('active', 'error', 'success'));
+                lines.innerHTML = '';
+                const subtitle = document.getElementById('pattern-subtitle');
+                if (subtitle) { subtitle.textContent = ''; subtitle.classList.remove('error'); }
+
+                const touch = e.touches ? e.touches[0] : e;
+                const hit = hitTest(touch.clientX, touch.clientY);
+                if (hit >= 0) activateDot(hit);
+            }
+
+            function onMove(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const touch = e.touches ? e.touches[0] : e;
+                const hit = hitTest(touch.clientX, touch.clientY);
+                if (hit >= 0) activateDot(hit);
+
+                // Live line from last dot to finger
+                if (activeSequence.length > 0) {
+                    const last = getDotCenter(activeSequence[activeSequence.length - 1]);
+                    const rect = grid.getBoundingClientRect();
+                    const px = touch.clientX - rect.left, py = touch.clientY - rect.top;
+                    liveLine = `<line x1="${last.x}" y1="${last.y}" x2="${px}" y2="${py}" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.3"/>`;
+                    updateLines();
+                }
+            }
+
+            function onEnd(e) {
+                if (!isDrawing) return;
+                isDrawing = false;
+                liveLine = null;
+                updateLines();
+                if (activeSequence.length < 3) {
+                    showPatternError('Connect at least 3 dots');
+                    return;
+                }
+                handlePatternComplete(activeSequence.slice());
+            }
+
+            grid.addEventListener('touchstart', onStart, { passive: false });
+            grid.addEventListener('touchmove', onMove, { passive: false });
+            grid.addEventListener('touchend', onEnd);
+            grid.addEventListener('mousedown', onStart);
+            grid.addEventListener('mousemove', onMove);
+            grid.addEventListener('mouseup', onEnd);
+        };
+
+        window.showPatternError = function(msg) {
+            const subtitle = document.getElementById('pattern-subtitle');
+            if (subtitle) { subtitle.textContent = msg; subtitle.classList.add('error'); }
+            const dots = document.querySelectorAll('#pattern-grid .pattern-dot.active');
+            dots.forEach(d => { d.classList.add('error'); });
+            const lines = document.getElementById('pattern-lines');
+            if (lines) lines.querySelectorAll('line').forEach(l => l.setAttribute('stroke', 'var(--danger)'));
+            setTimeout(() => {
+                dots.forEach(d => d.classList.remove('active', 'error'));
+                if (lines) lines.innerHTML = '';
+                if (subtitle) subtitle.classList.remove('error');
+            }, 600);
+        };
+
+        window.handlePatternComplete = function(seq) {
+            const overlay = document.getElementById('pattern-lock-overlay');
+            const mode = overlay ? overlay.dataset.mode : 'unlock';
+
+            if (mode === 'set') {
+                // Store temporarily for confirmation
+                window.patternLockState.pendingPattern = seq;
+                closePatternLock();
+                setTimeout(() => showPatternLock('confirm'), 200);
+            } else if (mode === 'confirm') {
+                const pending = window.patternLockState.pendingPattern;
+                if (pending && pending.join(',') === seq.join(',')) {
+                    // Pattern confirmed — save it
+                    localStorage.setItem('physiquePattern', JSON.stringify(seq));
+                    closePatternLock();
+                    unlockPhysique();
+                } else {
+                    showPatternError("Patterns don't match");
+                }
             } else {
-                gallery.classList.remove('privacy-hidden');
+                // Unlock mode — verify against saved
+                const saved = getPatternLockSaved();
+                if (saved && saved.join(',') === seq.join(',')) {
+                    // Success animation
+                    const dots = document.querySelectorAll('#pattern-grid .pattern-dot.active');
+                    dots.forEach(d => d.classList.add('success'));
+                    const lines = document.getElementById('pattern-lines');
+                    if (lines) lines.querySelectorAll('line').forEach(l => l.setAttribute('stroke', 'var(--teal)'));
+                    setTimeout(() => { closePatternLock(); unlockPhysique(); }, 350);
+                } else {
+                    showPatternError('Wrong pattern');
+                }
+            }
+        };
+
+        window.unlockPhysique = function() {
+            window.physiquePrivacy = false;
+            const gallery = document.getElementById('physique-gallery');
+            const btn = document.getElementById('privacy-toggle-btn');
+            if (gallery) gallery.classList.remove('privacy-hidden');
+            if (btn) {
                 btn.innerText = '👁️ Revealed';
                 btn.style.color = 'var(--accent)';
                 btn.style.borderColor = 'var(--accent)';
+            }
+        };
+
+        window.closePatternLock = function() {
+            const overlay = document.getElementById('pattern-lock-overlay');
+            if (overlay) {
+                overlay.classList.remove('visible');
+                setTimeout(() => overlay.remove(), 200);
+            }
+        };
+
+        window.resetPatternLock = async function() {
+            const confirmed = await showConfirm('Reset Pattern?', 'This will remove your current pattern lock. You will set a new one next time.', 'Reset', 'Cancel', true);
+            if (confirmed) {
+                localStorage.removeItem('physiquePattern');
+                closePatternLock();
             }
         };
 
@@ -2578,7 +2807,7 @@
                         <div class="stat-card stat-swipable" style="padding:14px 18px;margin-bottom:0;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;" data-exname="${safeExHTML}" onclick="window.togglePRTimeline('${safeExJS}')">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <span class="stat-name" style="flex:1;padding-right:10px;word-break:break-word;line-height:1.3;">${ex}</span>
-                                <span class="stat-value" style="color:var(--teal);white-space:nowrap;">${kgDisp(b.weight)} ${unitSuffix()} <span style="font-size:13px;color:var(--text-muted);">× ${b.reps}${b.date ? ` · ${fmtShortDate(b.date)}` : ''}</span></span>
+                                <span class="stat-value" style="color:var(--teal);white-space:nowrap;">${kgDisp(b.weight)} ${unitSuffix()} <span style="font-size:13px;color:var(--text-muted);">× ${b.reps}</span></span>
                             </div>
                             <div class="pr-timeline" id="${tlId}" style="display:none;"></div>
                         </div>
