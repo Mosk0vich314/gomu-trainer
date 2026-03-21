@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.21.1657";
+        const APP_VERSION = "v2026.03.21.1700";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -5178,15 +5178,34 @@
         initApp = async function() {
             // 1. Get custom workouts from browser memory
             const customProgs = safeParse('customPrograms', {});
-            
+
+            // Seed built-in templates into custom workouts on first load
+            if (!customProgs['Custom_caroline_girvan_fb']) {
+                customProgs['Custom_caroline_girvan_fb'] = {
+                    name: "Caroline Girvan Full Body",
+                    weeks: { 1: { 1: [
+                        { name: "Dumbbell High Squat", type: "accessory", notes: "30s work / 30s rest. Deep squat with dumbbells at shoulders. Controlled tempo, full range of motion.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Sumo Deadlift Squat", type: "accessory", notes: "30s work / 30s rest. Wide stance, toes out, dumbbell between legs. Squat down and drive through heels.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Static Lunge", type: "accessory", notes: "30s work / 30s rest. Switch leg every set. Stay in split stance and pulse up and down.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Romanian Deadlift", type: "accessory", notes: "30s work / 30s rest. Shoulder blades together, knees slightly bent, push hips back.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Shoulder Press", type: "accessory", notes: "30s work / 30s rest. Can use 1 or 2 dumbbells. Full lockout overhead.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Bent Over Row", type: "accessory", notes: "30s work / 30s rest. Switch arm every set. Let muscles lengthen at bottom, draw elbow up slowly.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Chest Press", type: "accessory", notes: "30s work / 30s rest. Lying on floor or bench. Controlled lower, press up.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Dumbbell Pullover", type: "accessory", notes: "30s work / 30s rest. Lying on bench or floor. Slight bend in elbows, stretch lats at bottom.", blocks: [{ type: "work", sets: 3, reps: 10, targetRpe: 8 }] },
+                        { name: "Plank", type: "accessory", notes: "Hold for 2 minutes total. Break into sets if needed.", blocks: [{ type: "work", sets: 1, reps: 1, targetRpe: 10 }] }
+                    ] } }
+                };
+                localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            }
+
             // 2. SAFETY CHECK: If db (from database.js) doesn't exist, create it
             if (typeof window.db === 'undefined') window.db = {};
-            
+
             // 3. Merge custom workouts INTO the main database object
-            Object.keys(customProgs).forEach(k => { 
-                window.db[k] = customProgs[k]; 
+            Object.keys(customProgs).forEach(k => {
+                window.db[k] = customProgs[k];
             });
-            
+
             // 4. Run the original boot sequence
             await originalInitApp();
         };
