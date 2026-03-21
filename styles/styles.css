@@ -397,7 +397,7 @@ button, .pill, .check-circle, .stat-card {
 .status-header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 18px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); }
 
 /* SLEEK RECTANGULAR SLIDER (TEAL ACCENT) */
-.slider-container { position: relative; width: 100%; height: 64px; background: var(--input-bg); border: 1px solid var(--teal); border-radius: 16px; overflow: hidden; margin-top: 10px; margin-bottom: 25px; user-select: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 0 1px rgba(20,184,166,0.15); touch-action: none;}
+.slider-container { position: relative; width: 100%; height: 64px; background: var(--input-bg); border: 1px solid var(--teal); border-radius: 16px; overflow: hidden; margin-top: 10px; margin-bottom: 25px; user-select: none; box-sizing: border-box; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 0 1px rgba(20,184,166,0.15); touch-action: none;}
 .slider-text { position: absolute; width: 100%; height: 100%; line-height: 62px; text-align: center; color: var(--teal); font-weight: 800; font-size: 14px; pointer-events: none; z-index: 1; text-transform: uppercase; letter-spacing: 2px; transition: opacity 0.2s; opacity: 0.7;}
 .slider-track { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(20,184,166,0.50); z-index: 0; }
 .slider-thumb { position: absolute; left: 6px; top: 6px; width: 70px; height: 50px; background: #2e2e32; border: 2px solid var(--teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; z-index: 2; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.2s; color: var(--teal); box-sizing: border-box; overflow: hidden;}
@@ -829,6 +829,32 @@ button, .pill, .check-circle, .stat-card {
 .privacy-hidden img { filter: blur(15px) brightness(0.5); pointer-events: none; }
 .privacy-hidden button { opacity: 0; pointer-events: none; }
 .privacy-hidden .pic-date-label { opacity: 0; }
+
+/* PATTERN LOCK */
+.pattern-lock-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+.pattern-lock-overlay.visible { opacity: 1; }
+.pattern-lock-modal { width: 300px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.pattern-lock-header { text-align: center; }
+.pattern-lock-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-main); letter-spacing: 3px; text-transform: uppercase; }
+.pattern-lock-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 6px; min-height: 18px; transition: color 0.2s; }
+.pattern-lock-subtitle.error { color: var(--danger); }
+.pattern-lock-grid { position: relative; width: 240px; height: 240px; touch-action: none; }
+.pattern-lock-lines { position: absolute; inset: 0; width: 240px; height: 240px; pointer-events: none; z-index: 1; }
+.pattern-dot { position: absolute; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; z-index: 2; cursor: pointer; }
+.pattern-dot-inner { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: all 0.2s ease; box-shadow: 0 0 0 0 transparent; }
+.pattern-dot-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; transition: all 0.2s ease; transform: scale(0.6); opacity: 0; }
+.pattern-dot.active .pattern-dot-inner { background: var(--accent); box-shadow: 0 0 12px rgba(249,115,22,0.5); transform: scale(1.1); }
+.pattern-dot.active .pattern-dot-ring { border-color: var(--accent); transform: scale(1); opacity: 0.4; }
+.pattern-dot.error .pattern-dot-inner { background: var(--danger); box-shadow: 0 0 12px rgba(239,68,68,0.5); }
+.pattern-dot.error .pattern-dot-ring { border-color: var(--danger); }
+.pattern-dot.success .pattern-dot-inner { background: var(--teal); box-shadow: 0 0 12px rgba(20,184,166,0.5); }
+.pattern-dot.success .pattern-dot-ring { border-color: var(--teal); }
+.pattern-lock-actions { display: flex; gap: 10px; }
+.pattern-lock-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; letter-spacing: 0.5px; }
+.pattern-lock-btn:active { background: var(--input-bg); }
+.pattern-lock-reset { color: var(--danger); border-color: rgba(239,68,68,0.3); }
+.pattern-lock-reset:active { background: rgba(239,68,68,0.1); }
+
 /* PREMIUM MICRO-INTERACTIONS */
 
 /* 1. Addictive Checkmark */
