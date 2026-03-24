@@ -153,7 +153,7 @@ Rest timer counts down to 0, beeps, then continues counting up (overtime). The d
 
 ## Key conventions
 - Version format: `YYYY.MM.DD.HHMM` — generated automatically by `deploy.py`.
-- All programs live in `Programs/` and are listed in `Programs/manifest.json`.
+- All programs live in `Programs/` and are listed in `Programs/programs-list.json`.
 - `scripts/app.js` is not minified or bundled — edit it directly.
 - There are no tests and no linter configured.
 - Fonts: **DM Sans** (body), **Space Grotesk** (display numbers, headings). Both loaded from Google Fonts.
