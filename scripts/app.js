@@ -3010,7 +3010,7 @@
             };
 
             sets.forEach((s, i) => {
-                let displayLoad = s.label ? s.label : `${Math.max(0, s.load)} kg`;
+                let displayLoad = s.label || `${Math.max(0, s.load)} kg`;
                 let badges = s.label ? '' : getPlateBadges(s.load);
                 html += `
                 <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
