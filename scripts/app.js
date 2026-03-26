@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.24.2127";
+        const APP_VERSION = "v2026.03.27.0008";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2975,19 +2975,31 @@
 
             // Beautiful Plate Badge Generator
             const getPlateBadges = (weight) => {
-                if (window.isNoPlateExercise && window.isNoPlateExercise(exName)) return '';
-                
+                const eqMode = typeof getEquipmentMode === 'function' ? getEquipmentMode(exName) : 'bb';
+
+                // For 2DB: show per-dumbbell weight with a dumbbell icon
+                if (eqMode === '2db') {
+                    const perDb = Math.round((weight / 2) * 10) / 10;
+                    return `<div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="3" height="6" rx="1"/><rect x="19" y="9" width="3" height="6" rx="1"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        <span style="font-size: 10px; color: var(--text-muted); font-weight: 800;">${perDb}kg each</span>
+                    </div>`;
+                }
+
+                // For non-BB modes: no badges
+                if (eqMode !== 'bb') return '';
+
                 let barWeight = typeof getBarbellWeight === 'function' ? getBarbellWeight() : 20;
                 if (weight <= barWeight) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">Empty Bar</div>`;
-                
+
                 let perSide = (weight - barWeight) / 2;
                 perSide = Math.round(perSide * 100) / 100;
-                
+
                 const available = typeof getActivePlates === 'function' ? getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w) : [
                     {w: 25, c: '#ef4444', t: '#fff'}, {w: 20, c: '#3b82f6', t: '#fff'}, {w: 15, c: '#eab308', t: '#000'},
                     {w: 10, c: '#22c55e', t: '#fff'}, {w: 5, c: '#f4f4f5', t: '#000'}, {w: 2.5, c: '#27272a', t: '#fff'}, {w: 1.25, c: '#52525b', t: '#fff'}
                 ];
-                
+
                 let plates = [];
                 for (let p of available) {
                     while (perSide >= p.w) {
@@ -2995,9 +3007,9 @@
                         perSide = Math.round((perSide - p.w) * 100) / 100;
                     }
                 }
-                
+
                 if (plates.length === 0) return '';
-                
+
                 let badges = `<div style="display: flex; gap: 3px; align-items: center; justify-content: center; margin-top: 4px;">`;
                 plates.forEach(p => {
                     badges += `<div style="background: ${p.c}; color: ${p.t}; font-size: 8px; font-weight: 800; padding: 2px 4px; border-radius: 3px; line-height: 1; border: 1px solid rgba(0,0,0,0.3); box-shadow: 0 1px 2px rgba(0,0,0,0.2);">${p.w}</div>`;
@@ -3444,7 +3456,7 @@
                             <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe || ''}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                             <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                 <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
-                                ${isNoPlateExercise(ex.name) ? '' : `
+                                ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                 <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
                                     <div class="plate-indicator"></div>
                                 </button>`}
@@ -3498,7 +3510,7 @@
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
-                                    ${isNoPlateExercise(ex.name) ? '' : `
+                                    ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
                                     </button>`}
