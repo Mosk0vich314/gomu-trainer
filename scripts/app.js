@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.27.0008";
+        const APP_VERSION = "v2026.03.30.2122";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3070,48 +3070,52 @@
         window.colorizeRpe = function(input) {
             input.style.color = '';
         };
-        // --- RPE DRIFT INDICATOR ---
-        // Compares average RPE at similar loads across recent sessions to detect fatigue/adaptation
+        // --- E1RM TREND INDICATOR ---
+        // Compares best e1RM across recent sessions to detect adaptation or fatigue
         function getRpeDrift(exName) {
             const history = safeParse('workoutHistory', []);
-            // Collect sessions where this exercise was performed with RPE data
+            const rts = {
+                10:  [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690],
+                9.5: [0.980, 0.940, 0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670],
+                9:   [0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650],
+                8.5: [0.940, 0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640],
+                8:   [0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630],
+                7.5: [0.910, 0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610],
+                7:   [0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600],
+                6.5: [0.880, 0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610, 0.580],
+                6:   [0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600, 0.570],
+                5.5: [0.850, 0.820, 0.800, 0.770, 0.750, 0.720, 0.690, 0.670, 0.640, 0.610, 0.580, 0.550],
+                5:   [0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600, 0.570, 0.540]
+            };
+            const calcE1RM = (load, reps, rpe) => {
+                if (!load || load <= 0 || !reps || reps <= 0) return 0;
+                let r = parseFloat(rpe); if (isNaN(r) || r < 0 || r > 10) r = 10;
+                let rounded = Math.round(r * 2) / 2; if (rounded < 5) rounded = 5;
+                return load / rts[rounded][Math.max(0, Math.min(11, reps - 1))];
+            };
+
+            // Collect best e1RM per session, most-recent first (up to 6 sessions)
             let sessions = [];
-            for (let log of history) {
+            for (const log of history) {
                 if (!log.details) continue;
                 const ex = log.details.find(e => e.name === exName);
                 if (!ex || !ex.sets || ex.sets.length === 0) continue;
-                // Only consider sets that have both load AND RPE
-                const validSets = ex.sets.filter(s => s.load > 0 && s.rpe && parseFloat(s.rpe) > 0);
-                if (validSets.length === 0) continue;
-                const avgLoad = validSets.reduce((sum, s) => sum + s.load, 0) / validSets.length;
-                const avgRpe = validSets.reduce((sum, s) => sum + parseFloat(s.rpe), 0) / validSets.length;
-                sessions.push({ date: log.date, avgLoad, avgRpe });
-                if (sessions.length >= 6) break; // Last 6 sessions max
+                const best = Math.max(...ex.sets.map(s => calcE1RM(s.load, s.reps, s.rpe)));
+                if (best > 0) sessions.push(best);
+                if (sessions.length >= 6) break;
             }
             if (sessions.length < 2) return null;
-            // sessions[0] is most recent, sessions[last] is oldest
-            // Find pairs with similar loads (within 10%) and compare RPE
-            const recent = sessions[0];
-            let drifts = [];
-            for (let i = 1; i < sessions.length; i++) {
-                const older = sessions[i];
-                const loadDiff = Math.abs(recent.avgLoad - older.avgLoad) / Math.max(older.avgLoad, 1);
-                if (loadDiff <= 0.15) { // Within 15% load similarity
-                    drifts.push(recent.avgRpe - older.avgRpe);
-                }
-            }
-            // If no similar-load comparisons, compare e1RM trend instead
-            if (drifts.length === 0) {
-                // Fall back: compare most recent vs average of older sessions
-                const recentRpe = sessions[0].avgRpe;
-                const olderAvgRpe = sessions.slice(1).reduce((s, x) => s + x.avgRpe, 0) / (sessions.length - 1);
-                drifts.push(recentRpe - olderAvgRpe);
-            }
-            const avgDrift = drifts.reduce((s, d) => s + d, 0) / drifts.length;
-            // Threshold: ±0.4 RPE is meaningful
-            if (avgDrift >= 0.4) return { dir: 'up', label: 'Fatiguing', delta: avgDrift };
-            if (avgDrift <= -0.4) return { dir: 'down', label: 'Adapting', delta: avgDrift };
-            return { dir: 'stable', label: 'Stable', delta: avgDrift };
+
+            // Compare average e1RM of recent half vs older half
+            const mid = Math.ceil(sessions.length / 2);
+            const recentAvg = sessions.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+            const olderAvg = sessions.slice(mid).reduce((a, b) => a + b, 0) / (sessions.length - mid);
+            const pct = (recentAvg - olderAvg) / olderAvg * 100;
+
+            // Threshold: ±2% e1RM change is meaningful
+            if (pct >= 2) return { dir: 'up', label: 'Adapting', delta: pct };
+            if (pct <= -2) return { dir: 'down', label: 'Fatiguing', delta: pct };
+            return { dir: 'stable', label: 'Stable', delta: pct };
         }
 
         function renderWorkout() {
@@ -3235,9 +3239,9 @@
                 let driftHtml = '';
                 const drift = getRpeDrift(ex.name);
                 if (drift) {
-                    const arrow = drift.dir === 'up' ? '▲' : drift.dir === 'down' ? '▼' : '—';
-                    const color = drift.dir === 'up' ? 'var(--danger)' : drift.dir === 'down' ? 'var(--teal)' : 'var(--text-muted)';
-                    const delta = Math.abs(drift.delta).toFixed(1);
+                    const arrow = drift.dir === 'up' ? '↑' : drift.dir === 'down' ? '↓' : '—';
+                    const color = drift.dir === 'up' ? 'var(--teal)' : drift.dir === 'down' ? 'var(--danger)' : 'var(--text-muted)';
+                    const delta = Math.abs(drift.delta).toFixed(1) + '%';
                     driftHtml = `<span style="margin-left:auto; font-size:11px; font-weight:800; color:${color}; display:inline-flex; align-items:center; gap:3px; letter-spacing:0.5px;">${arrow} ${drift.label} <span style="opacity:0.7; font-weight:600;">(${delta})</span></span>`;
                 }
 
@@ -4927,7 +4931,7 @@
                 
                 if(!loadInput || !rpeInput || !repsInput || !btn) return;
 
-                const exName = loadInput.dataset.exname; // BUG FIX: Defines the exercise name so the engine doesn't crash!
+                const exName = normalizeExName(loadInput.dataset.exname); // BUG FIX: Defines the exercise name so the engine doesn't crash!
 
                 const weight = parseFloat(loadInput.value) || 0; // Handles empty or 0 inputs (0kg added)
                 const rpe = parseFloat(rpeInput.value);
@@ -5430,38 +5434,41 @@
 
         // --- THE RPE HUB WINDOW (MODAL) ENGINE ---
 
-        // 1. Core data matrix: Simplifies RPE down to pure RIR (Reps In Reserve) cues.
-        const rpeGuideCues = [
-            { num: "10",  zone: "rpe-red",    rir: "0 Reps",    cue: "Form perfect but maximal speed, form broken, or involuntary grind." },
-            { num: "9.5", zone: "rpe-red",    rir: "-1 Rep",    cue: "Could not add a single rep, form solid, speed very slow." },
-            { num: "9",   zone: "rpe-red",    rir: "1 Rep",     cue: "Form perfect. 1 rep definitely left, 2 reps unlikely." },
-            { num: "8.5", zone: "rpe-yellow", rir: "1-2 Reps",  cue: "Form flawless. Solid single, 2nd rep possible but grindy." },
-            { num: "8",   zone: "rpe-yellow", rir: "2 Reps",    cue: "Form flawless. 2 reps definitely left, 3 reps unlikely." },
-            { num: "7.5", zone: "rpe-yellow", rir: "2-3 Reps",  cue: "Perfect bar speed. Could push hard for 3-4 reps." },
-            { num: "7",   zone: "rpe-emerald", rir: "3-4 Reps",  cue: "Form flawless. Quick, forceful, very easy single." },
-            { num: "<7",  zone: "rpe-emerald", rir: "5+ Reps",   cue: "Form flawless. Reserved for Warmups, Speed Work, or Deload." }
+        // 1. Decision-tree flow: answer Yes to exit at that RPE, No to continue down
+        const rpeFlowSteps = [
+            { q: "Was this too easy to count as a true work set?",   rpe: "5.5" },
+            { q: "Was this fairly easy like a warm-up weight?",       rpe: "6"   },
+            { q: "Was this a borderline warm-up weight?",             rpe: "6.5" },
+            { q: "Was the speed fairly quick like an easy opener?",   rpe: "7"   },
+            { q: "Could you have <b>MAYBE</b> done 3 more reps?",     rpe: "7.5" },
+            { q: "Could you have <b>DEFINITELY</b> done 2 more reps?",rpe: "8"   },
+            { q: "Could you have <b>MAYBE</b> done 2 more reps?",     rpe: "8.5" },
+            { q: "Could you have <b>DEFINITELY</b> done 1 more rep?", rpe: "9"   },
+            { q: "Could you have <b>MAYBE</b> done 1 more rep?",      rpe: "9.5" },
         ];
 
         // 2. Function to generate and open the Hub
         window.openRpeHub = function() {
             const scroller = document.getElementById('rpe-modal-scroller');
-            
-            // Build the super-simple cards from the matrix
-            let html = '';
-            rpeGuideCues.forEach(c => {
-                const rirBadgeColor = c.zone === 'rpe-red' ? '#ef4444' : (c.zone === 'rpe-yellow' ? '#eab308' : '#10b981');
+
+            let html = '<div class="rpe-flow">';
+            rpeFlowSteps.forEach((step, i) => {
+                const rpeNum = parseFloat(step.rpe);
+                const badgeColor = rpeNum <= 7 ? 'var(--teal)' : rpeNum <= 8.5 ? 'var(--accent)' : 'var(--danger)';
                 html += `
-                <div class="rpe-card ${c.zone}">
-                    <div class="rpe-card-number ${c.zone}">
-                        <div>${c.num}</div>
-                    </div>
-                    <div class="rpe-card-details">
-                        <div class="rpe-card-rir"><span class="rpe-rir-badge" style="background: ${rirBadgeColor};">${c.rir} left</span></div>
-                        <div class="rpe-card-cue">${c.cue}</div>
-                    </div>
+                <div class="rpe-flow-row">
+                    <span class="rpe-flow-q">${step.q}</span>
+                    <span class="rpe-flow-yes">Yes <span class="rpe-flow-badge" style="background:${badgeColor}">@${step.rpe}</span></span>
                 </div>`;
+                if (i < rpeFlowSteps.length - 1) {
+                    html += `<div class="rpe-flow-no">No ↓</div>`;
+                }
             });
-            
+            html += `
+                <div class="rpe-flow-no">No ↓</div>
+                <div class="rpe-flow-final"><span class="rpe-flow-badge" style="background:var(--danger)">@10</span> Maximal effort — nothing left in the tank</div>
+            </div>`;
+
             scroller.innerHTML = html;
             document.getElementById('rpe-modal').style.display = 'flex';
         };

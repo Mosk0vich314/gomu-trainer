@@ -1017,63 +1017,79 @@ button, .pill, .check-circle, .stat-card {
     justify-content: center;
 }
 
-/* Clear, bold RPE cards based on Zone color coding */
-.rpe-card {
+/* --- RPE Decision-Tree Flow --- */
+.rpe-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.rpe-flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgba(255,255,255,0.02);
-    padding: 12px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    cursor: default;
-    transition: background 0.2s;
+    padding: 10px 12px;
 }
 
-.rpe-card-number {
-    font-size: 36px;
-    font-weight: 900;
-    line-height: 1;
-    width: 70px; /* Fixed width to align details */
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-}
-
-.rpe-card-details {
+.rpe-flow-q {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.rpe-card-rir {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.rpe-card-cue {
     font-size: 13px;
-    color: var(--text-muted);
     font-weight: 600;
-    line-height: 1.3;
+    color: var(--text-main);
+    line-height: 1.35;
 }
 
-/* The Modal RPE Colors (EMERALD GREEN -> YELLOW -> DANGER RED) */
-.rpe-emerald { color: #10b981; border-left: 4px solid #10b981; }
-.rpe-yellow  { color: #eab308; border-left: 4px solid #eab308; }
-.rpe-red     { color: #ef4444; border-left: 4px solid #ef4444; }
+.rpe-flow-q b {
+    color: var(--text-main);
+    font-weight: 900;
+}
 
-/* The RIR color badge for emphasis */
-.rpe-rir-badge {
+.rpe-flow-yes {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rpe-flow-badge {
     color: #fff;
     font-weight: 900;
-    padding: 2px 4px;
-    border-radius: 4px;
+    font-size: 12px;
+    padding: 3px 7px;
+    border-radius: 5px;
+    letter-spacing: 0.3px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.rpe-flow-no {
     font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 0 3px 10px;
+}
+
+.rpe-flow-final {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 /* ========== ANIMATION ENHANCEMENTS ========== */
