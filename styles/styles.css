@@ -407,6 +407,16 @@ button, .pill, .check-circle, .stat-card {
 .preview-mode { opacity: 0.9; filter: grayscale(20%); transition: 0.3s; }
 .preview-mode .check-circle, .preview-mode .input-box, .preview-mode .e1rm-btn { pointer-events: none; opacity: 0.6; }
 
+/* EXERCISE TIMER (time-based blocks) */
+.set-row.timer-row { grid-template-columns: 0.8fr 1fr 0.8fr; }
+.set-row.timer-row.has-rpe { grid-template-columns: 0.8fr 1fr 1.2fr 0.8fr; }
+.ex-timer-wrap { display: flex; align-items: center; gap: 10px; }
+.ex-timer-btn { background: var(--teal); color: #000; border: none; border-radius: 8px; width: 36px; height: 36px; font-size: 15px; font-weight: 800; cursor: pointer; flex-shrink: 0; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+.ex-timer-btn.done { background: var(--accent); }
+.ex-timer-btn:disabled { opacity: 0.5; cursor: default; }
+.ex-timer-disp { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--teal); min-width: 56px; }
+.ex-timer-target { color: var(--text-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+
 /* SET SWIPE STYLES */
 .set-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; background: #1e1e20; border-radius: 12px; width: 100%; position: relative; z-index: 2;}
 .set-swipable.swiping { transition: none; }
@@ -427,7 +437,7 @@ button, .pill, .check-circle, .stat-card {
 .exercise-container { margin-bottom: 30px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--card); box-shadow: 0 8px 16px rgba(0,0,0,0.4); position: relative;}
 
 /* FIXED TITLE OVERLAP CSS */
-.ex-title-container { padding: 16px 50px 10px 50px; text-align: center; position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; }
+.ex-title-container { padding: 16px 60px 10px 60px; text-align: center; position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; }
 .ex-title { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.5px; line-height: 1.2; word-wrap: break-word; overflow-wrap: break-word; }
 .lift-logo { position: absolute; top: 16px; left: 16px; }
 .btn-warmup-icon { position: absolute; top: 16px; right: 16px; background: #27272a; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 14px; cursor: pointer; font-weight: 800; transition: 0.2s; }

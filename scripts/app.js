@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.03.30.2122";
+        const APP_VERSION = "v2026.04.21.2224";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2257,8 +2257,8 @@
             overlay.id = 'pattern-lock-overlay';
             overlay.className = 'pattern-lock-overlay';
 
-            const title = mode === 'set' ? 'SET PATTERN' : mode === 'confirm' ? 'CONFIRM PATTERN' : 'DRAW TO UNLOCK';
-            const subtitle = mode === 'set' ? 'Draw a pattern to protect your photos' : mode === 'confirm' ? 'Draw the same pattern again' : '';
+            const title = mode === 'set' ? 'SET PATTERN' : mode === 'confirm' ? 'CONFIRM PATTERN' : mode === 'reset' ? 'CONFIRM RESET' : 'DRAW TO UNLOCK';
+            const subtitle = mode === 'set' ? 'Draw a pattern to protect your photos' : mode === 'confirm' ? 'Draw the same pattern again' : mode === 'reset' ? 'Draw your current pattern to reset the lock' : '';
 
             overlay.innerHTML = `
                 <div class="pattern-lock-modal">
@@ -2278,8 +2278,8 @@
                         }).join('')}
                     </div>
                     <div class="pattern-lock-actions">
-                        ${mode === 'set' || mode === 'confirm' ? '<button class="pattern-lock-btn pattern-lock-cancel" onclick="closePatternLock()">Cancel</button>' : '<button class="pattern-lock-btn pattern-lock-cancel" onclick="closePatternLock()">Cancel</button>'}
-                        ${mode === 'set' || mode === 'confirm' ? '' : '<button class="pattern-lock-btn pattern-lock-reset" onclick="resetPatternLock()">Reset Pattern</button>'}
+                        <button class="pattern-lock-btn pattern-lock-cancel" onclick="closePatternLock()">Cancel</button>
+                        ${mode === 'unlock' ? '<button class="pattern-lock-btn pattern-lock-reset" onclick="resetPatternLock()">Reset Pattern</button>' : ''}
                     </div>
                 </div>
             `;
@@ -2423,6 +2423,21 @@
                 } else {
                     showPatternError("Patterns don't match");
                 }
+            } else if (mode === 'reset') {
+                // Reset mode — verify current pattern before wiping
+                const saved = getPatternLockSaved();
+                if (saved && saved.join(',') === seq.join(',')) {
+                    const dots = document.querySelectorAll('#pattern-grid .pattern-dot.active');
+                    dots.forEach(d => d.classList.add('success'));
+                    const lines = document.getElementById('pattern-lines');
+                    if (lines) lines.querySelectorAll('line').forEach(l => l.setAttribute('stroke', 'var(--teal)'));
+                    setTimeout(() => {
+                        localStorage.removeItem('physiquePattern');
+                        closePatternLock();
+                    }, 350);
+                } else {
+                    showPatternError('Wrong pattern');
+                }
             } else {
                 // Unlock mode — verify against saved
                 const saved = getPatternLockSaved();
@@ -2459,12 +2474,10 @@
             }
         };
 
-        window.resetPatternLock = async function() {
-            const confirmed = await showConfirm('Reset Pattern?', 'This will remove your current pattern lock. You will set a new one next time.', 'Reset', 'Cancel', true);
-            if (confirmed) {
-                localStorage.removeItem('physiquePattern');
-                closePatternLock();
-            }
+        window.resetPatternLock = function() {
+            // Require the current pattern to be drawn before wiping it
+            closePatternLock();
+            setTimeout(() => showPatternLock('reset'), 200);
         };
 
         window.renderPhysiqueGallery = async function() {
@@ -3350,23 +3363,29 @@
                             </div>
                         `;
                     } else {
-                        // STANDARD BLOCK HEADER
-                        html += `
-                        <div class="block-container">
-                            <div class="block-header">
-                                <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${block.sets} x ${block.reps} Reps${detailsStr}</span>
-                            </div>
-                            <div class="set-row header">
+                        const isTimeBased = !!block.durationMin;
+                        const rpeInfoIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+                        const blockCountLabel = isTimeBased
+                            ? `${block.sets} x ${block.durationMin} min${detailsStr}`
+                            : `${block.sets} x ${block.reps} Reps${detailsStr}`;
+                        const colHeaders = isTimeBased
+                            ? `<div class="set-row header" style="grid-template-columns: 0.8fr 1fr ${block.targetRpe ? '1.2fr ' : ''}0.8fr;">
+                                <span>Set</span><span>Timer</span>${block.targetRpe ? `<span onclick="openRpeHub()" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>` : ''}<span></span>
+                               </div>`
+                            : `<div class="set-row header">
                                 <span>Set</span>
                                 <span>Reps</span>
-                                <span onclick="openRpeHub()" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1;" title="RPE Guide">
-                                    RPE 
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                </span>
+                                <span onclick="openRpeHub()" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>
                                 <span>Load</span>
                                 <span>e1RM</span>
                                 <span></span>
+                               </div>`;
+                        html += `
+                        <div class="block-container">
+                            <div class="block-header">
+                                <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${blockCountLabel}</span>
                             </div>
+                            ${colHeaders}
                         `;
                     }
 
@@ -3449,26 +3468,57 @@
 
                         let e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
 
-                        const repsClass = 'input-box saveable calc-trigger'; 
+                        const repsClass = 'input-box saveable calc-trigger';
                         const rpeClass = 'input-box input-rpe saveable calc-trigger';
                         const loadClass = `input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}`;
 
-                        let setHtml = `
-                        <div class="set-row">
-                            <span>${s}</span>
-                            <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
-                            <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe || ''}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
-                            <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
-                                ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
-                                <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
-                                    <div class="plate-indicator"></div>
-                                </button>`}
-                            </span>
-                            ${e1rmCell}
-                            <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
-                        </div>
-                        `;
+                        let setHtml;
+                        if (block.durationMin) {
+                            // TIME-BASED SET ROW
+                            const targetSec = block.durationMin * 60;
+                            const tmm = String(block.durationMin).padStart(2, '0');
+                            const hasRpe = !!block.targetRpe;
+                            const ts = window.exTimerState && window.exTimerState[rowId];
+                            let timerDisp = `${tmm}:00`;
+                            let timerBtnText = '▶';
+                            let timerBtnClass = '';
+                            if (ts && ts.done) {
+                                timerBtnText = '✓'; timerBtnClass = ' done';
+                            } else if (ts && ts.startMs != null) {
+                                const el = ts.running
+                                    ? Math.floor((Date.now() - ts.startMs) / 1000)
+                                    : (ts.pausedElapsed || 0);
+                                timerDisp = `${String(Math.floor(el/60)).padStart(2,'0')}:${String(el%60).padStart(2,'0')}`;
+                                timerBtnText = ts.running ? '⏸' : '▶';
+                            }
+                            setHtml = `
+                            <div class="set-row timer-row${hasRpe ? ' has-rpe' : ''}">
+                                <span>${s}</span>
+                                <div class="ex-timer-wrap">
+                                    <button class="ex-timer-btn${timerBtnClass}" id="ex-timer-btn-${rowId}" onclick="window.toggleExTimer('${rowId}',${targetSec})" ${isChecked ? 'disabled' : ''}>${timerBtnText}</button>
+                                    <span class="ex-timer-disp" id="ex-timer-disp-${rowId}">${timerDisp}</span>
+                                    <span class="ex-timer-target">/ ${tmm}:00</span>
+                                </div>
+                                ${hasRpe ? `<span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>` : ''}
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="0" data-norest="true" onclick="toggleCheck(this)"></span>
+                            </div>`;
+                        } else {
+                            setHtml = `
+                            <div class="set-row">
+                                <span>${s}</span>
+                                <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
+                                <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe || ''}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
+                                <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
+                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
+                                        <div class="plate-indicator"></div>
+                                    </button>`}
+                                </span>
+                                ${e1rmCell}
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                            </div>`;
+                        }
 
                         // Wrap it in the Swipe-to-delete wrapper if the workout is active
                         if (!isCompleted) {
@@ -3718,8 +3768,10 @@
                 let startX = 0, startY = 0, currentX = 0, isDragging = false, isScrolling = false;
                 
                 const startDrag = (e) => {
-                    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                    
+                    const tgt = e.target;
+                    // Allow swipe on disabled inputs (checked sets); block only on active inputs and buttons
+                    if ((tgt.tagName.toLowerCase() === 'input' && !tgt.disabled) || tgt.tagName.toLowerCase() === 'button' || tgt.closest('button')) return;
+
                     // Elegantly prevents the parent exercise from swiping when you are dragging a child set!
                     if (el.classList.contains('exercise-container') && e.target.closest('.set-swipable')) return;
                     
@@ -4378,6 +4430,53 @@
             renderWorkout();
         };
 
+        // --- EXERCISE TIMER (time-based blocks) ---
+        window.exTimerState = window.exTimerState || {};
+
+        window.toggleExTimer = function(rowId, targetSec) {
+            if (!window.exTimerState[rowId]) {
+                window.exTimerState[rowId] = { startMs: null, running: false, done: false, targetSec, pausedElapsed: 0 };
+            }
+            const state = window.exTimerState[rowId];
+            if (state.done) return;
+
+            if (state.running) {
+                clearInterval(state.interval);
+                state.interval = null;
+                state.running = false;
+                state.pausedElapsed = state.startMs != null ? Math.floor((Date.now() - state.startMs) / 1000) : 0;
+                const btn = document.getElementById(`ex-timer-btn-${rowId}`);
+                if (btn) btn.textContent = '▶';
+            } else {
+                state.startMs = Date.now() - (state.pausedElapsed || 0) * 1000;
+                state.running = true;
+                const btn = document.getElementById(`ex-timer-btn-${rowId}`);
+                if (btn) btn.textContent = '⏸';
+
+                state.interval = setInterval(() => {
+                    const dispEl = document.getElementById(`ex-timer-disp-${rowId}`);
+                    const btnEl = document.getElementById(`ex-timer-btn-${rowId}`);
+                    if (!state.running) return;
+                    const elapsed = Math.floor((Date.now() - state.startMs) / 1000);
+                    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const ss = String(elapsed % 60).padStart(2, '0');
+                    if (dispEl) dispEl.textContent = `${mm}:${ss}`;
+                    if (btnEl && !state.done) btnEl.textContent = '⏸';
+
+                    if (elapsed >= targetSec && !state.done) {
+                        state.done = true;
+                        state.running = false;
+                        clearInterval(state.interval);
+                        state.interval = null;
+                        playBeep();
+                        if (btnEl) { btnEl.textContent = '✓'; btnEl.classList.add('done'); btnEl.disabled = true; }
+                        const checkEl = document.getElementById(`${rowId}_check`);
+                        if (checkEl && !checkEl.classList.contains('checked')) checkEl.click();
+                    }
+                }, 500);
+            }
+        };
+
         // 1. Load the Audio Objects
         let activeAudio = new Audio('./assets/audio/ding.mp3'); 
         activeAudio.preload = 'auto';
@@ -4753,7 +4852,7 @@
                     restSeconds = 15;
                 }
 
-                startTimer(restSeconds);
+                if (!el.dataset.norest) startTimer(restSeconds);
                 if (rpeInput && repsInput && loadInput) {
                 const weight = parseFloat(loadInput.value);
                 const rpeVal = parseFloat(rpeInput.value);
