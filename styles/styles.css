@@ -408,14 +408,17 @@ button, .pill, .check-circle, .stat-card {
 .preview-mode .check-circle, .preview-mode .input-box, .preview-mode .e1rm-btn { pointer-events: none; opacity: 0.6; }
 
 /* EXERCISE TIMER (time-based blocks) */
-.set-row.timer-row { grid-template-columns: 0.8fr 1fr 0.8fr; }
-.set-row.timer-row.has-rpe { grid-template-columns: 0.8fr 1fr 1.2fr 0.8fr; }
-.ex-timer-wrap { display: flex; align-items: center; gap: 10px; }
-.ex-timer-btn { background: var(--teal); color: #000; border: none; border-radius: 8px; width: 36px; height: 36px; font-size: 15px; font-weight: 800; cursor: pointer; flex-shrink: 0; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+.set-row.timer-row { grid-template-columns: 0.5fr 2.2fr 0.8fr; }
+.set-row.timer-row.has-rpe { grid-template-columns: 0.5fr 2.2fr 1.2fr 0.8fr; }
+.set-row.timer-row > * { min-width: 0; }
+.ex-timer-wrap { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; overflow: hidden; }
+.ex-timer-btn { background: var(--teal); color: #000; border: none; border-radius: 10px; width: 34px; height: 34px; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, background 0.2s, opacity 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
+.ex-timer-btn:active { transform: scale(0.92); }
 .ex-timer-btn.done { background: var(--accent); }
-.ex-timer-btn:disabled { opacity: 0.5; cursor: default; }
-.ex-timer-disp { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--teal); min-width: 56px; }
-.ex-timer-target { color: var(--text-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.ex-timer-btn:disabled { opacity: 0.6; cursor: default; }
+.ex-timer-disp { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.ex-timer-target { color: var(--text-muted); font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; padding: 4px 6px; border-radius: 6px; border: 1px dashed var(--border); line-height: 1; }
+.ex-timer-target:active { background: var(--input-bg); }
 
 /* SET SWIPE STYLES */
 .set-swipable { transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); touch-action: pan-y; background: #1e1e20; border-radius: 12px; width: 100%; position: relative; z-index: 2;}

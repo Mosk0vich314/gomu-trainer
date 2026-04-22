@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.04.21.2224";
+        const APP_VERSION = "v2026.04.22.1953";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3369,8 +3369,8 @@
                             ? `${block.sets} x ${block.durationMin} min${detailsStr}`
                             : `${block.sets} x ${block.reps} Reps${detailsStr}`;
                         const colHeaders = isTimeBased
-                            ? `<div class="set-row header" style="grid-template-columns: 0.8fr 1fr ${block.targetRpe ? '1.2fr ' : ''}0.8fr;">
-                                <span>Set</span><span>Timer</span>${block.targetRpe ? `<span onclick="openRpeHub()" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>` : ''}<span></span>
+                            ? `<div class="set-row header" style="grid-template-columns: 0.5fr 2.2fr ${block.targetRpe ? '1.2fr ' : ''}0.8fr;">
+                                <span>Set</span><span style="text-align:left; padding-left: 4px;">Timer</span>${block.targetRpe ? `<span onclick="openRpeHub()" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>` : ''}<span></span>
                                </div>`
                             : `<div class="set-row header">
                                 <span>Set</span>
@@ -3475,32 +3475,42 @@
                         let setHtml;
                         if (block.durationMin) {
                             // TIME-BASED SET ROW
-                            const targetSec = block.durationMin * 60;
-                            const tmm = String(block.durationMin).padStart(2, '0');
+                            const durationKey = `${rowId}_duration`;
+                            const overrideMin = parseFloat(savedSession[durationKey]);
+                            const effMin = (!isNaN(overrideMin) && overrideMin > 0) ? overrideMin : block.durationMin;
+                            const targetSec = Math.round(effMin * 60);
+                            const tmm = String(Math.floor(effMin)).padStart(2, '0');
+                            const tss = String(Math.round((effMin % 1) * 60)).padStart(2, '0');
                             const hasRpe = !!block.targetRpe;
                             const ts = window.exTimerState && window.exTimerState[rowId];
-                            let timerDisp = `${tmm}:00`;
-                            let timerBtnText = '▶';
+                            const playIcon = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+                            const pauseIcon = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`;
+                            const checkIcon = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                            let timerDisp = `${tmm}:${tss}`;
+                            let timerBtnHtml = playIcon;
                             let timerBtnClass = '';
-                            if (ts && ts.done) {
-                                timerBtnText = '✓'; timerBtnClass = ' done';
+                            if (isChecked) {
+                                timerBtnHtml = checkIcon; timerBtnClass = ' done';
+                            } else if (ts && ts.done) {
+                                timerBtnHtml = checkIcon; timerBtnClass = ' done';
                             } else if (ts && ts.startMs != null) {
                                 const el = ts.running
                                     ? Math.floor((Date.now() - ts.startMs) / 1000)
                                     : (ts.pausedElapsed || 0);
                                 timerDisp = `${String(Math.floor(el/60)).padStart(2,'0')}:${String(el%60).padStart(2,'0')}`;
-                                timerBtnText = ts.running ? '⏸' : '▶';
+                                timerBtnHtml = ts.running ? pauseIcon : playIcon;
                             }
+                            const targetLabel = `${tmm}:${tss}`;
                             setHtml = `
                             <div class="set-row timer-row${hasRpe ? ' has-rpe' : ''}">
                                 <span>${s}</span>
                                 <div class="ex-timer-wrap">
-                                    <button class="ex-timer-btn${timerBtnClass}" id="ex-timer-btn-${rowId}" onclick="window.toggleExTimer('${rowId}',${targetSec})" ${isChecked ? 'disabled' : ''}>${timerBtnText}</button>
+                                    <button class="ex-timer-btn${timerBtnClass}" id="ex-timer-btn-${rowId}" onclick="window.toggleExTimer('${rowId}',${targetSec})" ${isChecked ? 'disabled' : ''}>${timerBtnHtml}</button>
                                     <span class="ex-timer-disp" id="ex-timer-disp-${rowId}">${timerDisp}</span>
-                                    <span class="ex-timer-target">/ ${tmm}:00</span>
+                                    <span class="ex-timer-target" onclick="window.editExTimerTarget('${rowId}', ${effMin})" title="Tap to edit target">/ ${targetLabel}</span>
                                 </div>
                                 ${hasRpe ? `<span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>` : ''}
-                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="0" data-norest="true" onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="0" data-norest="true" data-timerrow="true" onclick="toggleCheck(this)"></span>
                             </div>`;
                         } else {
                             setHtml = `
@@ -4433,11 +4443,16 @@
         // --- EXERCISE TIMER (time-based blocks) ---
         window.exTimerState = window.exTimerState || {};
 
+        const EX_TIMER_PLAY_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        const EX_TIMER_PAUSE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+        const EX_TIMER_CHECK_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
         window.toggleExTimer = function(rowId, targetSec) {
             if (!window.exTimerState[rowId]) {
                 window.exTimerState[rowId] = { startMs: null, running: false, done: false, targetSec, pausedElapsed: 0 };
             }
             const state = window.exTimerState[rowId];
+            state.targetSec = targetSec;
             if (state.done) return;
 
             if (state.running) {
@@ -4446,35 +4461,63 @@
                 state.running = false;
                 state.pausedElapsed = state.startMs != null ? Math.floor((Date.now() - state.startMs) / 1000) : 0;
                 const btn = document.getElementById(`ex-timer-btn-${rowId}`);
-                if (btn) btn.textContent = '▶';
+                if (btn) btn.innerHTML = EX_TIMER_PLAY_SVG;
             } else {
                 state.startMs = Date.now() - (state.pausedElapsed || 0) * 1000;
                 state.running = true;
                 const btn = document.getElementById(`ex-timer-btn-${rowId}`);
-                if (btn) btn.textContent = '⏸';
+                if (btn) btn.innerHTML = EX_TIMER_PAUSE_SVG;
 
                 state.interval = setInterval(() => {
                     const dispEl = document.getElementById(`ex-timer-disp-${rowId}`);
                     const btnEl = document.getElementById(`ex-timer-btn-${rowId}`);
-                    if (!state.running) return;
+                    if (!state.running) { clearInterval(state.interval); state.interval = null; return; }
                     const elapsed = Math.floor((Date.now() - state.startMs) / 1000);
                     const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
                     const ss = String(elapsed % 60).padStart(2, '0');
                     if (dispEl) dispEl.textContent = `${mm}:${ss}`;
-                    if (btnEl && !state.done) btnEl.textContent = '⏸';
+                    if (btnEl && !state.done) btnEl.innerHTML = EX_TIMER_PAUSE_SVG;
 
-                    if (elapsed >= targetSec && !state.done) {
+                    if (elapsed >= state.targetSec && !state.done) {
                         state.done = true;
                         state.running = false;
                         clearInterval(state.interval);
                         state.interval = null;
                         playBeep();
-                        if (btnEl) { btnEl.textContent = '✓'; btnEl.classList.add('done'); btnEl.disabled = true; }
+                        if (btnEl) { btnEl.innerHTML = EX_TIMER_CHECK_SVG; btnEl.classList.add('done'); btnEl.disabled = true; }
                         const checkEl = document.getElementById(`${rowId}_check`);
                         if (checkEl && !checkEl.classList.contains('checked')) checkEl.click();
                     }
                 }, 500);
             }
+        };
+
+        window.stopExTimer = function(rowId) {
+            const state = window.exTimerState && window.exTimerState[rowId];
+            if (!state) return;
+            if (state.interval) { clearInterval(state.interval); state.interval = null; }
+            state.running = false;
+            state.done = true;
+            const btn = document.getElementById(`ex-timer-btn-${rowId}`);
+            if (btn) { btn.innerHTML = EX_TIMER_CHECK_SVG; btn.classList.add('done'); btn.disabled = true; }
+        };
+
+        window.editExTimerTarget = function(rowId, currentMin) {
+            const input = prompt('Target minutes:', currentMin);
+            if (input === null) return;
+            const mins = parseFloat(input);
+            if (isNaN(mins) || mins <= 0) return;
+            const workoutKey = getWorkoutKey();
+            let savedSession = safeParse(workoutKey, {});
+            savedSession[`${rowId}_duration`] = mins;
+            localStorage.setItem(workoutKey, JSON.stringify(savedSession));
+            // Reset any existing timer state so it starts fresh with the new target
+            if (window.exTimerState && window.exTimerState[rowId]) {
+                const s = window.exTimerState[rowId];
+                if (s.interval) clearInterval(s.interval);
+                delete window.exTimerState[rowId];
+            }
+            renderWorkout();
         };
 
         // 1. Load the Audio Objects
@@ -4640,8 +4683,22 @@
             el.classList.toggle('checked');
             const isChecked = el.classList.contains('checked');
             saveSessionState(el.id, isChecked);
-            
+
             const baseId = el.id.replace('_check', '');
+            if (el.dataset.timerrow === 'true') {
+                if (isChecked) {
+                    if (window.stopExTimer) window.stopExTimer(baseId);
+                } else {
+                    // unchecking: clear state so ▶ shows again
+                    if (window.exTimerState && window.exTimerState[baseId]) {
+                        const s = window.exTimerState[baseId];
+                        if (s.interval) clearInterval(s.interval);
+                        delete window.exTimerState[baseId];
+                    }
+                    const btn = document.getElementById(`ex-timer-btn-${baseId}`);
+                    if (btn) { btn.disabled = false; btn.classList.remove('done'); btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; }
+                }
+            }
             const loadInput = document.getElementById(baseId + '_load');
             const rpeInput = document.getElementById(baseId + '_rpe');
             const repsInput = document.getElementById(baseId + '_reps'); // NEW: grabs editable reps
@@ -5347,6 +5404,14 @@
             localStorage.setItem('completedDays', JSON.stringify(completedDays));
             activeWorkout = null;
             localStorage.removeItem('activeWorkout');
+            // Stop any running exercise timers
+            if (window.exTimerState) {
+                Object.keys(window.exTimerState).forEach(rid => {
+                    const s = window.exTimerState[rid];
+                    if (s && s.interval) clearInterval(s.interval);
+                });
+                window.exTimerState = {};
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
             closeTimer();
             if (typeof workoutDurationInterval !== 'undefined') clearInterval(workoutDurationInterval);
