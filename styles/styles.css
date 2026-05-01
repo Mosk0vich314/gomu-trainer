@@ -201,7 +201,7 @@ button, .pill, .check-circle, .stat-card {
     0%, 100% { box-shadow: 0 0 0 2px rgba(249,115,22,0.2); }
     50% { box-shadow: 0 0 0 5px rgba(249,115,22,0.08); }
 }
-.analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); position: relative; z-index: 1; }
+.analytics-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05); position: relative; z-index: 1; }
 .analytics-header { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
 .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
 .a-val {
@@ -683,6 +683,7 @@ button, .pill, .check-circle, .stat-card {
     flex: 1; background: var(--card); border: 1px solid var(--border);
     border-radius: 14px; padding: 14px 10px; text-align: center;
     cursor: pointer; transition: border-color 0.2s;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .pr-sbd-card:active { border-color: var(--accent); }
 .pr-sbd-lift { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
@@ -708,7 +709,7 @@ button, .pill, .check-circle, .stat-card {
 /* ── Bodyweight Chart ─────────────────────────────── */
 .bw-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 16px 8px; margin-bottom: 20px; }
 
-.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
 .stat-name { font-weight: 600; font-size: 16px; color: var(--text-main); }
 .stat-value { color: var(--accent); font-size: 18px; font-weight: 800; }
 
@@ -1155,6 +1156,63 @@ button, .pill, .check-circle, .stat-card {
 }
 @keyframes thumbShimmer {
     to { left: 200%; }
+}
+
+/* ── Skeleton Loaders ─────────────────────────────── */
+@keyframes skeleton-shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton-block {
+    background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.04) 50%, var(--card) 75%);
+    background-size: 800px 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+/* ── RPE Pill Badge ───────────────────────────────── */
+.rpe-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+    margin-left: 2px;
+}
+.rpe-pill-easy { background: rgba(20,184,166,0.15); color: #14b8a6; border: 1px solid rgba(20,184,166,0.35); }
+.rpe-pill-mod  { background: rgba(132,204,22,0.15); color: #84cc16; border: 1px solid rgba(132,204,22,0.30); }
+.rpe-pill-hard { background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.35); }
+.rpe-pill-max  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
+
+/* ── Stats Section Divider ────────────────────────── */
+.stats-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 16px;
+    color: var(--text-muted);
+}
+.stats-divider::before,
+.stats-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+.stats-divider-inner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
 }
 @keyframes drawChartLine {
     from { stroke-dashoffset: 3000; }
