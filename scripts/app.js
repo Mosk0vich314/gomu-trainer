@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.04.22.1953";
+        const APP_VERSION = "v2026.05.02.0150";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -1566,7 +1566,7 @@
                 ${cells.map((col, wi) => `
                 <div style="display:flex; flex-direction:column; gap:2px; flex-shrink:0;">
                     <div style="height:14px; font-size:7px; color:var(--text-muted); white-space:nowrap; overflow:hidden;">${monthLabels[wi]}</div>
-                    ${col.map(cell => `<div style="width:10px; height:10px; border-radius:2px; background:${cellColor(cell.vol)}; cursor:${cell.vol > 0 ? 'pointer' : 'default'};" onclick="showHeatmapTooltip(event,'${cell.key}')"></div>`).join('')}
+                    ${col.map(cell => `<div style="width:10px; height:10px; border-radius:4px; background:${cellColor(cell.vol)}; cursor:${cell.vol > 0 ? 'pointer' : 'default'};" onclick="showHeatmapTooltip(event,'${cell.key}')"></div>`).join('')}
                 </div>`).join('')}
             </div>
             <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px; margin-left:4px; gap:0;">
@@ -2735,7 +2735,7 @@
                 </div>`;
             }
 
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Current Baselines</h3>';
+            html += `<div class="stats-divider"><div class="stats-divider-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="9" width="3" height="6" rx="1"/><rect x="16" y="9" width="3" height="6" rx="1"/></svg>Current Baselines</div></div>`;
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
 
             // 2. Sort Baselines
@@ -2763,7 +2763,7 @@
                 </div>`;
             });
 
-            html += '<h3 style="color:var(--text-main);font-size:18px;margin-top:40px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px;">All-Time Heaviest Lifts</h3>';
+            html += `<div class="stats-divider"><div class="stats-divider-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="9" width="3" height="6" rx="1"/><rect x="16" y="9" width="3" height="6" rx="1"/></svg>All-Time Heaviest Lifts</div></div>`;
 
             // 3. Sort Bests
             const allBestKeys = Object.keys(actualBests);
@@ -2832,10 +2832,15 @@
             window.physiquePrivacy = true;
 
             // Physique Tracking UI
-            html += '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">';
-            html += '<h3 style="color: var(--text-main); font-size: 18px; margin: 0;">Physique Tracking</h3>';
-            html += '<button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">🙈 Hidden</button>';
-            html += '</div>';
+            html += `<div style="display:flex;align-items:center;gap:10px;margin:32px 0 15px;color:var(--text-muted);">
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Physique Tracking
+                </div>
+                <button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:0.2s;flex-shrink:0;">🙈 Hidden</button>
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+            </div>`;
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Locally stored progress pictures. These never leave your device.</p>';
             html += `
             <div id="physique-gallery" class="privacy-hidden" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
@@ -3344,7 +3349,11 @@
                 ex.blocks.forEach((block, bIndex) => {
                     let details = [];
                     if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%`);
-                    if (block.targetRpe) details.push(`RPE ${block.targetRpe.toFixed(1)}`);
+                    if (block.targetRpe) {
+                        const _rpe = block.targetRpe;
+                        const _rpeCls = _rpe >= 9 ? 'rpe-pill-max' : _rpe >= 8 ? 'rpe-pill-hard' : _rpe >= 7 ? 'rpe-pill-mod' : 'rpe-pill-easy';
+                        details.push(`<span class="rpe-pill ${_rpeCls}">RPE ${_rpe.toFixed(1)}</span>`);
+                    }
                     const detailsStr = details.length > 0 ? ` @ ${details.join(' | ')}` : '';
                     const dotColor = isMain ? '#f97316' : '#14b8a6';
                     
