@@ -9,8 +9,23 @@
                 window.location.reload();
             });
         }
+        // Feature 1: Intercept Google Drive OAuth2 implicit-flow redirect in popup
+        (function() {
+            const h = window.location.hash;
+            if (h.includes('access_token=')) {
+                const params = new URLSearchParams(h.slice(1));
+                const token = params.get('access_token');
+                if (token) {
+                    sessionStorage.setItem('gdriveToken', token);
+                    try { localStorage.setItem('_gdrive_auth', JSON.stringify({ token, ts: Date.now() })); } catch(_) {}
+                    history.replaceState(null, '', window.location.pathname);
+                    if (window.opener) { window.close(); return; }
+                }
+            }
+        })();
+
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.03.1128";
+        const APP_VERSION = "v2026.05.03.1637";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -361,9 +376,11 @@
                     }
                 }
             }
-            updateDashboard(); 
+            updateDashboard();
             updateLibraryUI();
             checkOnboarding();
+            updateGDriveUI(); // Feature 1: refresh Drive connection status
+            showReadinessModal(); // Feature 6: daily check-in
         }
 
         function buildSetRow(params) {
@@ -440,6 +457,7 @@
             overlay.style.display = 'block';
             sheet.style.display = 'block';
             requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+            updateGDriveUI(); // Refresh Drive status and TTS toggle when sheet opens
         };
         window.closeDataSheet = function() {
             const sheet = document.getElementById('data-sheet');
@@ -481,8 +499,18 @@
             const customFolderContent = document.getElementById('custom-folder-content');
             if (customFolderContent) {
                 const customProgs = safeParse('customPrograms', {});
-                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 15px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">+ Start Empty Workout</button>`;
-                
+                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 10px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">+ Start Empty Workout</button>`;
+                html += `<div style="display:flex;gap:8px;margin-bottom:15px;">
+                    <button class="reset-btn" style="flex:1;padding:10px;font-size:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="exportCustomWorkout()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        Export
+                    </button>
+                    <button class="reset-btn" style="flex:1;padding:10px;font-size:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="importCustomWorkout()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 18 12 22 8 18"/><line x1="12" y1="22" x2="12" y2="9"/></svg>
+                        Import
+                    </button>
+                </div>`;
+
                 Object.keys(customProgs).forEach(pid => {
                     html += `
                     <div class="program-card" data-program-id="${pid}" onclick="startProgram('${pid}')" style="cursor: pointer;">
@@ -616,6 +644,103 @@
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Special PR Rumble
             
             setTimeout(() => toast.classList.remove('show'), 4000);
+        };
+
+        // ── Feature 1: Google Drive Cloud Backup ─────────────────────────────
+        const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
+        function updateGDriveUI() {
+            const token = sessionStorage.getItem('gdriveToken');
+            const dot = document.getElementById('gdrive-status-dot');
+            const txt = document.getElementById('gdrive-status-text');
+            const btn = document.getElementById('gdrive-backup-now-btn');
+            const inp = document.getElementById('gdrive-client-id-input');
+            if (dot) { dot.classList.toggle('connected', !!token); }
+            if (txt) txt.innerText = token ? 'Connected' : 'Not connected';
+            if (btn) btn.style.display = token ? 'flex' : 'none';
+            if (inp) inp.value = localStorage.getItem('gdriveClientId') || '';
+            // Also update TTS toggle button label
+            const ttsBtn = document.getElementById('tts-toggle-btn');
+            if (ttsBtn) ttsBtn.innerText = localStorage.getItem('ttsEnabled') === 'false' ? 'Off' : 'On';
+        }
+
+        window.toggleTTS = function() {
+            const current = localStorage.getItem('ttsEnabled') !== 'false';
+            localStorage.setItem('ttsEnabled', current ? 'false' : 'true');
+            updateGDriveUI();
+        };
+
+        window.connectGDrive = function() {
+            const clientId = localStorage.getItem('gdriveClientId') || '';
+            if (!clientId.trim()) { alert('Paste your Google OAuth2 Client ID first.'); return; }
+            const redirectUri = window.location.origin + window.location.pathname;
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(GDRIVE_SCOPE)}&prompt=consent`;
+            const popup = window.open(url, 'gdrive_auth', 'width=520,height=620,left=200,top=100');
+            const onMsg = (e) => {
+                if (e.key !== '_gdrive_auth') return;
+                window.removeEventListener('storage', onMsg);
+                try {
+                    const d = JSON.parse(e.newValue);
+                    if (d && d.token) {
+                        sessionStorage.setItem('gdriveToken', d.token);
+                        localStorage.removeItem('_gdrive_auth');
+                        updateGDriveUI();
+                    }
+                } catch(_) {}
+            };
+            window.addEventListener('storage', onMsg);
+            // Fallback: poll for popup close if same-window redirect happened
+            const poll = setInterval(() => {
+                if (popup && popup.closed) {
+                    clearInterval(poll);
+                    window.removeEventListener('storage', onMsg);
+                    updateGDriveUI();
+                }
+            }, 800);
+        };
+
+        async function gdriveBackup() {
+            const token = sessionStorage.getItem('gdriveToken');
+            if (!token) return;
+            const data = {
+                version: APP_VERSION,
+                timestamp: new Date().toISOString(),
+                actualBests: safeParse('actualBests', {}),
+                prHistory: safeParse('prHistory', {}),
+                global1RMs: safeParse('global1RMs', {}),
+                completedDays: safeParse('completedDays', {}),
+                bwHistory: safeParse('bwHistory', []),
+                lastUsedWeights: safeParse('lastUsedWeights', {}),
+                workoutHistory: workoutHistoryCache.slice(0, 200),
+            };
+            const body = JSON.stringify(data);
+            const fileName = 'gomu-trainer-backup.json';
+            const meta = { name: fileName, mimeType: 'application/json' };
+            const authHeader = { 'Authorization': `Bearer ${token}` };
+            try {
+                const search = await fetch(
+                    `https://www.googleapis.com/drive/v3/files?q=name%3D'${fileName}'%20and%20not%20trashed&spaces=drive&fields=files(id)`,
+                    { headers: authHeader }
+                );
+                if (search.status === 401) { sessionStorage.removeItem('gdriveToken'); return; }
+                const { files } = await search.json();
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+                form.append('file', new Blob([body], { type: 'application/json' }));
+                const endpoint = files && files.length
+                    ? `https://www.googleapis.com/upload/drive/v3/files/${files[0].id}?uploadType=multipart`
+                    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+                const method = files && files.length ? 'PATCH' : 'POST';
+                const resp = await fetch(endpoint, { method, headers: authHeader, body: form });
+                if (resp.status === 401) sessionStorage.removeItem('gdriveToken');
+            } catch(_) {}
+        }
+
+        window.gdriveBackupNow = async function() {
+            const btn = document.getElementById('gdrive-backup-now-btn');
+            if (btn) { btn.innerText = 'Backing up…'; btn.disabled = true; }
+            await gdriveBackup();
+            if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Backup Now'; btn.disabled = false; }
         };
 
         window.isNoPlateExercise = function(name) {
@@ -1102,9 +1227,10 @@
                 const timerEl = document.getElementById('workout-duration');
                 if (timerEl) timerEl.style.display = 'none';
                 
-                generateSummary(keyForSummary, durationMs); 
+                generateSummary(keyForSummary, durationMs);
+                gdriveBackup(); // Feature 1: silent cloud backup
                 updateDashboard();
-                return; 
+                return;
                 
             } else if (action === 'restart') {
                 delete completedDays[key];
@@ -2617,6 +2743,88 @@
             }
         }
 
+        // ── Feature 2: Muscle Volume Radar Chart ─────────────────────────────
+        function buildMuscleRadarChart() {
+            const RADAR_GROUPS = [
+                { label: 'Quads',    keys: ['quads'] },
+                { label: 'Glutes',   keys: ['glutes'] },
+                { label: 'Hams',     keys: ['hamstrings'] },
+                { label: 'Back',     keys: ['back', 'traps'] },
+                { label: 'Chest',    keys: ['chest'] },
+                { label: 'Shoulders',keys: ['frontDelts', 'rearDelts'] },
+                { label: 'Arms',     keys: ['biceps', 'triceps', 'forearms'] },
+                { label: 'Core',     keys: ['core'] },
+            ];
+
+            const volumes = Object.fromEntries(RADAR_GROUPS.map(g => [g.label, 0]));
+            const cutoff = Date.now() - 28 * 24 * 60 * 60 * 1000;
+
+            workoutHistoryCache.forEach(session => {
+                const ts = session.id ? parseInt(session.id) : 0;
+                if (ts < cutoff) return;
+                (session.details || []).forEach(ex => {
+                    const split = getMuscleSplit(ex.name);
+                    if (!split) return;
+                    const vol = ex.sets.reduce((s, set) => s + (parseFloat(set.load) || 0) * (parseInt(set.reps) || 0), 0);
+                    if (vol <= 0) return;
+                    RADAR_GROUPS.forEach(g => {
+                        const share = g.keys.reduce((s, k) => s + (split[k] || 0), 0);
+                        if (share > 0) volumes[g.label] += vol * share;
+                    });
+                });
+            });
+
+            const vals = RADAR_GROUPS.map(g => volumes[g.label]);
+            const maxVal = Math.max(...vals, 1);
+            const N = RADAR_GROUPS.length;
+            const cx = 110, cy = 110, R = 80;
+
+            const toXY = (i, ratio) => {
+                const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
+                return { x: cx + Math.cos(angle) * R * ratio, y: cy + Math.sin(angle) * R * ratio };
+            };
+
+            // Concentric grid rings at 25%, 50%, 75%, 100%
+            let gridSvg = '';
+            [0.25, 0.5, 0.75, 1.0].forEach(r => {
+                const pts = RADAR_GROUPS.map((_, i) => { const p = toXY(i, r); return `${p.x},${p.y}`; }).join(' ');
+                gridSvg += `<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="0.8" opacity="0.6"/>`;
+            });
+
+            // Axes
+            let axesSvg = RADAR_GROUPS.map((_, i) => {
+                const p = toXY(i, 1);
+                return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="var(--border)" stroke-width="0.8" opacity="0.6"/>`;
+            }).join('');
+
+            // Data polygon
+            const dataPts = RADAR_GROUPS.map((g, i) => { const p = toXY(i, vals[i] / maxVal); return `${p.x},${p.y}`; }).join(' ');
+            const dataFill = `<polygon points="${dataPts}" fill="rgba(249,115,22,0.15)" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/>`;
+
+            // Labels
+            const labelOffset = 18;
+            let labelsSvg = RADAR_GROUPS.map((g, i) => {
+                const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
+                const lx = cx + Math.cos(angle) * (R + labelOffset);
+                const ly = cy + Math.sin(angle) * (R + labelOffset);
+                const anchor = Math.abs(lx - cx) < 5 ? 'middle' : lx < cx ? 'end' : 'start';
+                const hasSome = vals[i] > 0;
+                return `<text x="${lx.toFixed(1)}" y="${(ly + 4).toFixed(1)}" text-anchor="${anchor}" font-size="9" font-weight="800" font-family="DM Sans,sans-serif" fill="${hasSome ? 'var(--text-main)' : 'var(--text-muted)'}">${g.label}</text>`;
+            }).join('');
+
+            const hasData = vals.some(v => v > 0);
+
+            return `<div class="radar-card">
+                <div class="radar-card-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Muscle Volume — Last 28 Days
+                </div>
+                ${hasData
+                    ? `<div style="display:flex;justify-content:center;"><svg viewBox="0 0 220 220" width="220" height="220" style="overflow:visible;">${gridSvg}${axesSvg}${dataFill}${labelsSvg}</svg></div>`
+                    : `<div style="color:var(--text-muted);font-size:13px;font-style:italic;text-align:center;padding:20px 0;">Complete some workouts to see your muscle volume distribution.</div>`}
+            </div>`;
+        }
+
         function renderStats() {
             rebuildPRHistoryFromWorkouts();
             const statsContainer = document.getElementById('stats-container');
@@ -2734,6 +2942,9 @@
                     </svg>
                 </div>`;
             }
+
+            // Feature 2: Muscle Volume Radar Chart
+            html += buildMuscleRadarChart();
 
             html += `<div class="stats-divider"><div class="stats-divider-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="9" width="3" height="6" rx="1"/><rect x="16" y="9" width="3" height="6" rx="1"/></svg>Current Baselines</div></div>`;
             html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
@@ -3475,6 +3686,11 @@
                         const rpeValue = savedSession[rpeInputId] || (block.targetRpe ? block.targetRpe.toFixed(1) : '');
                         if (isMyoBackoff && myoActivationLoad !== null && !savedSession[loadInputId]) {
                             smartDefaultLoad = myoActivationLoad;
+                        }
+                        // Feature 6: apply daily readiness modifier to suggested load (never to already-saved values)
+                        if (smartDefaultLoad && !savedSession[loadInputId]) {
+                            const rdMod = parseFloat(sessionStorage.getItem('readinessModifier')) || 1.0;
+                            if (rdMod !== 1.0) smartDefaultLoad = roundForEquipment(parseFloat(smartDefaultLoad) * rdMod, ex.name);
                         }
                         const loadValue = savedSession[loadInputId] || smartDefaultLoad || '';
                         if (isMyoActivation && myoActivationLoad === null && loadValue !== '') {
@@ -4685,6 +4901,33 @@
             }
 
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+
+            // Feature 4: TTS announcement of the next set
+            if (window.speechSynthesis && localStorage.getItem('ttsEnabled') !== 'false') {
+                try {
+                    const nextCheck = document.querySelector('.check-circle:not(.checked)');
+                    let utterText = 'Rest complete.';
+                    if (nextCheck) {
+                        const baseId = nextCheck.id.replace('_check', '');
+                        const loadEl = document.getElementById(`${baseId}_load`);
+                        const repsEl = document.getElementById(`${baseId}_reps`);
+                        const exName = loadEl ? (loadEl.dataset.exname || '') : '';
+                        const load = loadEl ? (loadEl.value || loadEl.placeholder || '') : '';
+                        const reps = repsEl ? (repsEl.value || '') : '';
+                        if (exName) {
+                            const unit = getUnit();
+                            const loadStr = load ? `${load} ${unit}` : '';
+                            const repsStr = reps ? `for ${reps} reps` : '';
+                            utterText = `Rest complete. Next up: ${exName}${loadStr ? ', ' + loadStr : ''}${repsStr ? ', ' + repsStr : ''}.`;
+                        }
+                    }
+                    window.speechSynthesis.cancel();
+                    const utt = new SpeechSynthesisUtterance(utterText);
+                    utt.rate = 1.0;
+                    utt.volume = 0.9;
+                    window.speechSynthesis.speak(utt);
+                } catch(_) {}
+            }
         }
 
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
@@ -5964,16 +6207,42 @@
                 el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0;">No PR progression recorded yet.</div>';
             } else {
                 const safeExJS = exName.replace(/'/g, "\\'");
-                el.innerHTML = entries.map(e => `
+                el.innerHTML = entries.map(e => {
+                    const hasVideo = !!e.videoUrl;
+                    const videoBtn = hasVideo
+                        ? `<button class="pr-video-btn has-video" onclick="event.stopPropagation();window.open('${e.videoUrl}','_blank')" title="Watch form video">▶</button>`
+                        : `<button class="pr-video-btn" onclick="event.stopPropagation();window.addPRVideo('${safeExJS}',${e.date})" title="Add form video">📹</button>`;
+                    return `
                     <div class="pr-tl-entry">
                         <span class="pr-tl-val">${kgDisp(e.weight)} ${unitSuffix()} × ${e.reps} <span style="color:var(--text-muted);font-size:11px;">(${kgDisp(e.e1rm)} e1RM)</span></span>
-                        <span style="display:flex;align-items:center;gap:10px;">
+                        <span style="display:flex;align-items:center;gap:6px;">
+                            ${videoBtn}
                             <span class="pr-tl-date">${fmtShortDate(e.date)}</span>
                             <button onclick="event.stopPropagation();window.deletePREntry('${safeExJS}',${e.date})" style="background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0;opacity:0.5;" title="Delete this PR">×</button>
                         </span>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             }
         }
+
+        // Feature 3: Save or clear video URL for a PR entry
+        window.addPRVideo = function(exName, entryDate) {
+            const url = prompt('Paste a YouTube or Google Photos link for this lift:');
+            if (url === null) return;
+            const prHist = safeParse('prHistory', {});
+            if (!prHist[exName]) return;
+            const entry = prHist[exName].find(e => e.date === entryDate);
+            if (!entry) return;
+            if (url.trim()) {
+                entry.videoUrl = url.trim();
+            } else {
+                delete entry.videoUrl;
+            }
+            localStorage.setItem('prHistory', JSON.stringify(prHist));
+            const id = 'prtl-' + encodeURIComponent(exName);
+            const el = document.getElementById(id);
+            if (el) renderPRTimelineEl(exName, el);
+        };
 
         window.togglePRTimeline = function(exName) {
             const id = 'prtl-' + encodeURIComponent(exName);
@@ -6036,6 +6305,83 @@
                 card.appendChild(el);
             }
         };
+
+        // ── Feature 5: P2P Workout Sharing (Base64) ──────────────────────────
+        window.exportCustomWorkout = function() {
+            const progs = safeParse('customPrograms', {});
+            const keys = Object.keys(progs);
+            if (keys.length === 0) { alert('No custom workouts to export.'); return; }
+            let pid;
+            if (keys.length === 1) {
+                pid = keys[0];
+            } else {
+                const names = keys.map((k, i) => `${i + 1}. ${progs[k].name}`).join('\n');
+                const choice = prompt(`Choose a workout to export:\n${names}\n\nEnter number:`);
+                const idx = parseInt(choice) - 1;
+                if (isNaN(idx) || idx < 0 || idx >= keys.length) return;
+                pid = keys[idx];
+            }
+            const payload = JSON.stringify({ pid, data: progs[pid] });
+            const b64 = btoa(unescape(encodeURIComponent(payload)));
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(b64).then(() => alert(`"${progs[pid].name}" copied to clipboard as Base64. Share it with the Import button.`));
+            } else {
+                prompt('Copy this Base64 string:', b64);
+            }
+        };
+
+        window.importCustomWorkout = function() {
+            const b64 = prompt('Paste the Base64 workout string here:');
+            if (!b64) return;
+            try {
+                const payload = JSON.parse(decodeURIComponent(escape(atob(b64.trim()))));
+                if (!payload.pid || !payload.data || !payload.data.name) throw new Error('Invalid format');
+                const progs = safeParse('customPrograms', {});
+                let targetPid = payload.pid;
+                if (progs[targetPid]) targetPid = payload.pid + '_' + Date.now();
+                progs[targetPid] = payload.data;
+                localStorage.setItem('customPrograms', JSON.stringify(progs));
+                updateLibraryUI();
+                const folder = document.getElementById('custom-folder');
+                if (folder) folder.open = true;
+                alert(`Imported "${payload.data.name}" successfully!`);
+            } catch(e) {
+                alert('Invalid or corrupted Base64 string. Could not import.');
+            }
+        };
+
+        // ── Feature 6: Daily Readiness Score ─────────────────────────────────
+        let _readinessSleep = 3;
+        let _readinessDoms = 3;
+
+        window.selectReadiness = function(type, val, btn) {
+            const scaleId = type === 'sleep' ? 'sleep-scale' : 'doms-scale';
+            document.querySelectorAll(`#${scaleId} .readiness-pip`).forEach(b => b.classList.remove('sel'));
+            btn.classList.add('sel');
+            if (type === 'sleep') _readinessSleep = val;
+            else _readinessDoms = val;
+        };
+
+        window.submitReadiness = function() {
+            const modifier = 0.95 + ((_readinessSleep - 1) / 4 * 0.05) + ((5 - _readinessDoms) / 4 * 0.05);
+            const clamped = Math.max(0.95, Math.min(1.05, modifier));
+            sessionStorage.setItem('readinessModifier', clamped.toFixed(4));
+            sessionStorage.setItem('readinessDate', new Date().toDateString());
+            document.getElementById('readiness-modal').style.display = 'none';
+        };
+
+        window.skipReadiness = function() {
+            sessionStorage.setItem('readinessModifier', '1.0');
+            sessionStorage.setItem('readinessDate', new Date().toDateString());
+            document.getElementById('readiness-modal').style.display = 'none';
+        };
+
+        function showReadinessModal() {
+            const today = new Date().toDateString();
+            if (sessionStorage.getItem('readinessDate') === today) return;
+            const modal = document.getElementById('readiness-modal');
+            if (modal) modal.style.display = 'flex';
+        }
 
         // Boot: try sessionStorage key first (page reload), else show login
         const cachedKey = sessionStorage.getItem('gomu_key');
