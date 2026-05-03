@@ -10,7 +10,7 @@
             });
         }
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.02.0150";
+        const APP_VERSION = "v2026.05.03.1128";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3346,6 +3346,9 @@
 
                 const numBlocks = ex.blocks.length;
 
+                // MYO-REP: capture activation set load so back-offs default to the same weight
+                let myoActivationLoad = null;
+
                 ex.blocks.forEach((block, bIndex) => {
                     let details = [];
                     if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%`);
@@ -3470,7 +3473,13 @@
                         
                         const repsValue = savedSession[repsInputId] || block.reps;
                         const rpeValue = savedSession[rpeInputId] || (block.targetRpe ? block.targetRpe.toFixed(1) : '');
+                        if (isMyoBackoff && myoActivationLoad !== null && !savedSession[loadInputId]) {
+                            smartDefaultLoad = myoActivationLoad;
+                        }
                         const loadValue = savedSession[loadInputId] || smartDefaultLoad || '';
+                        if (isMyoActivation && myoActivationLoad === null && loadValue !== '') {
+                            myoActivationLoad = loadValue;
+                        }
                         
                         const isChecked = savedSession[checkId] ? 'checked' : '';
                         const disabledAttr = isChecked ? 'disabled' : '';
