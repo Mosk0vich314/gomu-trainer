@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.12.2321";
+        const APP_VERSION = "v2026.05.13.0039";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3632,9 +3632,7 @@
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
                         let smartDefaultLoad = '';
-                        if (block.pct && resolved1RM > 0) {
-                            smartDefaultLoad = roundForEquipment(resolved1RM * block.pct, ex.name);
-                        } else if (block.targetRpe && resolved1RM > 0) {
+                        if (block.targetRpe && resolved1RM > 0) {
                             // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
                             const rtsChart = {
                                 10:   [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690],
@@ -3667,6 +3665,8 @@
                                 }
                                 smartDefaultLoad = calcWeight;
                             }
+                        } else if (block.pct && resolved1RM > 0) {
+                            smartDefaultLoad = roundForEquipment(resolved1RM * block.pct, ex.name);
                         } else if (lastUsedWeights[ex.name]) {
                             // Fallback to memory if neither PCT nor Target RPE exist
                             if (typeof lastUsedWeights[ex.name] === 'object' && lastUsedWeights[ex.name] !== null) {
