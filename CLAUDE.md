@@ -26,9 +26,17 @@ python tools/build_database.py <FOLDER_NAME>
 ```
 Uses Gemini-2.5-Pro vision to OCR workout screenshots into a JSON program file. Requires `api_key.txt` with a Google Gemini API key.
 
-### Inject a program into the HTML
+### Inject a program into the database
 ```bash
 python tools/inject_db.py <PROGRAM_NAME>
+```
+**Note:** `inject_db.py` targets `index.html` by default but programs are now stored in `scripts/database.js`. Use an inline Python script instead:
+```python
+import re
+with open('scripts/database.js', 'r', encoding='utf-8') as f: content = f.read()
+with open('Programs/<NAME>_database.json', 'r', encoding='utf-8') as f: new_json = f.read().strip()
+pattern = re.compile(r'(/\* <NAME>_START \*/)(.*?)(/\* <NAME>_END \*/)', re.DOTALL)
+with open('scripts/database.js', 'w', encoding='utf-8') as f: f.write(pattern.sub(r'\1\n' + new_json + r'\n\3', content))
 ```
 
 ### Create a sanitized (no data) copy
@@ -41,7 +49,7 @@ Outputs `clean_app.html` with all plaintext database content removed.
 
 The entire app lives in two files:
 - **`index.html`** — All HTML structure. Contains workout program data injected as JSON comments between `/* PROGRAM_NAME_START */` / `/* PROGRAM_NAME_END */` markers.
-- **`scripts/app.js`** — All application logic (~5500 lines). No build step, no bundler.
+- **`scripts/app.js`** — All application logic (~5600 lines). No build step, no bundler.
 
 **`styles/styles.css`** — Dark-theme CSS using CSS variables (`--accent` orange, `--teal`, `--bg`, `--card`, `--border`, `--text-main`, `--text-muted`, `--danger`).
 
@@ -93,6 +101,16 @@ Screen transitions use `switchTab(tabId)` which applies directional slide animat
   }
 }
 ```
+
+Block types: `"top"` (working/peak sets), `"backoff"` (lighter volume after peak), `"acc"` (accessory, `pct: null`). Both `targetRpe` and `pct` can coexist on the same block — `pct` acts as a reference/fallback.
+
+### Weight suggestion priority (buildSetRow, ~line 3635)
+Order: **RPE-first → pct fallback → last-used weight memory**
+1. If `block.targetRpe` is set and a 1RM exists → use RTS table to calculate load
+2. Else if `block.pct` is set and a 1RM exists → use `resolved1RM * block.pct`
+3. Else → use `lastUsedWeights[ex.name]` from session memory
+
+This was intentionally changed from pct-first to RPE-first to support Panash programs (Meta 5/3/1, etc.) which mix RPE and percentage prescriptions — RPE takes priority when available.
 
 ## Key helpers (app.js)
 
