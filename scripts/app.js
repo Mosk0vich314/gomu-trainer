@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2213";
+        const APP_VERSION = "v2026.05.13.2240";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
