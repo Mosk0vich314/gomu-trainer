@@ -411,12 +411,12 @@ button, .pill, .check-circle, .stat-card {
 .set-row.timer-row { grid-template-columns: 0.5fr 2.2fr 0.8fr; }
 .set-row.timer-row.has-rpe { grid-template-columns: 0.5fr 2.2fr 1.2fr 0.8fr; }
 .set-row.timer-row > * { min-width: 0; }
-.ex-timer-wrap { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; overflow: hidden; }
+.ex-timer-wrap { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; }
 .ex-timer-btn { background: var(--teal); color: #000; border: none; border-radius: 10px; width: 34px; height: 34px; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, background 0.2s, opacity 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
 .ex-timer-btn:active { transform: scale(0.92); }
 .ex-timer-btn.done { background: var(--accent); }
 .ex-timer-btn:disabled { opacity: 0.6; cursor: default; }
-.ex-timer-disp { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.ex-timer-disp { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; letter-spacing: -0.5px; min-width: 0; overflow: hidden; }
 .ex-timer-target { color: var(--text-muted); font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; padding: 4px 6px; border-radius: 6px; border: 1px dashed var(--border); line-height: 1; }
 .ex-timer-target:active { background: var(--input-bg); }
 
