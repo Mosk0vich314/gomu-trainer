@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2201";
+        const APP_VERSION = "v2026.05.13.2205";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -1136,18 +1136,31 @@
         function getActiveExercises(prog, w, d, key) {
             let base = db[prog]?.weeks[w]?.[d] || [];
             let exercises = JSON.parse(JSON.stringify(base)); // Deep copy
-            
+
+            // Tag each exercise with its DB-original name before any swaps
+            exercises.forEach(ex => { ex._originalName = ex.name; });
+
+            // Apply program-level swaps (persist across all days; cleared on reset/program-finish)
+            const programSwaps = safeParse(`programSwaps_${prog}`, {});
+            exercises.forEach(ex => {
+                if (programSwaps[ex._originalName]) ex.name = programSwaps[ex._originalName];
+            });
+
             let saved = safeParse(key, {});
-            
-            if (saved.addedExercises) exercises = exercises.concat(JSON.parse(JSON.stringify(saved.addedExercises)));
-            
+
+            if (saved.addedExercises) {
+                const added = JSON.parse(JSON.stringify(saved.addedExercises));
+                added.forEach(ex => { ex._originalName = ex._originalName || ex.name; });
+                exercises = exercises.concat(added);
+            }
+
             if (saved.deletedIndices) {
                 saved.deletedIndices.forEach(idx => {
                     if (exercises[idx]) exercises[idx].isDeleted = true;
                 });
             }
 
-            // NEW: Apply swapped names
+            // Legacy per-session swapped names (index-based, kept for backward compat)
             if (saved.swappedNames) {
                 Object.keys(saved.swappedNames).forEach(idx => {
                     if (exercises[idx]) exercises[idx].name = saved.swappedNames[idx];
@@ -1214,13 +1227,22 @@
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
             
             } else if (action === 'finish') {
-                const keyForSummary = key; 
+                const keyForSummary = key;
                 const durationMs = activeWorkout && activeWorkout.startTime ? (Date.now() - activeWorkout.startTime) : 0;
-                
+
                 completedDays[key] = true;
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
                 activeWorkout = null;
                 localStorage.removeItem('activeWorkout');
+
+                // If every day in the program is now complete, clear program-level swaps
+                // so exercises revert to DB originals when the block is run again
+                const allDone = Object.keys(db[currentProgram]?.weeks || {}).every(w =>
+                    Object.keys(db[currentProgram].weeks[w] || {}).every(d =>
+                        completedDays[`${currentProgram}_w${w}_d${d}`]
+                    )
+                );
+                if (allDone) localStorage.removeItem(`programSwaps_${currentProgram}`);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 closeTimer();
                 clearInterval(workoutDurationInterval);
@@ -2139,6 +2161,8 @@
                     });
                 });
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                // Clear program-level exercise swaps so DB originals are restored
+                localStorage.removeItem(`programSwaps_${currentProgram}`);
                 if(activeWorkout && activeWorkout.program === currentProgram) {
                     activeWorkout = null;
                     localStorage.removeItem('activeWorkout');
@@ -3525,7 +3549,7 @@
                             ${isNonExercise ? '' : `
                             <button class="btn-warmup-icon" 
                                     style="left: 16px; right: auto; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
-                                    onclick="openSwapModal(${exIndex}, '${ex.name.replace(/'/g, "\\'")}')" title="Swap Exercise">
+                                    onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                             </button>
                             `}
@@ -4103,8 +4127,9 @@
             renderWorkout(); 
         };
 
-        window.openSwapModal = function(exIndex, exName) {
+        window.openSwapModal = function(exIndex, originalName) {
             window.swapTargetExIndex = exIndex;
+            window.swapOriginalName = originalName;
             document.getElementById('swap-ex-name').value = '';
             document.getElementById('swap-exercise-modal').style.display = 'flex';
         };
@@ -4112,10 +4137,10 @@
         window.submitSwapExercise = function() {
             const newName = document.getElementById('swap-ex-name').value.trim();
             if (!newName) return;
-            
+
             const exIndex = window.swapTargetExIndex;
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
-            
+
             if (isCustomProgram) {
                 db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].name = newName;
                 const customProgs = safeParse('customPrograms', {});
@@ -4124,13 +4149,14 @@
                     localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 }
             } else {
-                const key = getWorkoutKey();
-                let savedSession = safeParse(key, {});
-                if (!savedSession.swappedNames) savedSession.swappedNames = {};
-                savedSession.swappedNames[exIndex] = newName;
-                localStorage.setItem(key, JSON.stringify(savedSession));
+                // Save as a program-level swap keyed by the DB original name
+                // so all other instances of this exercise across the program are swapped too
+                const originalName = window.swapOriginalName;
+                const programSwaps = safeParse(`programSwaps_${currentProgram}`, {});
+                programSwaps[originalName] = newName;
+                localStorage.setItem(`programSwaps_${currentProgram}`, JSON.stringify(programSwaps));
             }
-            
+
             document.getElementById('swap-exercise-modal').style.display = 'none';
             renderWorkout();
         };
