@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2205";
+        const APP_VERSION = "v2026.05.13.2210";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -171,6 +171,7 @@
         let timerTargetMs = 0;
 
         let workoutDurationInterval;
+        let insultedThisSession = {}; // tracks which exercises already got insulted this workout
 
         // NEW: Background Web Worker to prevent mobile browsers from pausing the timer
         const workerCode = `
@@ -638,11 +639,41 @@
             const toast = document.getElementById('pr-toast-container');
             const desc = document.getElementById('pr-toast-desc');
             if (!toast || !desc) return;
-            
+
             desc.innerText = `${exName}: ${weight}kg x ${reps}`;
             toast.classList.add('show');
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Special PR Rumble
-            
+
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        };
+
+        const INSULTS = [
+            "did you forget to eat?",
+            "my grandma lifts more than that",
+            "the bar is embarrassed for you",
+            "impressive — impressively bad",
+            "going backwards, nice work",
+            "are you okay? like, medically?",
+            "the weights miss the old you",
+            "bold strategy: getting weaker",
+            "coach is watching. silently crying.",
+            "not your day, obviously",
+            "the chalk is outperforming you",
+            "call it a deload. cope.",
+            "that's not a lift, that's a suggestion",
+            "even your warm-up used to be heavier",
+            "maybe try a lighter program",
+        ];
+
+        window.showInsultToast = function(exName) {
+            const toast = document.getElementById('insult-toast-container');
+            const desc = document.getElementById('insult-toast-desc');
+            if (!toast || !desc) return;
+
+            desc.innerText = INSULTS[Math.floor(Math.random() * INSULTS.length)];
+            toast.classList.add('show');
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
             setTimeout(() => toast.classList.remove('show'), 4000);
         };
 
@@ -1225,6 +1256,7 @@
                 localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                insultedThisSession = {};
             
             } else if (action === 'finish') {
                 const keyForSummary = key;
@@ -5062,13 +5094,13 @@
                         const isSameE1rmButHeavier = Math.abs(newE1RM - oldE1RM) <= 0.01 && val > oldRecord.weight;
 
                         if (!oldRecord || isNewE1rmBetter || isSameE1rmButHeavier) {
-                            
+
                             // Detect if this is a PR (only fire if beating a previously established record)
                             if (oldRecord) {
                                 fireConfetti();
                                 showPRToast(exName, val, reps);
                             }
-                            
+
                             actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM, date: Date.now() };
                             localStorage.setItem('actualBests', JSON.stringify(actualBests));
                             // Append to PR timeline history
@@ -5077,6 +5109,13 @@
                             prHist[exName].push({ weight: val, reps: reps, e1rm: parseFloat(newE1RM.toFixed(1)), date: Date.now() });
                             if (prHist[exName].length > 30) prHist[exName] = prHist[exName].slice(-30);
                             localStorage.setItem('prHistory', JSON.stringify(prHist));
+                        } else {
+                            // Not a PR — check if e1RM is below the reference 1RM and insult accordingly
+                            const ref1RM = getResolved1RM(exName);
+                            if (ref1RM > 0 && newE1RM > 0 && newE1RM < ref1RM && !insultedThisSession[exName]) {
+                                insultedThisSession[exName] = true;
+                                showInsultToast(exName);
+                            }
                         }
                     }
                 }
