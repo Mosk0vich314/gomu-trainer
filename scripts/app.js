@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2210";
+        const APP_VERSION = "v2026.05.13.2213";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -3816,7 +3816,7 @@
                                     </button>`}
                                 </span>
                                 ${e1rmCell}
-                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         }
 
@@ -3870,7 +3870,7 @@
                                     </button>`}
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
-                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
                     }
@@ -5110,9 +5110,10 @@
                             if (prHist[exName].length > 30) prHist[exName] = prHist[exName].slice(-30);
                             localStorage.setItem('prHistory', JSON.stringify(prHist));
                         } else {
-                            // Not a PR — check if e1RM is below the reference 1RM and insult accordingly
+                            // Not a PR — insult only on top sets that come in below the reference 1RM
                             const ref1RM = getResolved1RM(exName);
-                            if (ref1RM > 0 && newE1RM > 0 && newE1RM < ref1RM && !insultedThisSession[exName]) {
+                            const isTopSet = el.dataset.blocktype === 'top';
+                            if (isTopSet && ref1RM > 0 && newE1RM > 0 && newE1RM < ref1RM && !insultedThisSession[exName]) {
                                 insultedThisSession[exName] = true;
                                 showInsultToast(exName);
                             }
