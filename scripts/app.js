@@ -25,7 +25,7 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2240";
+        const APP_VERSION = "v2026.05.13.2243";
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -5775,23 +5775,46 @@
             updateBanners();
         };
 
+        window.setAddExMode = function(mode) {
+            document.getElementById('add-ex-standard-fields').style.display = mode === 'standard' ? 'flex' : 'none';
+            document.getElementById('add-ex-myo-fields').style.display = mode === 'myo' ? 'flex' : 'none';
+            document.getElementById('add-ex-mode-standard').classList.toggle('active', mode === 'standard');
+            document.getElementById('add-ex-mode-myo').classList.toggle('active', mode === 'myo');
+        };
+
         window.submitNewExercise = function() {
             const name = document.getElementById('add-ex-name').value.trim() || "New Exercise";
-            const sets = parseInt(document.getElementById('add-ex-sets').value) || 3;
-            const reps = parseInt(document.getElementById('add-ex-reps').value) || 10;
-            const rpeVal = parseFloat(document.getElementById('add-ex-rpe').value);
             const isMain = name.toLowerCase().includes('squat') || name.toLowerCase().includes('bench') || name.toLowerCase().includes('deadlift');
-            const newBlock = { type: 'work', sets: sets, reps: reps, targetRpe: isNaN(rpeVal) ? null : rpeVal };
-            
+            const isMyo = document.getElementById('add-ex-mode-myo').classList.contains('active');
+
+            let blocks, notes;
+            if (isMyo) {
+                const actReps = parseInt(document.getElementById('add-ex-act-reps').value) || 12;
+                const actRpe = parseFloat(document.getElementById('add-ex-act-rpe').value);
+                const boSets = parseInt(document.getElementById('add-ex-bo-sets').value) || 4;
+                const boReps = parseInt(document.getElementById('add-ex-bo-reps').value) || 5;
+                notes = 'myo';
+                blocks = [
+                    { type: 'work', sets: 1, reps: actReps, targetRpe: isNaN(actRpe) ? 8.0 : actRpe },
+                    { type: 'backoff', sets: boSets, reps: boReps, targetRpe: null }
+                ];
+            } else {
+                const sets = parseInt(document.getElementById('add-ex-sets').value) || 3;
+                const reps = parseInt(document.getElementById('add-ex-reps').value) || 10;
+                const rpeVal = parseFloat(document.getElementById('add-ex-rpe').value);
+                notes = null;
+                blocks = [{ type: 'work', sets, reps, targetRpe: isNaN(rpeVal) ? null : rpeVal }];
+            }
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
-            
+            const newExercise = { name, type: isMain ? 'main' : 'accessory', notes: notes || null, blocks };
+
             if (isCustomProgram) {
-                // Permanently edit the custom template
                 const dayExercises = db[currentProgram].weeks[selectedWeek][selectedDay];
-                if (dayExercises.length > 0 && dayExercises[dayExercises.length - 1].name.toLowerCase() === name.toLowerCase()) {
-                    dayExercises[dayExercises.length - 1].blocks.push(newBlock);
+                // Only append a block to an existing exercise when standard mode (not myo — myo always creates new)
+                if (!isMyo && dayExercises.length > 0 && dayExercises[dayExercises.length - 1].name.toLowerCase() === name.toLowerCase()) {
+                    dayExercises[dayExercises.length - 1].blocks.push(blocks[0]);
                 } else {
-                    dayExercises.push({ name: name, type: isMain ? 'main' : 'accessory', blocks: [newBlock] });
+                    dayExercises.push(newExercise);
                 }
                 const customProgs = safeParse('customPrograms', {});
                 if (customProgs[currentProgram]) {
@@ -5799,23 +5822,23 @@
                     localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 }
             } else {
-                // On-the-fly edit for rigid database programs (Saved to session memory only)
                 const key = getWorkoutKey();
                 let savedSession = safeParse(key, {});
                 if (!savedSession.addedExercises) savedSession.addedExercises = [];
-                
+
                 const lastAdded = savedSession.addedExercises[savedSession.addedExercises.length - 1];
-                if (lastAdded && !lastAdded.isDeleted && lastAdded.name.toLowerCase() === name.toLowerCase()) {
-                    lastAdded.blocks.push(newBlock);
+                if (!isMyo && lastAdded && !lastAdded.isDeleted && lastAdded.name.toLowerCase() === name.toLowerCase()) {
+                    lastAdded.blocks.push(blocks[0]);
                 } else {
-                    savedSession.addedExercises.push({ name: name, type: isMain ? 'main' : 'accessory', blocks: [newBlock] });
+                    savedSession.addedExercises.push(newExercise);
                 }
                 localStorage.setItem(key, JSON.stringify(savedSession));
             }
-            
+
             document.getElementById('add-exercise-modal').style.display = 'none';
             document.getElementById('add-ex-name').value = '';
             document.getElementById('add-ex-rpe').value = '';
+            setAddExMode('standard'); // reset to standard mode for next open
             renderWorkout();
         };
 
