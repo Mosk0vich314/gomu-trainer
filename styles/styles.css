@@ -965,6 +965,30 @@ button, .pill, .check-circle, .stat-card {
 .pr-title { font-size: 11px; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 1px; }
 .pr-desc { font-size: 15px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* --- INSULT TOAST (below-ref 1RM) --- */
+.insult-toast {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card);
+    border: 2px solid #ef4444;
+    box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
+    color: #fff;
+    border-radius: 14px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 3000;
+    transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
+}
+.insult-toast.show { top: 50px; }
+.insult-title { font-size: 11px; font-weight: 800; color: #ef4444; text-transform: uppercase; letter-spacing: 1px; }
+
 /* --- RPE INFO MODAL --- */
 #rpe-modal {
     display: none; /* Invisible by default */
