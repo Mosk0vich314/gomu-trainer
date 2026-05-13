@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.05.13.2240">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.05.13.2243">
 </head>
 <body>
     <div id="login-screen">
@@ -44,23 +44,30 @@
     </div>
     <div id="add-exercise-modal" class="modal-overlay">
         <div class="modal-card">
-            <h2 style="margin-bottom: 20px;">Add Exercise</h2>
+            <h2 style="margin-bottom: 16px;">Add Exercise</h2>
             <div class="modal-input-group">
                 <label>Exercise Name</label>
                 <input type="text" id="add-ex-name" placeholder="e.g. Incline Dumbbell Press">
-                
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <div style="flex: 1;">
-                        <label>Sets</label>
-                        <input type="number" id="add-ex-sets" value="3" inputmode="numeric">
+
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button id="add-ex-mode-standard" class="mode-chip active" onclick="setAddExMode('standard')">Standard</button>
+                    <button id="add-ex-mode-myo" class="mode-chip" onclick="setAddExMode('myo')">Myo-Reps</button>
+                </div>
+
+                <div id="add-ex-standard-fields" style="display:flex; gap:10px; margin-top:10px;">
+                    <div style="flex:1;"><label>Sets</label><input type="number" id="add-ex-sets" value="3" inputmode="numeric"></div>
+                    <div style="flex:1;"><label>Reps</label><input type="number" id="add-ex-reps" value="10" inputmode="numeric"></div>
+                    <div style="flex:1;"><label>RPE (Opt)</label><input type="number" id="add-ex-rpe" placeholder="7.5" step="0.5" inputmode="decimal"></div>
+                </div>
+
+                <div id="add-ex-myo-fields" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;"><label>Act. Reps</label><input type="number" id="add-ex-act-reps" value="12" inputmode="numeric"></div>
+                        <div style="flex:1;"><label>Act. RPE</label><input type="number" id="add-ex-act-rpe" value="8" step="0.5" inputmode="decimal"></div>
                     </div>
-                    <div style="flex: 1;">
-                        <label>Reps</label>
-                        <input type="number" id="add-ex-reps" value="10" inputmode="numeric">
-                    </div>
-                    <div style="flex: 1;">
-                        <label>RPE (Opt)</label>
-                        <input type="number" id="add-ex-rpe" placeholder="7.5" step="0.5" inputmode="decimal">
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;"><label>Backoff Sets</label><input type="number" id="add-ex-bo-sets" value="4" inputmode="numeric"></div>
+                        <div style="flex:1;"><label>Backoff Reps</label><input type="number" id="add-ex-bo-reps" value="5" inputmode="numeric"></div>
                     </div>
                 </div>
             </div>
@@ -619,6 +626,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.05.13.2240" defer></script>
+    <script src="scripts/app.js?v=2026.05.13.2243" defer></script>
 </body>
 </html>
