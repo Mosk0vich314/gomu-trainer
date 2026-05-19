@@ -9,23 +9,9 @@
                 window.location.reload();
             });
         }
-        // Feature 1: Intercept Google Drive OAuth2 implicit-flow redirect in popup
-        (function() {
-            const h = window.location.hash;
-            if (h.includes('access_token=')) {
-                const params = new URLSearchParams(h.slice(1));
-                const token = params.get('access_token');
-                if (token) {
-                    sessionStorage.setItem('gdriveToken', token);
-                    try { localStorage.setItem('_gdrive_auth', JSON.stringify({ token, ts: Date.now() })); } catch(_) {}
-                    history.replaceState(null, '', window.location.pathname);
-                    if (window.opener) { window.close(); return; }
-                }
-            }
-        })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.19.1955";
+        const APP_VERSION = "v2026.05.19.2003";
 
         // --- THEMES ---
         const THEMES = [
@@ -710,63 +696,39 @@
             setTimeout(() => toast.classList.remove('show'), 4000);
         };
 
-        // ── Feature 1: Google Drive Cloud Backup ─────────────────────────────
-        const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-
-        function updateGDriveUI() {
-            const token = sessionStorage.getItem('gdriveToken');
+        // ── GitHub Gist Cloud Backup ──────────────────────────────────────────
+        window.updateGistUI = function() {
+            const pat = localStorage.getItem('gistPAT') || '';
+            const gistId = localStorage.getItem('gistId') || '';
+            const connected = pat.trim().length > 0;
             const dot = document.getElementById('gdrive-status-dot');
             const txt = document.getElementById('gdrive-status-text');
             const btn = document.getElementById('gdrive-backup-now-btn');
             const inp = document.getElementById('gdrive-client-id-input');
-            if (dot) { dot.classList.toggle('connected', !!token); }
-            if (txt) txt.innerText = token ? 'Connected' : 'Not connected';
-            if (btn) btn.style.display = token ? 'flex' : 'none';
-            if (inp) inp.value = localStorage.getItem('gdriveClientId') || '';
-            // Also update TTS toggle button label
+            const restoreRow = document.getElementById('gist-restore-row');
+            const idInput = document.getElementById('gist-id-input');
+            if (dot) dot.classList.toggle('connected', connected);
+            if (txt) txt.innerText = connected ? (gistId ? 'Connected · Gist linked' : 'Token saved') : 'Not connected';
+            if (btn) btn.style.display = connected ? 'flex' : 'none';
+            if (inp && !inp.value) inp.value = pat;
+            if (restoreRow) restoreRow.style.display = connected ? 'block' : 'none';
+            if (idInput && gistId && !idInput.value) idInput.value = gistId;
             const ttsBtn = document.getElementById('tts-toggle-btn');
             if (ttsBtn) ttsBtn.innerText = localStorage.getItem('ttsEnabled') === 'false' ? 'Off' : 'On';
-        }
+        };
+
+        function updateGDriveUI() { window.updateGistUI(); }
 
         window.toggleTTS = function() {
             const current = localStorage.getItem('ttsEnabled') !== 'false';
             localStorage.setItem('ttsEnabled', current ? 'false' : 'true');
-            updateGDriveUI();
-        };
-
-        window.connectGDrive = function() {
-            const clientId = localStorage.getItem('gdriveClientId') || '';
-            if (!clientId.trim()) { alert('Paste your Google OAuth2 Client ID first.'); return; }
-            const redirectUri = window.location.origin + window.location.pathname;
-            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(GDRIVE_SCOPE)}&prompt=consent`;
-            const popup = window.open(url, 'gdrive_auth', 'width=520,height=620,left=200,top=100');
-            const onMsg = (e) => {
-                if (e.key !== '_gdrive_auth') return;
-                window.removeEventListener('storage', onMsg);
-                try {
-                    const d = JSON.parse(e.newValue);
-                    if (d && d.token) {
-                        sessionStorage.setItem('gdriveToken', d.token);
-                        localStorage.removeItem('_gdrive_auth');
-                        updateGDriveUI();
-                    }
-                } catch(_) {}
-            };
-            window.addEventListener('storage', onMsg);
-            // Fallback: poll for popup close if same-window redirect happened
-            const poll = setInterval(() => {
-                if (popup && popup.closed) {
-                    clearInterval(poll);
-                    window.removeEventListener('storage', onMsg);
-                    updateGDriveUI();
-                }
-            }, 800);
+            window.updateGistUI();
         };
 
         async function gdriveBackup() {
-            const token = sessionStorage.getItem('gdriveToken');
-            if (!token) return;
-            const data = {
+            const pat = localStorage.getItem('gistPAT') || '';
+            if (!pat.trim()) return;
+            const content = JSON.stringify({
                 version: APP_VERSION,
                 timestamp: new Date().toISOString(),
                 actualBests: safeParse('actualBests', {}),
@@ -776,27 +738,21 @@
                 bwHistory: safeParse('bwHistory', []),
                 lastUsedWeights: safeParse('lastUsedWeights', {}),
                 workoutHistory: workoutHistoryCache.slice(0, 200),
-            };
-            const body = JSON.stringify(data);
-            const fileName = 'gomu-trainer-backup.json';
-            const meta = { name: fileName, mimeType: 'application/json' };
-            const authHeader = { 'Authorization': `Bearer ${token}` };
+            }, null, 2);
+            const gistId = localStorage.getItem('gistId') || '';
+            const headers = { 'Authorization': `token ${pat}`, 'Content-Type': 'application/json' };
+            const body = JSON.stringify({ description: 'Gomu Trainer backup', public: false, files: { 'gomu-trainer-backup.json': { content } } });
             try {
-                const search = await fetch(
-                    `https://www.googleapis.com/drive/v3/files?q=name%3D'${fileName}'%20and%20not%20trashed&spaces=drive&fields=files(id)`,
-                    { headers: authHeader }
-                );
-                if (search.status === 401) { sessionStorage.removeItem('gdriveToken'); return; }
-                const { files } = await search.json();
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
-                form.append('file', new Blob([body], { type: 'application/json' }));
-                const endpoint = files && files.length
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${files[0].id}?uploadType=multipart`
-                    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-                const method = files && files.length ? 'PATCH' : 'POST';
-                const resp = await fetch(endpoint, { method, headers: authHeader, body: form });
-                if (resp.status === 401) sessionStorage.removeItem('gdriveToken');
+                if (gistId) {
+                    await fetch(`https://api.github.com/gists/${gistId}`, { method: 'PATCH', headers, body });
+                } else {
+                    const resp = await fetch('https://api.github.com/gists', { method: 'POST', headers, body });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        localStorage.setItem('gistId', data.id);
+                        window.updateGistUI();
+                    }
+                }
             } catch(_) {}
         }
 
@@ -805,6 +761,41 @@
             if (btn) { btn.innerText = 'Backing up…'; btn.disabled = true; }
             await gdriveBackup();
             if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Backup Now'; btn.disabled = false; }
+            window.updateGistUI();
+        };
+
+        window.restoreFromGist = async function() {
+            const pat = localStorage.getItem('gistPAT') || '';
+            if (!pat.trim()) { alert('Add your GitHub PAT first.'); return; }
+            const idInput = document.getElementById('gist-id-input');
+            const gistId = (idInput && idInput.value.trim()) || localStorage.getItem('gistId') || '';
+            if (!gistId) { alert('Enter the Gist ID to restore from.'); return; }
+            const restoreBtn = document.querySelector('[onclick="restoreFromGist()"]');
+            if (restoreBtn) { restoreBtn.innerText = 'Restoring…'; restoreBtn.disabled = true; }
+            try {
+                const resp = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${pat}` } });
+                if (!resp.ok) { alert('Could not fetch gist. Check your PAT and Gist ID.'); return; }
+                const data = await resp.json();
+                const content = data.files['gomu-trainer-backup.json']?.content;
+                if (!content) { alert('No backup file found in this gist.'); return; }
+                const backup = JSON.parse(content);
+                if (backup.actualBests) localStorage.setItem('actualBests', JSON.stringify(backup.actualBests));
+                if (backup.prHistory) localStorage.setItem('prHistory', JSON.stringify(backup.prHistory));
+                if (backup.global1RMs) localStorage.setItem('global1RMs', JSON.stringify(backup.global1RMs));
+                if (backup.completedDays) localStorage.setItem('completedDays', JSON.stringify(backup.completedDays));
+                if (backup.bwHistory) localStorage.setItem('bwHistory', JSON.stringify(backup.bwHistory));
+                if (backup.lastUsedWeights) localStorage.setItem('lastUsedWeights', JSON.stringify(backup.lastUsedWeights));
+                localStorage.setItem('gistId', gistId);
+                if (backup.workoutHistory && backup.workoutHistory.length) {
+                    await setDB('workoutHistory', backup.workoutHistory);
+                }
+                alert('Restored successfully! Reloading…');
+                window.location.reload();
+            } catch(e) {
+                alert('Restore failed: ' + e.message);
+            } finally {
+                if (restoreBtn) { restoreBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Restore from Gist'; restoreBtn.disabled = false; }
+            }
         };
 
         window.isNoPlateExercise = function(name) {
