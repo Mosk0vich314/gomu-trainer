@@ -25,7 +25,40 @@
         })();
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.13.2243";
+        const APP_VERSION = "v2026.05.19.1955";
+
+        // --- THEMES ---
+        const THEMES = [
+            { name: 'Ember',     accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Electric',  accent: '#3b82f6', teal: '#8b5cf6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Rose',      accent: '#ec4899', teal: '#a855f7', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Matrix',    accent: '#22c55e', teal: '#06b6d4', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Crimson',   accent: '#ef4444', teal: '#f59e0b', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Ice',       accent: '#06b6d4', teal: '#6366f1', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
+            { name: 'Cyberpunk', accent: '#00e5ff', teal: '#bf00ff', bg: '#0f0f12', card: '#1a1a22', inputBg: '#25252e', border: '#38384a' },
+            { name: 'Deep Sea',  accent: '#ff7043', teal: '#0d9488', bg: '#080b0f', card: '#0f1520', inputBg: '#171f2a', border: '#253040' },
+            { name: 'Midnight',  accent: '#00ff41', teal: '#5b8db8', bg: '#101820', card: '#182030', inputBg: '#202c3a', border: '#2a3a50' },
+            { name: 'Retro',     accent: '#ff00aa', teal: '#ffd600', bg: '#0f0e17', card: '#1a1826', inputBg: '#252335', border: '#3a3850' },
+        ];
+
+        window.applyTheme = function(name) {
+            const theme = THEMES.find(t => t.name === name) || THEMES[0];
+            const root = document.documentElement;
+            root.style.setProperty('--accent', theme.accent);
+            root.style.setProperty('--teal', theme.teal);
+            root.style.setProperty('--bg', theme.bg);
+            root.style.setProperty('--card', theme.card);
+            root.style.setProperty('--input-bg', theme.inputBg);
+            root.style.setProperty('--border', theme.border);
+            localStorage.setItem('appTheme', name);
+        };
+
+        function loadTheme() {
+            const saved = localStorage.getItem('appTheme');
+            if (saved) window.applyTheme(saved);
+        }
+        loadTheme();
+
         // --- ENCRYPTED DATABASE LOGIC ---
         const PBKDF2_ITERATIONS = 100000;
 
@@ -2962,6 +2995,15 @@
                     <div class="dots-sbd-col"><span>Bench</span><strong style="color:var(--text-main);">${bench1RM > 0 ? kgDisp(bench1RM) : '--'}</strong></div>
                     <div class="dots-sbd-col"><span>Deadlift</span><strong style="color:var(--text-main);">${dead1RM > 0 ? kgDisp(dead1RM) : '--'}</strong></div>
                     <div class="dots-sbd-col"><span>Total</span><strong style="color:var(--accent);">${sbdTotal > 0 ? kgDisp(sbdTotal) : '--'}</strong></div>
+                </div>
+            </div>`;
+
+            // ── Theme picker ──────────────────────────────────────────────────
+            const activeTheme = localStorage.getItem('appTheme') || 'Ember';
+            html += `<div class="theme-picker-row">
+                <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">Theme</span>
+                <div class="theme-swatches">
+                    ${THEMES.map(t => `<button class="theme-swatch${t.name === activeTheme ? ' active' : ''}" onclick="applyTheme('${t.name}');renderStats()" title="${t.name}" style="background:linear-gradient(135deg,${t.accent} 50%,${t.teal} 50%);"></button>`).join('')}
                 </div>
             </div>`;
 
