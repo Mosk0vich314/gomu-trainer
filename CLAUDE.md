@@ -39,6 +39,15 @@ pattern = re.compile(r'(/\* <NAME>_START \*/)(.*?)(/\* <NAME>_END \*/)', re.DOTA
 with open('scripts/database.js', 'w', encoding='utf-8') as f: f.write(pattern.sub(r'\1\n' + new_json + r'\n\3', content))
 ```
 
+**IMPORTANT — two-step process:** Injecting the JSON into `database.js` is not enough. The library screen program cards are **hardcoded in `index.html`** — they are NOT auto-generated from database keys. After injecting, you must also add a `<div class="program-card">` in the correct folder `<details>` block in `index.html`:
+```html
+<div class="program-card" data-program-id="KEY" onclick="startProgram('KEY')">
+  <h3 class="program-title">Display Name</h3>
+  <p class="program-desc">Folder / Subtitle</p>
+</div>
+```
+If this card is missing the program will exist in the database but never appear in the UI.
+
 ### Create a sanitized (no data) copy
 ```bash
 python tools/strip_db.py
