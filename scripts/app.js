@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.19.2331";
+        const APP_VERSION = "v2026.05.29.2035";
 
         // --- THEMES ---
         const THEMES = [
@@ -3702,20 +3702,22 @@
                     }
 
                     let restSeconds = 120;
-                    if (isMain) {
-                        if (block.type === 'top') {
-                            restSeconds = (numBlocks > 2) ? 240 : 210; 
-                        } else if (block.type === 'backoff') {
-                            if (numBlocks > 2) {
-                                restSeconds = (bIndex === 1) ? 180 : 120; 
-                            } else {
-                                restSeconds = 150; 
+                    if (block.targetRpe) {
+                        if (isMain) {
+                            if (block.type === 'top') {
+                                restSeconds = (numBlocks > 2) ? 240 : 210;
+                            } else if (block.type === 'backoff') {
+                                if (numBlocks > 2) {
+                                    restSeconds = (bIndex === 1) ? 180 : 120;
+                                } else {
+                                    restSeconds = 150;
+                                }
+                            } else if (block.type === 'work') {
+                                restSeconds = 180;
                             }
-                        } else if (block.type === 'work') {
-                            restSeconds = 180; 
+                        } else {
+                            restSeconds = 90;
                         }
-                    } else {
-                        restSeconds = 90; 
                     }
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
@@ -5076,10 +5078,10 @@
                     
                     localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
 
-                    if (!isNaN(val)) {
+                    if (!isNaN(val) && rpeInput && rpeInput.value) {
                         let actualBests = safeParse('actualBests', {});
                         const reps = repsInput && repsInput.value ? parseFloat(repsInput.value) : (parseFloat(loadInput.dataset.reps) || 0);
-                        const rpeVal = rpeInput && rpeInput.value ? parseFloat(rpeInput.value) : 10;
+                        const rpeVal = parseFloat(rpeInput.value);
                         
                         let effectiveWeight = val;
                         if (isBodyweightExercise(exName)) {
