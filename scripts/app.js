@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.29.2052";
+        const APP_VERSION = "v2026.05.29.2332";
 
         // --- THEMES ---
         const THEMES = [
@@ -25,6 +25,7 @@
             { name: 'Deep Sea',  accent: '#ff7043', teal: '#0d9488', bg: '#080b0f', card: '#0f1520', inputBg: '#171f2a', border: '#253040' },
             { name: 'Midnight',  accent: '#00ff41', teal: '#5b8db8', bg: '#101820', card: '#182030', inputBg: '#202c3a', border: '#2a3a50' },
             { name: 'Retro',     accent: '#ff00aa', teal: '#ffd600', bg: '#0f0e17', card: '#1a1826', inputBg: '#252335', border: '#3a3850' },
+            { name: 'Sunset',    accent: '#dc586d', teal: '#ffbb94', bg: '#1a0814', card: '#2e1023', inputBg: '#4c1d3d', border: '#6e2a48' },
         ];
 
         const hexToRgbTriple = (hex) => {
