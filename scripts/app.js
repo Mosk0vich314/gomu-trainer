@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.29.2035";
+        const APP_VERSION = "v2026.05.29.2052";
 
         // --- THEMES ---
         const THEMES = [
@@ -27,11 +27,20 @@
             { name: 'Retro',     accent: '#ff00aa', teal: '#ffd600', bg: '#0f0e17', card: '#1a1826', inputBg: '#252335', border: '#3a3850' },
         ];
 
+        const hexToRgbTriple = (hex) => {
+            const h = hex.replace('#', '');
+            const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+            const n = parseInt(full, 16);
+            return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+        };
+
         window.applyTheme = function(name) {
             const theme = THEMES.find(t => t.name === name) || THEMES[0];
             const root = document.documentElement;
             root.style.setProperty('--accent', theme.accent);
             root.style.setProperty('--teal', theme.teal);
+            root.style.setProperty('--accent-rgb', hexToRgbTriple(theme.accent));
+            root.style.setProperty('--teal-rgb', hexToRgbTriple(theme.teal));
             root.style.setProperty('--bg', theme.bg);
             root.style.setProperty('--card', theme.card);
             root.style.setProperty('--input-bg', theme.inputBg);
@@ -572,7 +581,7 @@
 
                 if (pid === mainProgram && !isProgramFinished(pid)) {
                     card.style.borderColor = 'var(--accent)';
-                    title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(249, 115, 22, 0.1); border-radius: 4px;">ACTIVE</span>';
+                    title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(var(--accent-rgb), 0.1); border-radius: 4px;">ACTIVE</span>';
                     
                     // --- NEW: INJECT QUICK OVERVIEW UI ---
                     if (db[pid] && db[pid].weeks) {
@@ -1743,9 +1752,9 @@
         const cellColor = (vol) => {
             if (vol <= 0) return '#27272a';
             const t = vol / maxVol;
-            if (t < 0.25) return 'rgba(20,184,166,0.30)';
-            if (t < 0.6)  return 'rgba(20,184,166,0.60)';
-            return '#14b8a6';
+            if (t < 0.25) return 'rgba(var(--teal-rgb), 0.30)';
+            if (t < 0.6)  return 'rgba(var(--teal-rgb), 0.60)';
+            return 'var(--teal)';
         };
 
         // Colorbar labels
@@ -1775,7 +1784,7 @@
             </div>
             <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px; margin-left:4px; gap:0;">
                 <span style="font-size:7px; color:var(--text-muted); margin-bottom:2px;">${fmtVol(maxVol)}</span>
-                <div style="width:8px; flex:1; border-radius:4px; background:linear-gradient(to bottom, #14b8a6, rgba(20,184,166,0.60), rgba(20,184,166,0.30), #27272a); min-height:60px;"></div>
+                <div style="width:8px; flex:1; border-radius:4px; background:linear-gradient(to bottom, var(--teal), rgba(var(--teal-rgb), 0.60), rgba(var(--teal-rgb), 0.30), #27272a); min-height:60px;"></div>
                 <span style="font-size:7px; color:var(--text-muted); margin-top:2px;">0</span>
             </div>
         </div>`;
@@ -1787,7 +1796,7 @@
     function mc(vol, maxV) {
         if (!vol || vol <= 0) return '#2a2a30';
         const t = Math.min(vol / maxV, 1);
-        return 'rgba(20,184,166,' + (0.25 + 0.75 * t).toFixed(2) + ')';
+        return 'rgba(var(--teal-rgb),' + (0.25 + 0.75 * t).toFixed(2) + ')';
     }
 
     // Anatomically accurate muscle polygons (react-body-highlighter, coordinate space 0-100 x, 0-220 y)
@@ -2879,7 +2888,7 @@
 
             // Data polygon
             const dataPts = RADAR_GROUPS.map((g, i) => { const p = toXY(i, vals[i] / maxVal); return `${p.x},${p.y}`; }).join(' ');
-            const dataFill = `<polygon points="${dataPts}" fill="rgba(249,115,22,0.15)" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/>`;
+            const dataFill = `<polygon points="${dataPts}" fill="rgba(var(--accent-rgb), 0.15)" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/>`;
 
             // Labels
             const labelOffset = 18;
@@ -3023,8 +3032,8 @@
                     </div>
                     <svg width="100%" viewBox="0 0 ${cw} ${ch}" style="overflow:visible;">
                         <defs><linearGradient id="bwFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.3"/>
-                            <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+                            <stop offset="0%" stop-color="var(--teal)" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="var(--teal)" stop-opacity="0"/>
                         </linearGradient></defs>
                         <polygon points="${fillPts.join(' ')}" fill="url(#bwFill)"/>
                         <polyline points="${bwPts}" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line"/>
@@ -3356,7 +3365,7 @@
             // Work Set Target row
             let workBadges = getPlateBadges(targetWeight);
             html += `
-                <tr style="border-top: 1px dashed var(--accent); background: rgba(249, 115, 22, 0.05);">
+                <tr style="border-top: 1px dashed var(--accent); background: rgba(var(--accent-rgb), 0.05);">
                     <td style="padding: 12px 0; font-size: 12px; font-weight: 800; color: var(--accent);">WORK</td>
                     <td style="padding: 12px 0;">
                         <div style="color: #fff; font-weight: 900; font-size: 16px;">${targetWeight} kg</div>
@@ -3658,7 +3667,7 @@
                         details.push(`<span class="rpe-pill ${_rpeCls}">RPE ${_rpe.toFixed(1)}</span>`);
                     }
                     const detailsStr = details.length > 0 ? ` @ ${details.join(' | ')}` : '';
-                    const dotColor = isMain ? '#f97316' : '#14b8a6';
+                    const dotColor = isMain ? 'var(--accent)' : 'var(--teal)';
                     
                     // SMART DETECTION: Activations are always the first block, OR any single set with 8+ reps
                     const isMyoActivation = isMyo && (bIndex === 0 || (block.sets === 1 && block.reps >= 8));
@@ -5957,7 +5966,7 @@
         };
 
         window.fireConfetti = function() {
-            const colors = ['#f97316', '#14b8a6', '#fff'];
+            const colors = ['var(--accent)', 'var(--teal)', '#fff'];
             for(let i=0; i<40; i++) {
                 let conf = document.createElement('div');
                 conf.style.position = 'fixed';
@@ -6305,7 +6314,7 @@
             renderHistory();
         };
         function dotsLevel(score) {
-            if (score >= 500) return { label: 'World Class', color: '#f97316' };
+            if (score >= 500) return { label: 'World Class', color: 'var(--accent)' };
             if (score >= 400) return { label: 'Elite',       color: '#eab308' };
             if (score >= 300) return { label: 'Advanced',    color: '#a78bfa' };
             if (score >= 200) return { label: 'Intermediate',color: '#60a5fa' };
@@ -6412,7 +6421,7 @@
             if (!card) return;
             // Remove any old pieces
             card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
-            const colors = ['#f97316','#fb923c','#fbbf24','#14b8a6','#ffffff','#ef4444'];
+            const colors = ['var(--accent)','#fb923c','#fbbf24','var(--teal)','#ffffff','#ef4444'];
             const count = 22;
             for (let i = 0; i < count; i++) {
                 const el = document.createElement('div');
