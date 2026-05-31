@@ -266,6 +266,8 @@ button, .pill, .check-circle, .stat-card {
 .mode-chip { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-muted); cursor: pointer; transition: 0.15s; }
 .mode-chip.active { background: var(--teal); color: #000; border-color: var(--teal); }
 .theme-picker-row { display: flex; align-items: center; gap: 12px; margin: 14px 0 10px; }
+.theme-reveal-btn { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; }
+.theme-reveal-btn:active { transform: scale(0.95); background: var(--border); }
 .theme-swatches { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
 .theme-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; flex-shrink: 0; transition: transform 0.15s, border-color 0.15s; outline: none; }
 .theme-swatch.active { border-color: var(--text-main); transform: scale(1.25); }
