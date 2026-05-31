@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v2026.05.31.2259'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.05.31.2304'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',

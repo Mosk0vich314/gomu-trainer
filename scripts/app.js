@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2259";
+        const APP_VERSION = "v2026.05.31.2304";
 
         // --- THEMES ---
         const THEMES = [
@@ -432,7 +432,7 @@
             updateLibraryUI();
             checkOnboarding();
             updateGDriveUI(); // Feature 1: refresh Drive connection status
-            showReadinessModal(); // Feature 6: daily check-in
+            // showReadinessModal(); // Feature 6: daily check-in
         }
 
         function buildSetRow(params) {
@@ -3649,11 +3649,18 @@
                         <div class="ex-title-container">
                             
                             ${isNonExercise ? '' : `
-                            <button class="btn-warmup-icon" 
-                                    style="left: 16px; right: auto; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
-                                    onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
-                            </button>
+                            <div style="position: absolute; left: 12px; top: 16px; display: flex; gap: 4px;">
+                                <button class="btn-warmup-icon" 
+                                        style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;" 
+                                        onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                                <button class="btn-warmup-icon" 
+                                        style="position: static; border-color: ${isMyo ? 'var(--accent)' : 'var(--border)'}; color: ${isMyo ? 'var(--accent)' : 'var(--text-muted)'}; display: flex; align-items: center; justify-content: center; padding: 4px 5px; font-size: 8px; font-weight: 900;" 
+                                        onclick="toggleMyoRep(${exIndex})" title="Toggle Myo-rep">
+                                    MYO
+                                </button>
+                            </div>
                             `}
                             
                             <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
@@ -4284,6 +4291,25 @@
                 localStorage.setItem(key, JSON.stringify(savedSession));
             }
             
+            renderWorkout();
+        };
+
+        window.toggleMyoRep = function(exIndex) {
+            const key = getWorkoutKey();
+            let savedSession = safeParse(key, {});
+            if (!savedSession.modifiedNotes) savedSession.modifiedNotes = {};
+            
+            const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            let currentNotes = savedSession.modifiedNotes[exIndex] !== undefined ? savedSession.modifiedNotes[exIndex] : (exercises[exIndex]?.notes || '');
+
+            const isMyo = currentNotes.toLowerCase().includes('myo');
+            if (isMyo) {
+                savedSession.modifiedNotes[exIndex] = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
+            } else {
+                savedSession.modifiedNotes[exIndex] = (currentNotes + ' Myo-rep').trim();
+            }
+
+            localStorage.setItem(key, JSON.stringify(savedSession));
             renderWorkout();
         };
 
