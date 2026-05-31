@@ -11,11 +11,12 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2304";
+        const APP_VERSION = "v2026.05.31.2307";
 
         // --- THEMES ---
         const THEMES = [
             { name: 'Ember',      accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // The Gold Standard
+            { name: 'Deep Sea',   accent: '#fb923c', teal: '#0d9488', bg: '#020617', card: '#0f172a', inputBg: '#1e293b', border: '#334155' }, // Orange / Teal on Dark Blue
             { name: 'Bumblebee',  accent: '#fbbf24', teal: '#3b82f6', bg: '#0a0a05', card: '#16160a', inputBg: '#242412', border: '#353518' }, // Yellow / Blue
             { name: 'Hazard',     accent: '#facc15', teal: '#ef4444', bg: '#0a0505', card: '#160a0a', inputBg: '#241212', border: '#351818' }, // Yellow / Red
             { name: 'Nuclear',    accent: '#89ff00', teal: '#00d1ff', bg: '#050a05', card: '#0a160a', inputBg: '#122412', border: '#183518' }, // Neon Green / Cyan
