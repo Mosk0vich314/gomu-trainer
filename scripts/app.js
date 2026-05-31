@@ -11,23 +11,18 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.1125";
+        const APP_VERSION = "v2026.05.31.2011";
 
         // --- THEMES ---
         const THEMES = [
-            { name: 'Ember',     accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Electric',  accent: '#3b82f6', teal: '#8b5cf6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Rose',      accent: '#ec4899', teal: '#a855f7', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Matrix',    accent: '#22c55e', teal: '#06b6d4', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Crimson',   accent: '#ef4444', teal: '#f59e0b', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Ice',       accent: '#06b6d4', teal: '#6366f1', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' },
-            { name: 'Cyberpunk', accent: '#00e5ff', teal: '#bf00ff', bg: '#0f0f12', card: '#1a1a22', inputBg: '#25252e', border: '#38384a' },
-            { name: 'Deep Sea',  accent: '#ff7043', teal: '#0d9488', bg: '#080b0f', card: '#0f1520', inputBg: '#171f2a', border: '#253040' },
-            { name: 'Midnight',  accent: '#00ff41', teal: '#5b8db8', bg: '#101820', card: '#182030', inputBg: '#202c3a', border: '#2a3a50' },
-            { name: 'Retro',     accent: '#ff00aa', teal: '#ffd600', bg: '#0f0e17', card: '#1a1826', inputBg: '#252335', border: '#3a3850' },
-            { name: 'Sunset',    accent: '#ff4d6d', teal: '#ffb3c1', bg: '#0f040a', card: '#1d0a16', inputBg: '#2d0f22', border: '#421632' },
-            { name: 'Industrial', accent: '#facc15', teal: '#94a3b8', bg: '#0f172a', card: '#1e293b', inputBg: '#334155', border: '#475569' },
-            { name: 'Nuclear',   accent: '#89ff00', teal: '#00d1ff', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#222222' },
+            { name: 'Ember',      accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // The Gold Standard
+            { name: 'Cyberpunk',  accent: '#00e5ff', teal: '#ff00ff', bg: '#08080a', card: '#121217', inputBg: '#1c1c24', border: '#2a2a3a' }, // Cyan/Magenta
+            { name: 'Industrial', accent: '#facc15', teal: '#64748b', bg: '#0f172a', card: '#1e293b', inputBg: '#334155', border: '#475569' }, // Yellow/Slate
+            { name: 'Nuclear',    accent: '#a3e635', teal: '#06b6d4', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#222222' }, // Lime/Cyan
+            { name: 'Retro',      accent: '#ff00aa', teal: '#ffd600', bg: '#0f0e17', card: '#1a1826', inputBg: '#252335', border: '#3a3850' }, // Pink/Yellow
+            { name: 'Deep Sea',   accent: '#fb923c', teal: '#0d9488', bg: '#020617', card: '#0f172a', inputBg: '#1e293b', border: '#334155' }, // Orange/Teal (variant)
+            { name: 'Viper',      accent: '#d9f99d', teal: '#a855f7', bg: '#0c0a0f', card: '#16141d', inputBg: '#221f2e', border: '#302d40' }, // Lime/Purple
+            { name: 'Volcano',    accent: '#ef4444', teal: '#3b82f6', bg: '#0a0505', card: '#160a0a', inputBg: '#241212', border: '#351818' }, // Red/Blue
         ];
 
         window.themePickerExpanded = false;
