@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.05.31.2313">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.05.31.2317">
 </head>
 <body>
     <div id="login-screen">
@@ -101,6 +101,24 @@
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('edit-note-modal').style.display='none'">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitEditNote()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="myo-setup-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 style="margin-bottom: 10px;">Myo-rep Setup</h2>
+            <p>Customize your Myo-rep protocol.</p>
+            <div class="modal-input-group">
+                <label>Activation Set Reps</label>
+                <input type="number" id="myo-act-reps" value="12" inputmode="numeric">
+                
+                <label style="margin-top: 10px;">Number of Back-off Sets</label>
+                <input type="number" id="myo-back-sets" value="4" inputmode="numeric">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="document.getElementById('myo-setup-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="submitMyoRep()">Apply</button>
             </div>
         </div>
     </div>
@@ -632,6 +650,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.05.31.2313" defer></script>
+    <script src="scripts/app.js?v=2026.05.31.2317" defer></script>
 </body>
 </html>

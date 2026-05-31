@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2313";
+        const APP_VERSION = "v2026.05.31.2317";
 
         // --- THEMES ---
         const THEMES = [
@@ -4305,36 +4305,63 @@
         };
 
         window.toggleMyoRep = function(exIndex) {
-            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
 
             const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
             const ex = exercises[exIndex];
-            if (!ex) return; // Note: We only display the button for accessories in renderWorkout
+            if (!ex) return; 
 
-            let currentNotes = savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] !== undefined ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
+            let currentNotes = (savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] != null) ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
             const isMyo = currentNotes.toLowerCase().includes('myo');
 
-            let newNotes;
-            let newBlocks;
-
             if (isMyo) {
-                newNotes = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
+                // Turn OFF Myo-rep
+                let newNotes = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
                 if (!newNotes) newNotes = null;
-                // Revert to standard 3x10
+                
                 const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 10, targetRpe: 8 };
-                newBlocks = [{ type: 'work', sets: 3, reps: firstWork.reps || 10, targetRpe: firstWork.targetRpe || null }];
+                let newBlocks = [{ type: 'work', sets: 3, reps: firstWork.reps || 10, targetRpe: firstWork.targetRpe || null }];
+                
+                applyMyoChange(exIndex, newNotes, newBlocks);
             } else {
-                newNotes = (currentNotes + ' Myo-rep').trim();
+                // Turn ON Myo-rep via Modal
+                window.myoTargetExIndex = exIndex;
                 const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 12, targetRpe: 8 };
-                const actReps = firstWork.reps || 12;
-                const actRpe = firstWork.targetRpe || 8.0;
-                newBlocks = [
-                    { type: 'work', sets: 1, reps: actReps, targetRpe: actRpe },
-                    { type: 'backoff', sets: 4, reps: Math.max(3, Math.floor(actReps/2)), targetRpe: null }
-                ];
+                document.getElementById('myo-act-reps').value = firstWork.reps || 12;
+                document.getElementById('myo-back-sets').value = 4;
+                document.getElementById('myo-setup-modal').style.display = 'flex';
             }
+        };
+
+        window.submitMyoRep = function() {
+            const actReps = parseInt(document.getElementById('myo-act-reps').value) || 12;
+            const backSets = parseInt(document.getElementById('myo-back-sets').value) || 4;
+            const exIndex = window.myoTargetExIndex;
+            
+            const key = getWorkoutKey();
+            let savedSession = safeParse(key, {});
+            const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            const ex = exercises[exIndex];
+            if (!ex) return;
+
+            let currentNotes = (savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] != null) ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
+            let newNotes = (currentNotes + ' Myo-rep').trim();
+            
+            const firstWork = ex.blocks.find(b => b.type === 'work') || { targetRpe: 8 };
+            let newBlocks = [
+                { type: 'work', sets: 1, reps: actReps, targetRpe: firstWork.targetRpe || 8.0 },
+                { type: 'backoff', sets: backSets, reps: Math.max(3, Math.floor(actReps/2)), targetRpe: null }
+            ];
+
+            applyMyoChange(exIndex, newNotes, newBlocks);
+            document.getElementById('myo-setup-modal').style.display = 'none';
+        };
+
+        function applyMyoChange(exIndex, newNotes, newBlocks) {
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
+            const key = getWorkoutKey();
+            let savedSession = safeParse(key, {});
 
             if (isCustomProgram && db[currentProgram] && db[currentProgram].weeks[selectedWeek] && db[currentProgram].weeks[selectedWeek][selectedDay] && db[currentProgram].weeks[selectedWeek][selectedDay][exIndex]) {
                 const dbEx = db[currentProgram].weeks[selectedWeek][selectedDay][exIndex];
@@ -4355,7 +4382,7 @@
             }
 
             renderWorkout();
-        };
+        }
         window.openReorderModal = function() {
             const key = getWorkoutKey();
             const savedSession = safeParse(key, {});
