@@ -11,22 +11,31 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2239";
+        const APP_VERSION = "v2026.05.31.2242";
 
         // --- THEMES ---
         const THEMES = [
-            { name: 'Ember',      accent: '#f97316', teal: '#14b8a6', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // The Gold Standard
-            { name: 'Bumblebee',  accent: '#fbbf24', teal: '#3b82f6', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // Yellow / Blue
-            { name: 'Hazard',     accent: '#facc15', teal: '#ef4444', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // Yellow / Red
-            { name: 'Nuclear',    accent: '#89ff00', teal: '#00d1ff', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // Neon Green / Cyan
-            { name: 'Eclipse',    accent: '#ffffff', teal: '#6366f1', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // White / Indigo
-            { name: 'Magma',      accent: '#ff4d00', teal: '#ffcc00', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // Deep Orange / Yellow
-            { name: 'Ice',        accent: '#22d3ee', teal: '#f43f5e', bg: '#050505', card: '#111111', inputBg: '#1a1a1a', border: '#262626' }, // Cyan / Rose Red
+            { name: 'Ember',      accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // The Gold Standard
+            { name: 'Bumblebee',  accent: '#fbbf24', teal: '#3b82f6', bg: '#0a0a05', card: '#16160a', inputBg: '#242412', border: '#353518' }, // Yellow / Blue
+            { name: 'Hazard',     accent: '#facc15', teal: '#ef4444', bg: '#0a0505', card: '#160a0a', inputBg: '#241212', border: '#351818' }, // Yellow / Red
+            { name: 'Nuclear',    accent: '#89ff00', teal: '#00d1ff', bg: '#050a05', card: '#0a160a', inputBg: '#122412', border: '#183518' }, // Neon Green / Cyan
+            { name: 'Eclipse',    accent: '#ffffff', teal: '#6366f1', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // White / Indigo
+            { name: 'Magma',      accent: '#ff4d00', teal: '#ffcc00', bg: '#0f0505', card: '#1a0a0a', inputBg: '#2a1212', border: '#3a1818' }, // Deep Orange / Yellow
+            { name: 'Ice',        accent: '#22d3ee', teal: '#f43f5e', bg: '#050f10', card: '#0a1d1f', inputBg: '#122d2f', border: '#183e42' }, // Cyan / Rose Red
         ];
 
         window.themePickerExpanded = false;
         window.toggleThemePicker = function() {
             window.themePickerExpanded = !window.themePickerExpanded;
+            renderStats();
+        };
+
+        window.toggleBackgroundMode = function() {
+            const current = localStorage.getItem('bgMode') || 'Matte';
+            const next = current === 'Matte' ? 'OLED' : 'Matte';
+            localStorage.setItem('bgMode', next);
+            const savedTheme = localStorage.getItem('appTheme') || 'Ember';
+            window.applyTheme(savedTheme);
             renderStats();
         };
 
@@ -39,15 +48,26 @@
 
         window.applyTheme = function(name) {
             const theme = THEMES.find(t => t.name === name) || THEMES[0];
+            const bgMode = localStorage.getItem('bgMode') || 'Matte';
             const root = document.documentElement;
+            
             root.style.setProperty('--accent', theme.accent);
             root.style.setProperty('--teal', theme.teal);
             root.style.setProperty('--accent-rgb', hexToRgbTriple(theme.accent));
             root.style.setProperty('--teal-rgb', hexToRgbTriple(theme.teal));
-            root.style.setProperty('--bg', theme.bg);
-            root.style.setProperty('--card', theme.card);
-            root.style.setProperty('--input-bg', theme.inputBg);
-            root.style.setProperty('--border', theme.border);
+
+            if (bgMode === 'OLED') {
+                root.style.setProperty('--bg', '#000000');
+                root.style.setProperty('--card', '#0a0a0a');
+                root.style.setProperty('--input-bg', '#121212');
+                root.style.setProperty('--border', '#1a1a1a');
+            } else {
+                root.style.setProperty('--bg', theme.bg);
+                root.style.setProperty('--card', theme.card);
+                root.style.setProperty('--input-bg', theme.inputBg);
+                root.style.setProperty('--border', theme.border);
+            }
+            
             localStorage.setItem('appTheme', name);
         };
 
@@ -3003,9 +3023,15 @@
 
             // ── Theme picker ──────────────────────────────────────────────────
             const activeTheme = localStorage.getItem('appTheme') || 'Ember';
-            html += `<div class="theme-picker-row">
-                <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">Theme</span>
-                <button class="theme-reveal-btn" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Hide Themes' : 'Change Theme'}</button>
+            const bgMode = localStorage.getItem('bgMode') || 'Matte';
+            html += `<div class="theme-picker-row" style="flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; width:100%; margin-bottom:4px;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">Appearance</span>
+                    <button class="theme-reveal-btn" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Hide' : 'Themes'}</button>
+                    <button class="theme-reveal-btn" onclick="toggleBackgroundMode()" style="border-color:${bgMode === 'OLED' ? 'var(--accent)' : 'var(--border)'}; color:${bgMode === 'OLED' ? 'var(--accent)' : 'var(--text-main)'};">
+                        ${bgMode === 'OLED' ? 'OLED Black' : 'Matte/Colored'}
+                    </button>
+                </div>
                 <div class="theme-swatches" style="${window.themePickerExpanded ? '' : 'display:none;'}">
                     ${THEMES.map(t => `<button class="theme-swatch${t.name === activeTheme ? ' active' : ''}" onclick="applyTheme('${t.name}');renderStats()" title="${t.name}" style="background:linear-gradient(135deg,${t.accent} 50%,${t.teal} 50%);"></button>`).join('')}
                 </div>
