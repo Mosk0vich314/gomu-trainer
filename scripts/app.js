@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2307";
+        const APP_VERSION = "v2026.05.31.2311";
 
         // --- THEMES ---
         const THEMES = [
@@ -1264,6 +1264,13 @@
             if (saved.modifiedNotes) {
                 Object.keys(saved.modifiedNotes).forEach(idx => {
                     if (exercises[idx]) exercises[idx].notes = saved.modifiedNotes[idx];
+                });
+            }
+
+            // NEW: Apply fully modified block structures (e.g. Myo-rep conversions)
+            if (saved.modifiedExBlocks) {
+                Object.keys(saved.modifiedExBlocks).forEach(idx => {
+                    if (exercises[idx]) exercises[idx].blocks = JSON.parse(JSON.stringify(saved.modifiedExBlocks[idx]));
                 });
             }
 
@@ -3656,11 +3663,13 @@
                                         onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                                 </button>
+                                ${!isMain ? `
                                 <button class="btn-warmup-icon" 
                                         style="position: static; border-color: ${isMyo ? 'var(--accent)' : 'var(--border)'}; color: ${isMyo ? 'var(--accent)' : 'var(--text-muted)'}; display: flex; align-items: center; justify-content: center; padding: 4px 5px; font-size: 8px; font-weight: 900;" 
                                         onclick="toggleMyoRep(${exIndex})" title="Toggle Myo-rep">
                                     MYO
                                 </button>
+                                ` : ''}
                             </div>
                             `}
                             
@@ -4296,24 +4305,57 @@
         };
 
         window.toggleMyoRep = function(exIndex) {
+            const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
-            if (!savedSession.modifiedNotes) savedSession.modifiedNotes = {};
-            
-            const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
-            let currentNotes = savedSession.modifiedNotes[exIndex] !== undefined ? savedSession.modifiedNotes[exIndex] : (exercises[exIndex]?.notes || '');
 
+            const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
+            const ex = exercises[exIndex];
+            if (!ex) return; // Note: We only display the button for accessories in renderWorkout
+
+            let currentNotes = savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] !== undefined ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
             const isMyo = currentNotes.toLowerCase().includes('myo');
+
+            let newNotes;
+            let newBlocks;
+
             if (isMyo) {
-                savedSession.modifiedNotes[exIndex] = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
+                newNotes = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
+                if (!newNotes) newNotes = null;
+                // Revert to standard 3x10
+                const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 10, targetRpe: 8 };
+                newBlocks = [{ type: 'work', sets: 3, reps: firstWork.reps || 10, targetRpe: firstWork.targetRpe || null }];
             } else {
-                savedSession.modifiedNotes[exIndex] = (currentNotes + ' Myo-rep').trim();
+                newNotes = (currentNotes + ' Myo-rep').trim();
+                const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 12, targetRpe: 8 };
+                const actReps = firstWork.reps || 12;
+                const actRpe = firstWork.targetRpe || 8.0;
+                newBlocks = [
+                    { type: 'work', sets: 1, reps: actReps, targetRpe: actRpe },
+                    { type: 'backoff', sets: 4, reps: Math.max(3, Math.floor(actReps/2)), targetRpe: null }
+                ];
             }
 
-            localStorage.setItem(key, JSON.stringify(savedSession));
+            if (isCustomProgram && db[currentProgram] && db[currentProgram].weeks[selectedWeek] && db[currentProgram].weeks[selectedWeek][selectedDay] && db[currentProgram].weeks[selectedWeek][selectedDay][exIndex]) {
+                const dbEx = db[currentProgram].weeks[selectedWeek][selectedDay][exIndex];
+                dbEx.notes = newNotes;
+                dbEx.blocks = newBlocks;
+                const customProgs = safeParse('customPrograms', {});
+                if (customProgs[currentProgram]) {
+                    customProgs[currentProgram] = db[currentProgram];
+                    localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                }
+            } else {
+                if (!savedSession.modifiedNotes) savedSession.modifiedNotes = {};
+                if (!savedSession.modifiedExBlocks) savedSession.modifiedExBlocks = {};
+
+                savedSession.modifiedNotes[exIndex] = newNotes;
+                savedSession.modifiedExBlocks[exIndex] = newBlocks;
+                localStorage.setItem(key, JSON.stringify(savedSession));
+            }
+
             renderWorkout();
         };
-
         window.openReorderModal = function() {
             const key = getWorkoutKey();
             const savedSession = safeParse(key, {});
