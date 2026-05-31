@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.05.31.2242";
+        const APP_VERSION = "v2026.05.31.2259";
 
         // --- THEMES ---
         const THEMES = [
@@ -673,17 +673,15 @@
             renderStats();
         };
 
-        window.calculateDOTS = function(bw, total, gender) {
+        window.calculateIPF = function(bw, total, gender) {
             if (!bw || !total || bw <= 0 || total <= 0) return 0;
-            // Official IPF DOTS Coefficients
-            const A = gender === 'M' ? -307.47501 : -57.96288;
-            const B = gender === 'M' ? 24.0900756 : 13.6175032;
-            const C = gender === 'M' ? -0.1918759221 : -0.1126655495;
-            const D = gender === 'M' ? 0.0007391293 : 0.0005158568;
-            const E = gender === 'M' ? -0.000001093 : -0.0000010706;
+            // IPF GL Points Formula (Raw)
+            const A = gender === 'M' ? 1199.72839 : 610.32796;
+            const B = gender === 'M' ? 1025.18162 : 449.24356;
+            const C = gender === 'M' ? 0.00921 : 0.01204;
             
-            const denominator = A + (B * bw) + (C * Math.pow(bw, 2)) + (D * Math.pow(bw, 3)) + (E * Math.pow(bw, 4));
-            return parseFloat(((total * 500) / denominator).toFixed(2));
+            const points = total * 100 / (A - B * Math.exp(-C * bw));
+            return parseFloat(points.toFixed(2));
         };
 
         window.showPRToast = function(exName, weight, reps) {
@@ -2980,14 +2978,14 @@
             // 1. SBD Total Math (always computed live from current 1RMs)
             const sbdTotal = (global1RMs['Squat'] || 0) + (global1RMs['Bench Press'] || 0) + (global1RMs['Deadlift'] || 0);
             
-            let dotsScore = 0;
-            if (savedBw && typeof calculateDOTS === 'function') {
-                dotsScore = calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
-            } else if (savedBw && window.calculateDOTS) {
-                dotsScore = window.calculateDOTS(parseFloat(savedBw), sbdTotal, savedGender);
+            let ipfScore = 0;
+            if (savedBw && typeof calculateIPF === 'function') {
+                ipfScore = calculateIPF(parseFloat(savedBw), sbdTotal, savedGender);
+            } else if (savedBw && window.calculateIPF) {
+                ipfScore = window.calculateIPF(parseFloat(savedBw), sbdTotal, savedGender);
             }
 
-            const level = dotsLevel(dotsScore);
+            const level = ipfLevel(ipfScore);
             const squat1RM  = global1RMs['Squat']       || 0;
             const bench1RM  = global1RMs['Bench Press'] || 0;
             const dead1RM   = global1RMs['Deadlift']    || 0;
@@ -3009,11 +3007,11 @@
                     <option value="F" ${savedGender === 'F' ? 'selected' : ''}>F</option>
                 </select>
             </div>
-            <div class="dots-trophy-card" style="border-color:${level.color};color:${level.color};">
-                <div class="dots-level-tag">${level.label}</div>
-                <div class="dots-score-val" style="color:${level.color};">${dotsScore > 0 ? dotsScore : '--'}</div>
-                <div class="dots-score-lbl">DOTS Score</div>
-                <div class="dots-sbd-row">
+            <div class="dots-trophy-card" style="background:var(--card); border:1px solid var(--border); box-shadow:none;">
+                <div class="dots-level-tag" style="background:var(--input-bg); color:${level.color}; border:1px solid var(--border);">${level.label}</div>
+                <div class="dots-score-val" style="color:var(--text-main);">${ipfScore > 0 ? ipfScore : '--'}</div>
+                <div class="dots-score-lbl" style="color:var(--text-muted);">IPF GL Points</div>
+                <div class="dots-sbd-row" style="border-top-color:var(--border);">
                     <div class="dots-sbd-col"><span>Squat</span><strong style="color:var(--text-main);">${squat1RM > 0 ? kgDisp(squat1RM) : '--'}</strong></div>
                     <div class="dots-sbd-col"><span>Bench</span><strong style="color:var(--text-main);">${bench1RM > 0 ? kgDisp(bench1RM) : '--'}</strong></div>
                     <div class="dots-sbd-col"><span>Deadlift</span><strong style="color:var(--text-main);">${dead1RM > 0 ? kgDisp(dead1RM) : '--'}</strong></div>
@@ -6343,11 +6341,11 @@
             renderStats();
             renderHistory();
         };
-        function dotsLevel(score) {
-            if (score >= 500) return { label: 'World Class', color: 'var(--accent)' };
-            if (score >= 400) return { label: 'Elite',       color: '#eab308' };
-            if (score >= 300) return { label: 'Advanced',    color: '#a78bfa' };
-            if (score >= 200) return { label: 'Intermediate',color: '#60a5fa' };
+        function ipfLevel(score) {
+            if (score >= 110) return { label: 'World Class', color: 'var(--accent)' };
+            if (score >= 100) return { label: 'Elite',       color: '#eab308' };
+            if (score >= 85)  return { label: 'Advanced',    color: '#a78bfa' };
+            if (score >= 70)  return { label: 'Intermediate',color: '#60a5fa' };
             if (score >    0) return { label: 'Beginner',    color: '#71717a' };
             return { label: 'Unranked', color: '#3f3f46' };
         }
