@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1627";
+        const APP_VERSION = "v2026.06.01.1711";
 
         // --- THEMES ---
         const THEMES = [
@@ -2182,6 +2182,62 @@
         }
 
         // --- PROGRAM MANAGEMENT FUNCTIONS ---
+        window.openSwitchProgramModal = function() {
+            document.getElementById('spm-subtitle').textContent = `Current position (W${selectedWeek} D${selectedDay}) will be carried over where possible.`;
+
+            const programs = Object.keys(db).filter(pid => !pid.startsWith('Custom_') && pid !== currentProgram);
+            const list = document.getElementById('spm-list');
+
+            if (programs.length === 0) {
+                list.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;">No other programs available.</p>';
+            } else {
+                list.innerHTML = programs.map(pid => {
+                    const name = db[pid].name || pid;
+                    const weeks = Object.keys(db[pid].weeks).sort((a, b) => a - b);
+                    const targetWeek = weeks.includes(selectedWeek) ? selectedWeek : weeks[weeks.length - 1];
+                    const days = Object.keys(db[pid].weeks[targetWeek] || {}).sort((a, b) => a - b);
+                    const targetDay = days.includes(selectedDay) ? selectedDay : days[days.length - 1];
+                    const samePos = targetWeek === selectedWeek && targetDay === selectedDay;
+                    const badge = samePos
+                        ? `<span style="color:var(--teal);font-size:11px;font-weight:700;flex-shrink:0;">W${targetWeek} D${targetDay} ✓</span>`
+                        : `<span style="color:var(--accent);font-size:11px;font-weight:700;flex-shrink:0;">→ W${targetWeek} D${targetDay}</span>`;
+                    return `<button class="reset-btn" style="justify-content:space-between;" onclick="switchToProgram('${pid}')">
+                        <span style="font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+                        ${badge}
+                    </button>`;
+                }).join('');
+            }
+
+            document.getElementById('switch-program-modal').style.display = 'flex';
+        };
+
+        window.switchToProgram = function(newProgramId) {
+            if (!db[newProgramId]) return;
+
+            const weeks = Object.keys(db[newProgramId].weeks).sort((a, b) => a - b);
+            const targetWeek = weeks.includes(selectedWeek) ? selectedWeek : weeks[weeks.length - 1];
+            const days = Object.keys(db[newProgramId].weeks[targetWeek] || {}).sort((a, b) => a - b);
+            const targetDay = days.includes(selectedDay) ? selectedDay : days[days.length - 1];
+
+            if (activeWorkout) {
+                activeWorkout = null;
+                localStorage.removeItem('activeWorkout');
+            }
+
+            currentProgram = newProgramId;
+            selectedWeek = targetWeek;
+            selectedDay = targetDay;
+            localStorage.setItem('activeProgram', newProgramId);
+
+            document.getElementById('switch-program-modal').style.display = 'none';
+
+            renderWeekPills();
+            renderDayPills();
+            renderWorkout();
+            updateDashboard();
+            updateLibraryUI();
+        };
+
         async function stopProgram() {
             const confirmed = await showConfirm(
                 "Stop Program?",

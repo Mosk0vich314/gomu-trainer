@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.1627">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.1711">
 </head>
 <body>
     <div id="login-screen">
@@ -119,6 +119,17 @@
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('myo-setup-modal').style.display='none'">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitMyoRep()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="switch-program-modal" class="modal-overlay">
+        <div class="modal-card" style="padding: 20px; max-height: 80vh; display: flex; flex-direction: column;">
+            <h2 style="margin-bottom: 4px;">Switch Program</h2>
+            <p id="spm-subtitle" style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;"></p>
+            <div id="spm-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div class="modal-actions" style="margin-top: 15px;">
+                <button class="modal-btn cancel" onclick="document.getElementById('switch-program-modal').style.display='none'">Cancel</button>
             </div>
         </div>
     </div>
@@ -588,6 +599,7 @@
                 </div>
                 
                 <div class="warmup-charcoal-box" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="reset-btn" style="border-color: var(--teal); color: var(--teal);" onclick="openSwitchProgramModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="8" x2="12" y2="16"/><polyline points="8 12 12 8 16 12"/></svg> Switch Program (Keep Position)</button>
                     <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Stop &amp; Exit Program</button>
                     <button class="reset-btn" onclick="clearCurrentDay()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg> Reset This Day</button>
                     <button class="reset-btn" onclick="clearCurrentWeek()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg> Reset This Week</button>
@@ -652,6 +664,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.06.01.1627" defer></script>
+    <script src="scripts/app.js?v=2026.06.01.1711" defer></script>
 </body>
 </html>
