@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1432";
+        const APP_VERSION = "v2026.06.01.1439";
 
         // --- THEMES ---
         const THEMES = [
@@ -23,7 +23,7 @@
             { name: 'Eclipse',    accent: '#ffffff', teal: '#6366f1', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // White / Indigo
             { name: 'Magma',      accent: '#ff4d00', teal: '#ffcc00', bg: '#0f0505', card: '#1a0a0a', inputBg: '#2a1212', border: '#3a1818' }, // Deep Orange / Yellow
             { name: 'Ice',        accent: '#22d3ee', teal: '#f43f5e', bg: '#050f10', card: '#0a1d1f', inputBg: '#122d2f', border: '#183e42' }, // Cyan / Rose Red
-            { name: 'Inferno',    accent: '#BB2233', teal: '#F98825', bg: '#0F172A', card: '#1E293B', inputBg: '#263450', border: '#334155', textMain: '#F4EAE1', textMuted: '#9A877E' }, // Demonic Red / Atomic Orange on Firmament Blue
+            { name: 'Inferno',    accent: '#BB2233', teal: '#F98825', bg: '#05080F', card: '#0F172A', inputBg: '#1A2640', border: '#2D3F5C', textMain: '#F4EAE1', textMuted: '#9A877E' }, // Demonic Red / Atomic Orange on Firmament Blue
         ];
 
         window.themePickerExpanded = false;
