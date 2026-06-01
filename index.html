@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.1622">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.1627">
 </head>
 <body>
     <div id="login-screen">
@@ -552,6 +552,7 @@
                 <div class="s-stat"><span>Heaviest</span><strong id="sum-max">0 kg</strong></div>
             </div>
             
+            <textarea id="session-note" placeholder="How did this session feel? (optional)" maxlength="300" oninput="saveSessionNote(this.value)" style="width:100%;box-sizing:border-box;background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:12px;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;min-height:72px;outline:none;margin:16px 0 4px;display:block;"></textarea>
             <button class="action-btn" style="background: var(--accent); color: #000;" onclick="switchTab('home-screen')">Return to Dashboard</button>
         </div>
     </div>
@@ -651,6 +652,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.06.01.1622" defer></script>
+    <script src="scripts/app.js?v=2026.06.01.1627" defer></script>
 </body>
 </html>

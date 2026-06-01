@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1622";
+        const APP_VERSION = "v2026.06.01.1627";
 
         // --- THEMES ---
         const THEMES = [
@@ -1475,18 +1475,34 @@
                 details: workoutDetails 
             };
             
-            workoutHistoryCache.unshift(logEntry); 
+            workoutHistoryCache.unshift(logEntry);
             setDB('workoutHistory', workoutHistoryCache);
+            window._lastSummaryLogId = logEntry.id;
 
-            renderDayPills(); 
+            renderDayPills();
             document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-            
+
             const summaryScreen = document.getElementById('summary-screen');
             if (summaryScreen) {
                 summaryScreen.classList.add('active');
+                const noteEl = document.getElementById('session-note');
+                if (noteEl) noteEl.value = '';
                 if (typeof fireConfetti === 'function') fireConfetti();
             }
         }
+
+        let _noteDebounce = null;
+        window.saveSessionNote = function(val) {
+            clearTimeout(_noteDebounce);
+            _noteDebounce = setTimeout(() => {
+                if (!window._lastSummaryLogId) return;
+                const idx = workoutHistoryCache.findIndex(h => h.id === window._lastSummaryLogId);
+                if (idx === -1) return;
+                if (val.trim()) workoutHistoryCache[idx].note = val.trim();
+                else delete workoutHistoryCache[idx].note;
+                setDB('workoutHistory', workoutHistoryCache);
+            }, 600);
+        };
 
     let currentChartEx = '';
 
@@ -2029,6 +2045,7 @@
                             <span class="history-date">${log.date}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
                             <h3 class="history-title">${log.programName} (W${log.week} D${log.day})</h3>
                             <div class="history-stats">${log.sets} Sets • ${volDisplay} Volume</div>
+                            ${log.note ? `<div class="history-note">"${log.note}"</div>` : ''}
                             <div class="history-expand-indicator">▼ Expand</div>
                         </summary>
                         ${detailsHtml}
