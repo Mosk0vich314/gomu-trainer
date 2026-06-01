@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1444";
+        const APP_VERSION = "v2026.06.01.1521";
 
         // --- THEMES ---
         const THEMES = [
@@ -3660,19 +3660,12 @@
                         <div class="ex-title-container">
                             
                             ${isNonExercise ? '' : `
-                            <div style="position: absolute; left: 12px; top: 16px; display: flex; gap: 4px;">
-                                <button class="btn-warmup-icon" 
-                                        style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;" 
+                            <div style="position: absolute; left: 12px; top: 16px;">
+                                <button class="btn-warmup-icon"
+                                        style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;"
                                         onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                                 </button>
-                                ${!isMain ? `
-                                <button class="btn-warmup-icon" 
-                                        style="position: static; border-color: ${isMyo ? 'var(--accent)' : 'var(--border)'}; color: ${isMyo ? 'var(--accent)' : 'var(--text-muted)'}; display: flex; align-items: center; justify-content: center; padding: 4px 5px; font-size: 8px; font-weight: 900;" 
-                                        onclick="toggleMyoRep(${exIndex})" title="Toggle Myo-rep">
-                                    MYO
-                                </button>
-                                ` : ''}
                             </div>
                             `}
                             
@@ -3693,7 +3686,8 @@
                             const eqMode = getEquipmentMode(ex.name);
                             const safeExJS = ex.name.replace(/'/g, "\\'");
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
-                            return `<div style="text-align:center;padding:2px 0;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button></div>`;
+                            const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
+                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button>${myoChip}</div>`;
                         })() : ''}
 
                         ${displayNotesHtml}
