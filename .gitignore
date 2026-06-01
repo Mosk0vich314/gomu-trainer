@@ -14,3 +14,7 @@ noDB.html
 Git-2.53.0.2-64-bit.exe
 scripts/database.js
 password.txt
+# Temp plaintext/enc artifacts from manual DB decryption — never commit
+old_db.js
+old_db.enc
+*_plain.js
