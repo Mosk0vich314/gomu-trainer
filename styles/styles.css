@@ -313,9 +313,10 @@ button, .pill, .check-circle, .stat-card {
 .history-date { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 .history-title { font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main); }
 .history-stats { color: var(--text-muted); font-size: 14px; font-weight: 600; }
-.history-note { color: var(--text-muted); font-size: 13px; font-style: italic; margin-top: 5px; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-note { color: var(--text-muted); font-size: 13px; font-style: italic; margin-top: 5px; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 85px; }
 .history-expand-indicator { position: absolute; right: 20px; bottom: 20px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
 .history-card[open] .history-expand-indicator { display: none; }
+.history-card[open] .history-note { white-space: normal; overflow: visible; text-overflow: clip; padding-right: 0; }
 
 .history-details { padding: 0 20px 20px 20px; border-top: 1px dashed var(--border); margin-top: 5px; padding-top: 15px; }
 .hd-ex-name { font-weight: 800; color: var(--text-main); font-size: 15px; margin-top: 15px; margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 8px; }

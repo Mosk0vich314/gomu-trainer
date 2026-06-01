@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.1752">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.01.2222">
 </head>
 <body>
     <div id="login-screen">
@@ -112,13 +112,43 @@
             <div class="modal-input-group">
                 <label>Activation Set Reps</label>
                 <input type="number" id="myo-act-reps" value="12" inputmode="numeric">
-                
+
+                <label style="margin-top: 10px;">Number of Activation Sets</label>
+                <input type="number" id="myo-act-sets" value="1" inputmode="numeric">
+
                 <label style="margin-top: 10px;">Number of Back-off Sets</label>
                 <input type="number" id="myo-back-sets" value="4" inputmode="numeric">
+
+                <label style="margin-top: 10px;">Back-off Reps</label>
+                <input type="number" id="myo-back-reps" value="5" inputmode="numeric">
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('myo-setup-modal').style.display='none'">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitMyoRep()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="drop-setup-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 style="margin-bottom: 10px;">Drop Set Setup</h2>
+            <p>All-out activation set, then strip weight each drop.</p>
+            <div class="modal-input-group">
+                <label>Activation Set Reps</label>
+                <input type="number" id="drop-act-reps" value="6" inputmode="numeric">
+
+                <label style="margin-top: 10px;">Number of Activation Sets</label>
+                <input type="number" id="drop-act-sets" value="1" inputmode="numeric">
+
+                <label style="margin-top: 10px;">Number of Drops</label>
+                <input type="number" id="drop-count" value="2" inputmode="numeric">
+
+                <label style="margin-top: 10px;">Strip % per Drop</label>
+                <input type="number" id="drop-strip-pct" value="20" inputmode="numeric">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="document.getElementById('drop-setup-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="submitDropset()">Apply</button>
             </div>
         </div>
     </div>
@@ -664,6 +694,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.06.01.1752" defer></script>
+    <script src="scripts/app.js?v=2026.06.01.2222" defer></script>
 </body>
 </html>

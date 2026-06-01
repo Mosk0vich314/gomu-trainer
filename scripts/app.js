@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1752";
+        const APP_VERSION = "v2026.06.01.2222";
 
         // --- THEMES ---
         const THEMES = [
@@ -1285,8 +1285,55 @@
                     }
                 });
             }
-            
+
+            // NEW: Apply program-level Myo-rep / Drop Set modes. Keyed by the DB-original
+            // name so the same exercise on the corresponding day of EVERY week is converted
+            // (mirrors how programSwaps propagates). Each week keeps its own prescribed RPE.
+            const programModes = safeParse(`programModes_${prog}`, {});
+            exercises.forEach(ex => {
+                const m = programModes[ex._originalName];
+                if (m && (m.type === 'myo' || m.type === 'dropset')) {
+                    ex.blocks = buildModeBlocks(ex, m);
+                    ex._mode = m.type;
+                }
+            });
+
             return exercises;
+        }
+
+        // Build the block structure for a Myo-rep or Drop Set conversion. The activation
+        // load/RPE is taken from the exercise's own prescribed block so each week keeps
+        // its target. Drop blocks carry a cumulative `dropFactor` used to auto-strip weight.
+        function buildModeBlocks(ex, mode) {
+            const baseBlock = (ex.blocks || []).find(b => b.targetRpe || b.pct) || (ex.blocks || [])[0] || {};
+            const baseRpe = baseBlock.targetRpe || null;
+            const basePct = baseBlock.pct || null;
+            const actSets = Math.max(1, mode.actSets || 1);
+            const actReps = mode.actReps || (mode.type === 'dropset' ? 6 : 12);
+
+            if (mode.type === 'myo') {
+                return [
+                    { type: 'work', sets: actSets, reps: actReps, targetRpe: baseRpe || 8.0, pct: basePct },
+                    { type: 'backoff', sets: Math.max(1, mode.backSets || 4), reps: mode.backReps || Math.max(3, Math.floor(actReps / 2)), targetRpe: null, pct: null }
+                ];
+            }
+            // dropset — each activation set is its own block, followed by its own drop sequence,
+            // so every activation+drops group is checked off independently.
+            const drops = Math.max(1, mode.drops || 2);
+            const strip = (mode.stripPct || 20) / 100;
+            const blocks = [];
+            for (let a = 1; a <= actSets; a++) {
+                blocks.push({ type: 'work', sets: 1, reps: actReps, targetRpe: baseRpe || 9.0, pct: basePct });
+                for (let i = 1; i <= drops; i++) {
+                    blocks.push({
+                        type: 'drop', sets: 1, reps: actReps, targetRpe: null, pct: null,
+                        dropNum: i,                          // drop position within this activation group
+                        dropPct: Math.round(strip * 100),    // per-step strip, for the label
+                        dropFactor: Math.pow(1 - strip, i)   // cumulative factor off this group's activation load
+                    });
+                }
+            }
+            return blocks;
         }
 
         async function toggleWorkoutState(action) {
@@ -1338,7 +1385,10 @@
                         completedDays[`${currentProgram}_w${w}_d${d}`]
                     )
                 );
-                if (allDone) localStorage.removeItem(`programSwaps_${currentProgram}`);
+                if (allDone) {
+                    localStorage.removeItem(`programSwaps_${currentProgram}`);
+                    localStorage.removeItem(`programModes_${currentProgram}`);
+                }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 closeTimer();
                 clearInterval(workoutDurationInterval);
@@ -2348,8 +2398,9 @@
                     });
                 });
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                // Clear program-level exercise swaps so DB originals are restored
+                // Clear program-level exercise swaps and Myo/Drop modes so DB originals are restored
                 localStorage.removeItem(`programSwaps_${currentProgram}`);
+                localStorage.removeItem(`programModes_${currentProgram}`);
                 if(activeWorkout && activeWorkout.program === currentProgram) {
                     activeWorkout = null;
                     localStorage.removeItem('activeWorkout');
@@ -3660,7 +3711,8 @@
                 const exId = `ex-${exIndex}`;
                 const isMain = ex.type === 'main';
                 const nameLower = ex.name.toLowerCase();
-                const isMyo = ex.notes ? ex.notes.toLowerCase().includes('myo') : false; 
+                const isMyo = ex._mode === 'myo' || (ex.notes ? ex.notes.toLowerCase().includes('myo') : false);
+                const isDrop = ex._mode === 'dropset';
                 const isSupersetNext = ex.supersetNext && displayIndex < displayExercises.length - 1;
                 
                 let logoSvg = '';
@@ -3765,7 +3817,8 @@
                             const safeExJS = ex.name.replace(/'/g, "\\'");
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
                             const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
-                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button>${myoChip}</div>`;
+                            const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
+                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
                         })() : ''}
 
                         ${displayNotesHtml}
@@ -3792,7 +3845,10 @@
                     // SMART DETECTION: Activations are always the first block, OR any single set with 8+ reps
                     const isMyoActivation = isMyo && (bIndex === 0 || (block.sets === 1 && block.reps >= 8));
                     const isMyoBackoff = isMyo && !isMyoActivation;
-                    
+                    const isDropSet = isDrop && block.type === 'drop';
+                    const isDropActivation = isDrop && !isDropSet;
+                    const isActivation = isMyoActivation || isDropActivation;
+
                     if (isMyoBackoff) {
                         // VISUAL LINK FOR MYO-REP BACK-OFFS
                         html += `
@@ -3801,6 +3857,16 @@
                             <div style="padding: 8px 16px 12px 45px; color: var(--text-muted); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dotColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
                                 Myo-Rep Back-offs (${block.sets} x ${block.reps})
+                            </div>
+                        `;
+                    } else if (isDropSet) {
+                        // VISUAL LINK FOR DROP SETS — one block per drop, labelled with the strip %
+                        html += `
+                        <div class="block-container" style="padding-top: 0; margin-top: -15px; position: relative;">
+                            <div style="position: absolute; left: 35px; top: -10px; bottom: 30px; width: 2px; background: repeating-linear-gradient(to bottom, var(--accent) 0, var(--accent) 4px, transparent 4px, transparent 8px); opacity: 0.5;"></div>
+                            <div style="padding: 8px 16px 12px 45px; color: var(--text-muted); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="19 12 12 19 5 12"></polyline><line x1="12" y1="5" x2="12" y2="19"></line></svg>
+                                Drop ${block.dropNum || bIndex}${block.dropPct ? ` (−${block.dropPct}%)` : ''} — to failure
                             </div>
                         `;
                     } else {
@@ -3907,8 +3973,17 @@
                         if (isMyoBackoff && myoActivationLoad !== null && !savedSession[loadInputId]) {
                             smartDefaultLoad = myoActivationLoad;
                         }
+                        // DROP SET: default each drop to the activation load stripped by its cumulative factor
+                        if (isDropSet && myoActivationLoad !== null && !savedSession[loadInputId]) {
+                            const baseAct = parseFloat(myoActivationLoad);
+                            if (!isNaN(baseAct) && block.dropFactor) {
+                                smartDefaultLoad = roundForEquipment(baseAct * block.dropFactor, ex.name);
+                            }
+                        }
                         const loadValue = savedSession[loadInputId] || smartDefaultLoad || '';
-                        if (isMyoActivation && myoActivationLoad === null && loadValue !== '') {
+                        // Refresh the activation reference at EACH activation so multi-activation
+                        // drop sets strip from their own group's activation load.
+                        if (isActivation && loadValue !== '') {
                             myoActivationLoad = loadValue;
                         }
                         
@@ -3975,7 +4050,7 @@
                                     </button>`}
                                 </span>
                                 ${e1rmCell}
-                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         }
 
@@ -4029,7 +4104,7 @@
                                     </button>`}
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
-                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isMyoActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
                     }
@@ -4373,58 +4448,86 @@
             renderWorkout();
         };
 
+        // Program-level mode store (Myo-rep / Drop Set). Keyed by DB-original exercise name so
+        // it propagates to the corresponding day across every week, exactly like programSwaps.
+        function setProgramMode(originalName, modeObj) {
+            if (!originalName) return;
+            const storeKey = `programModes_${currentProgram}`;
+            const modes = safeParse(storeKey, {});
+            if (modeObj) modes[originalName] = modeObj;
+            else delete modes[originalName];
+            localStorage.setItem(storeKey, JSON.stringify(modes));
+            renderWorkout();
+        }
+
         window.toggleMyoRep = function(exIndex) {
             const key = getWorkoutKey();
-            let savedSession = safeParse(key, {});
-
             const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
             const ex = exercises[exIndex];
-            if (!ex) return; 
+            if (!ex) return;
+            const origName = ex._originalName || ex.name;
+            const modes = safeParse(`programModes_${currentProgram}`, {});
 
-            let currentNotes = (savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] != null) ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
-            const isMyo = currentNotes.toLowerCase().includes('myo');
-
-            if (isMyo) {
-                // Turn OFF Myo-rep
-                let newNotes = currentNotes.replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim();
-                if (!newNotes) newNotes = null;
-                
-                const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 10, targetRpe: 8 };
-                let newBlocks = [{ type: 'work', sets: 3, reps: firstWork.reps || 10, targetRpe: firstWork.targetRpe || null }];
-                
-                applyMyoChange(exIndex, newNotes, newBlocks);
-            } else {
-                // Turn ON Myo-rep via Modal
-                window.myoTargetExIndex = exIndex;
-                const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 12, targetRpe: 8 };
-                document.getElementById('myo-act-reps').value = firstWork.reps || 12;
-                document.getElementById('myo-back-sets').value = 4;
-                document.getElementById('myo-setup-modal').style.display = 'flex';
+            if (modes[origName] && modes[origName].type === 'myo') {
+                // Turn OFF — reverts to DB blocks on the corresponding day of every week
+                setProgramMode(origName, null);
+                return;
             }
+            // Legacy notes-based Myo-rep (e.g. created via Add Exercise) — turn off the old way
+            if (ex._mode !== 'myo' && (ex.notes || '').toLowerCase().includes('myo') && !modes[origName]) {
+                let newNotes = (ex.notes || '').replace(/myo-rep/gi, '').replace(/\bmyo\b/gi, '').replace(/\(myo\)/gi, '').trim() || null;
+                const firstWork = ex.blocks.find(b => b.type === 'work') || { reps: 10, targetRpe: 8 };
+                applyMyoChange(exIndex, newNotes, [{ type: 'work', sets: 3, reps: firstWork.reps || 10, targetRpe: firstWork.targetRpe || null }]);
+                return;
+            }
+            // Turn ON via modal
+            window.myoTargetName = origName;
+            const firstWork = ex.blocks.find(b => b.type === 'work' || b.type === 'top') || ex.blocks[0] || { reps: 12 };
+            const actReps = firstWork.reps || 12;
+            document.getElementById('myo-act-reps').value = actReps;
+            document.getElementById('myo-act-sets').value = 1;
+            document.getElementById('myo-back-sets').value = 4;
+            document.getElementById('myo-back-reps').value = Math.max(3, Math.floor(actReps / 2));
+            document.getElementById('myo-setup-modal').style.display = 'flex';
         };
 
         window.submitMyoRep = function() {
             const actReps = parseInt(document.getElementById('myo-act-reps').value) || 12;
+            const actSets = Math.max(1, parseInt(document.getElementById('myo-act-sets').value) || 1);
             const backSets = parseInt(document.getElementById('myo-back-sets').value) || 4;
-            const exIndex = window.myoTargetExIndex;
-            
+            const backReps = parseInt(document.getElementById('myo-back-reps').value) || Math.max(3, Math.floor(actReps / 2));
+            setProgramMode(window.myoTargetName, { type: 'myo', actReps, actSets, backSets, backReps });
+            document.getElementById('myo-setup-modal').style.display = 'none';
+        };
+
+        window.toggleDropset = function(exIndex) {
             const key = getWorkoutKey();
-            let savedSession = safeParse(key, {});
             const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
             const ex = exercises[exIndex];
             if (!ex) return;
+            const origName = ex._originalName || ex.name;
+            const modes = safeParse(`programModes_${currentProgram}`, {});
 
-            let currentNotes = (savedSession.modifiedNotes && savedSession.modifiedNotes[exIndex] != null) ? savedSession.modifiedNotes[exIndex] : (ex.notes || '');
-            let newNotes = (currentNotes + ' Myo-rep').trim();
-            
-            const firstWork = ex.blocks.find(b => b.type === 'work') || { targetRpe: 8 };
-            let newBlocks = [
-                { type: 'work', sets: 1, reps: actReps, targetRpe: firstWork.targetRpe || 8.0 },
-                { type: 'backoff', sets: backSets, reps: Math.max(3, Math.floor(actReps/2)), targetRpe: null }
-            ];
+            if (modes[origName] && modes[origName].type === 'dropset') {
+                setProgramMode(origName, null);
+                return;
+            }
+            window.dropTargetName = origName;
+            const firstWork = ex.blocks.find(b => b.type === 'work' || b.type === 'top') || ex.blocks[0] || { reps: 6 };
+            document.getElementById('drop-act-reps').value = firstWork.reps || 6;
+            document.getElementById('drop-act-sets').value = 1;
+            document.getElementById('drop-count').value = 2;
+            document.getElementById('drop-strip-pct').value = 20;
+            document.getElementById('drop-setup-modal').style.display = 'flex';
+        };
 
-            applyMyoChange(exIndex, newNotes, newBlocks);
-            document.getElementById('myo-setup-modal').style.display = 'none';
+        window.submitDropset = function() {
+            const actReps = parseInt(document.getElementById('drop-act-reps').value) || 6;
+            const actSets = Math.max(1, parseInt(document.getElementById('drop-act-sets').value) || 1);
+            const drops = Math.max(1, parseInt(document.getElementById('drop-count').value) || 2);
+            const stripPct = Math.max(1, Math.min(90, parseInt(document.getElementById('drop-strip-pct').value) || 20));
+            setProgramMode(window.dropTargetName, { type: 'dropset', actReps, actSets, drops, stripPct });
+            document.getElementById('drop-setup-modal').style.display = 'none';
         };
 
         function applyMyoChange(exIndex, newNotes, newBlocks) {
@@ -5366,15 +5469,19 @@
                 const myoType = el.dataset.myotype;
                 const currentLoad = loadInput ? loadInput.value : '';
 
-                if (myoType && currentLoad !== '') {
-                    // MYO-REP CASCADE: Push load to next sets, but STOP if we hit a new Activation block
+                if (myoType && myoType !== 'drop' && currentLoad !== '') {
+                    // MYO-REP / DROP-SET CASCADE: Push load to next sets, but STOP if we hit a new Activation block.
+                    // Only an Activation set triggers this; Myo back-offs get the same load, drops get the
+                    // activation load stripped by their cumulative factor. Checking a drop never cascades.
                     const exIdMatch = baseId.match(/(ex-\d+)/);
                     const currentBlockMatch = baseId.match(/_b(\d+)_/);
                     if (exIdMatch && currentBlockMatch) {
                         const exId = exIdMatch[1];
                         const currentBIndex = parseInt(currentBlockMatch[1]);
                         const allLoadInputs = document.querySelectorAll(`input[id^="${exId}_b"][id$="_load"]`);
-                        
+                        // Base load for drop stripping = this group's activation load (the set just checked)
+                        const activationBase = parseFloat(currentLoad);
+
                         let foundCurrent = false;
                         for (let input of allLoadInputs) {
                             if (input.id === (loadInput ? loadInput.id : '')) {
@@ -5382,15 +5489,20 @@
                             } else if (foundCurrent) {
                                 const targetCheckId = input.id.replace('_load', '_check');
                                 const targetCheck = document.getElementById(targetCheckId);
-                                
+
                                 // Stop cascading if we hit a NEW Activation block
                                 if (targetCheck && targetCheck.dataset.myotype === 'activation' && !input.id.includes(`_b${currentBIndex}_`)) {
-                                    break; 
+                                    break;
                                 }
-                                
+
                                 if (targetCheck && !targetCheck.classList.contains('checked')) {
-                                    input.value = currentLoad;
-                                    saveSessionState(input.id, currentLoad);
+                                    let cascadeLoad = currentLoad;
+                                    const dropFactor = targetCheck.dataset.myotype === 'drop' ? parseFloat(targetCheck.dataset.dropfactor) : NaN;
+                                    if (!isNaN(dropFactor) && !isNaN(activationBase)) {
+                                        cascadeLoad = String(roundForEquipment(activationBase * dropFactor, exName));
+                                    }
+                                    input.value = cascadeLoad;
+                                    saveSessionState(input.id, cascadeLoad);
                                     input.dispatchEvent(new Event('input', {bubbles: true}));
                                 }
                             }
@@ -5458,9 +5570,9 @@
                         const currentIndex = allChecks.findIndex(c => c.id === el.id);
                         if (currentIndex !== -1 && currentIndex + 1 < allChecks.length) {
                             const nextCheck = allChecks[currentIndex + 1];
-                            // If the next set is a back-off, 20s. If it's an Activation, give them full rest!
-                            if (nextCheck.dataset.myotype === 'backoff') {
-                                restSeconds = 20; 
+                            // If the next set is a back-off or a drop, 20s. If it's an Activation, give them full rest!
+                            if (nextCheck.dataset.myotype === 'backoff' || nextCheck.dataset.myotype === 'drop') {
+                                restSeconds = 20;
                             }
                         }
                     }
