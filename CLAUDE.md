@@ -118,6 +118,8 @@ The entire app lives in two files:
 - `preferredUnit` — `'kg'` or `'lbs'`
 - `workoutHistory` — legacy; primary store is IndexedDB
 - `activeProgram` — currently active program ID
+- `programSwaps_${programId}` — `{ [originalExName]: newName }` — program-level exercise swaps (see Program-level propagation)
+- `programModes_${programId}` — `{ [originalExName]: modeObj }` — program-level Myo-rep / Drop Set conversions (see Program-level propagation)
 
 ### Security model
 - `scripts/database.js` (plaintext) is gitignored — never commit it.
@@ -217,6 +219,26 @@ History entries have an optional `note` field (`string`). It is saved from a tex
 
 `window.switchToProgram(id)` — switches `currentProgram`, carries over `selectedWeek`/`selectedDay` (clamped to valid range), and **backfills `completedDays`** for all days before the target position in the new program. This is required so the "next workout" pointer and progress bar land correctly after a switch.
 
+### Program-level propagation (swaps + Myo/Drop modes)
+Two transformations propagate across the **whole program**, keyed by an exercise's **DB-original name** (`ex._originalName`, tagged at the top of `getActiveExercises` before any rename). Because they key by name, the same exercise on the corresponding day of *every* week is affected — this is the propagation the user expects ("swap one, swap all").
+
+- **`programSwaps_${programId}`** = `{ [originalName]: newName }`. Applied early in `getActiveExercises` (renames `ex.name`). Set by `submitSwapExercise()`.
+- **`programModes_${programId}`** = `{ [originalName]: modeObj }`. Applied **last** in `getActiveExercises` (so it defines final block structure). For each matched exercise it calls `buildModeBlocks(ex, modeObj)` and sets `ex._mode = modeObj.type`.
+
+Both are cleared together on program reset and on program completion (`allDone`).
+
+`modeObj` shapes:
+- Myo: `{ type:'myo', actReps, actSets, backSets, backReps }`
+- Drop: `{ type:'dropset', actReps, actSets, drops, stripPct }`
+
+`buildModeBlocks(ex, mode)` reads the **activation RPE/pct from the exercise's own prescribed block**, so each week keeps its own target (the structure is imposed, the intensity is not). Block types it emits: `'work'` (activation), `'backoff'` (Myo), `'drop'` (drop set). Drop blocks carry `dropNum` (1-based within its group), `dropPct` (per-step strip %, for the label), and `dropFactor` (cumulative `(1-strip)^i` off that group's activation load).
+
+**Drop set structure:** one `'work'` activation block (1 set) **per activation**, each immediately followed by its own `drops` `'drop'` blocks — so every activation+drops group is independently checkable. Render detection is **block-type based** (`isDropActivation = type!=='drop'`, `isDropSet = type==='drop'`), *not* `bIndex===0`, precisely so multiple activation groups are detected.
+
+**Setup flow:** `toggleMyoRep`/`toggleDropset` (chips in the `.eq-cycle-chip` row, accessory-only / `!isMain`) → modal (`myo-setup-modal` / `drop-setup-modal`) → `submitMyoRep`/`submitDropset` → `setProgramMode(originalName, modeObj)` (write store + `renderWorkout()`). Toggling an active mode off calls `setProgramMode(name, null)`. Legacy notes-based Myo (exercises created via "Add Exercise" with `notes='myo'`) is **not** in `programModes`; `toggleMyoRep` still tears those down the old way via `applyMyoChange`.
+
+**Weight cascade (`toggleCheck`):** only an Activation set (`data-myotype="activation"`) triggers the cascade; it walks subsequent load inputs until the next activation. Myo back-offs receive the same load; `data-myotype="drop"` targets receive `activationLoad * dropFactor` (read from `data-dropfactor`). Checking a drop never cascades. Render-time defaults mirror this and `myoActivationLoad` is refreshed at **each** activation so multi-activation groups strip from their own base. Rest timer is hijacked to 20s when the next set is a back-off or drop.
+
 ### fireConfetti
 Single unified `window.fireConfetti()` function. Always fires a body-burst (works during workout for PR detection). Also appends `.confetti-piece` elements to `.summary-card` if that element is present on screen.
 
@@ -235,7 +257,7 @@ Single unified `window.fireConfetti()` function. Always fires a body-burst (work
 ### Exercise card header layout
 `.ex-title-container` has **symmetric** `padding: 16px 60px 10px 60px`. Left side has one absolutely-positioned button (swap icon). Right side has one absolutely-positioned button (warmup/fire icon). 60px clears both comfortably.
 
-The MYO toggle is **not** in the header — it lives below the title in the same row as the equipment mode chip (`.eq-cycle-chip`). This keeps the title centered regardless of accessory vs main lift.
+The MYO and DROP toggles are **not** in the header — they live below the title in the same row as the equipment mode chip (`.eq-cycle-chip`), accessory-only. This keeps the title centered regardless of accessory vs main lift. See Program-level propagation for how they work.
 
 ### Timer
 Rest timer counts down to 0, beeps, then continues counting up (overtime). The display always shows absolute value — no minus sign — so `00:30` means either "30 seconds left" or "30 seconds overtime" depending on context. The `.finished` class on the banner signals overtime.
