@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1711";
+        const APP_VERSION = "v2026.06.01.1725";
 
         // --- THEMES ---
         const THEMES = [
@@ -2223,6 +2223,19 @@
                 activeWorkout = null;
                 localStorage.removeItem('activeWorkout');
             }
+
+            // Mark all days before the target position as completed in the new program
+            // so the "next workout" pointer and progress bar land on the right day
+            let reached = false;
+            for (const w of weeks) {
+                if (reached) break;
+                const wDays = Object.keys(db[newProgramId].weeks[w] || {}).sort((a, b) => a - b);
+                for (const d of wDays) {
+                    if (w === targetWeek && d === targetDay) { reached = true; break; }
+                    completedDays[`${newProgramId}_w${w}_d${d}`] = true;
+                }
+            }
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
 
             currentProgram = newProgramId;
             selectedWeek = targetWeek;
