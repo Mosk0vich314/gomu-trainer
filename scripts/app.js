@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1426";
+        const APP_VERSION = "v2026.06.01.1432";
 
         // --- THEMES ---
         const THEMES = [
