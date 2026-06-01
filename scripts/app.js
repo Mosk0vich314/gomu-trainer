@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.1521";
+        const APP_VERSION = "v2026.06.01.1622";
 
         // --- THEMES ---
         const THEMES = [
@@ -436,7 +436,6 @@
             updateLibraryUI();
             checkOnboarding();
             updateGDriveUI(); // Feature 1: refresh Drive connection status
-            // showReadinessModal(); // Feature 6: daily check-in
         }
 
         function buildSetRow(params) {
@@ -2096,7 +2095,8 @@
                     const moved = Math.abs(currentX) > 5;
                     if (!isScrolling && currentX < -80) {
                         el.style.transform = `translateX(-100%)`;
-                        setTimeout(() => deleteHistoryLog(el.dataset.id, el.dataset.key), 200);
+                        const id = el.dataset.id, key = el.dataset.key;
+                        showUndoToast('Session deleted', () => deleteHistoryLog(id, key), () => { el.style.transition = 'transform 0.3s ease'; el.style.transform = 'translateX(0)'; setTimeout(() => el.style.transition = '', 300); });
                     } else {
                         el.style.transform = `translateX(0px)`;
                     }
@@ -2129,35 +2129,39 @@
             window.scrollTo({ top: 0, behavior: 'smooth' }); // Smoothly snaps back to the top!
         };
 
-        async function deleteHistoryLog(id, key) {
-            const confirmed = await showConfirm(
-                "Delete Log?",
-                "This will permanently remove this session from your history.",
-                "Delete",
-                "Cancel",
-                true
-            );
-            
-            if (confirmed) {
-                // Update Cache and DB
-                workoutHistoryCache = workoutHistoryCache.filter(h => h.id !== id);
-                setDB('workoutHistory', workoutHistoryCache);
+        let _undoTimer = null;
+        function showUndoToast(label, onCommit, onUndo) {
+            if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+            const existing = document.getElementById('undo-toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'undo-toast';
+            toast.innerHTML = `<span>${label}</span><button id="undo-toast-btn">UNDO</button>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            const dismiss = (commit) => {
+                clearTimeout(_undoTimer); _undoTimer = null;
+                toast.classList.remove('show');
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 250);
+                if (commit) onCommit(); else if (onUndo) onUndo();
+            };
+            document.getElementById('undo-toast-btn').onclick = () => dismiss(false);
+            _undoTimer = setTimeout(() => dismiss(true), 4000);
+        }
 
-                delete completedDays[key];
-                localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                localStorage.removeItem(key);
-
-                if (activeWorkout && activeWorkout.key === key) {
-                    activeWorkout = null;
-                    localStorage.removeItem('activeWorkout');
-                }
-
-                renderHistory();
-                updateDashboard();
-                renderDayPills();
-            } else {
-                renderHistory(); // Snap swiped card back
+        function deleteHistoryLog(id, key) {
+            workoutHistoryCache = workoutHistoryCache.filter(h => h.id !== id);
+            setDB('workoutHistory', workoutHistoryCache);
+            delete completedDays[key];
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            localStorage.removeItem(key);
+            if (activeWorkout && activeWorkout.key === key) {
+                activeWorkout = null;
+                localStorage.removeItem('activeWorkout');
             }
+            renderHistory();
+            updateDashboard();
+            renderDayPills();
         }
 
         // --- PROGRAM MANAGEMENT FUNCTIONS ---
@@ -2327,35 +2331,22 @@
                 renderStats(); // Snaps the swiped card back to normal if cancelled
             }
         };
-        window.deleteTopPR = async function(exName) {
+        window.deleteTopPR = function(exName) {
             const actualBests = safeParse('actualBests', {});
             const best = actualBests[exName];
             if (!best) { renderStats(); return; }
             const prHist = safeParse('prHistory', {});
             const remaining = (prHist[exName] || []).filter(e => e.date !== best.date);
-            const msg = remaining.length > 0
-                ? `Remove the current best for ${exName}? The next-best PR will become your new record.`
-                : `Remove the only PR record for ${exName}?`;
-            const confirmed = await showConfirm(
-                "Delete Top PR?",
-                msg,
-                "Delete",
-                "Cancel",
-                true
-            );
-            if (confirmed) {
-                // Handle deletion directly to guarantee renderStats is always called
-                prHist[exName] = remaining;
-                localStorage.setItem('prHistory', JSON.stringify(prHist));
-                if (remaining.length === 0) {
-                    delete actualBests[exName];
-                } else {
-                    const newBest = remaining.reduce((a, b) => b.e1rm > a.e1rm ? b : a, remaining[0]);
-                    actualBests[exName] = { weight: newBest.weight, reps: newBest.reps, e1rm: newBest.e1rm, date: newBest.date };
-                }
-                localStorage.setItem('actualBests', JSON.stringify(actualBests));
+            prHist[exName] = remaining;
+            localStorage.setItem('prHistory', JSON.stringify(prHist));
+            if (remaining.length === 0) {
+                delete actualBests[exName];
+            } else {
+                const newBest = remaining.reduce((a, b) => b.e1rm > a.e1rm ? b : a, remaining[0]);
+                actualBests[exName] = { weight: newBest.weight, reps: newBest.reps, e1rm: newBest.e1rm, date: newBest.date };
             }
-            renderStats(); // Always re-render (both confirm and cancel)
+            localStorage.setItem('actualBests', JSON.stringify(actualBests));
+            renderStats();
         };
         function setupStatsSwipe() {
             const bindSwipe = (el, threshold, onTrigger) => {
@@ -2409,7 +2400,8 @@
             };
 
             document.querySelectorAll('.stat-swipable').forEach(el => {
-                bindSwipe(el, -80, () => deleteTopPR(el.dataset.exname));
+                const exname = el.dataset.exname;
+                bindSwipe(el, -80, () => showUndoToast('PR deleted', () => deleteTopPR(exname), () => { el.style.transition = 'transform 0.3s ease'; el.style.transform = 'translateX(0)'; setTimeout(() => el.style.transition = '', 300); }));
             });
         }
         // --- NEW: PHYSIQUE TRACKING ENGINE ---
@@ -3829,11 +3821,6 @@
                         if (isMyoBackoff && myoActivationLoad !== null && !savedSession[loadInputId]) {
                             smartDefaultLoad = myoActivationLoad;
                         }
-                        // Feature 6: apply daily readiness modifier to suggested load (never to already-saved values)
-                        if (smartDefaultLoad && !savedSession[loadInputId]) {
-                            const rdMod = parseFloat(sessionStorage.getItem('readinessModifier')) || 1.0;
-                            if (rdMod !== 1.0) smartDefaultLoad = roundForEquipment(parseFloat(smartDefaultLoad) * rdMod, ex.name);
-                        }
                         const loadValue = savedSession[loadInputId] || smartDefaultLoad || '';
                         if (isMyoActivation && myoActivationLoad === null && loadValue !== '') {
                             myoActivationLoad = loadValue;
@@ -4208,18 +4195,17 @@
             };
 
             document.querySelectorAll('.exercise-container.swipable').forEach(el => {
-                bindSwipe(el, -100, () => deleteCustomExercise(parseInt(el.dataset.exindex)));
+                const exIndex = parseInt(el.dataset.exindex);
+                bindSwipe(el, -100, () => showUndoToast('Exercise deleted', () => deleteCustomExercise(exIndex), () => renderWorkout()));
             });
-            
+
             document.querySelectorAll('.set-swipable').forEach(el => {
-                bindSwipe(el, -80, () => deleteSetFromBlock(parseInt(el.dataset.exindex), parseInt(el.dataset.bindex), parseInt(el.dataset.setnum)));
+                const ei = parseInt(el.dataset.exindex), bi = parseInt(el.dataset.bindex), sn = parseInt(el.dataset.setnum);
+                bindSwipe(el, -80, () => showUndoToast('Set deleted', () => deleteSetFromBlock(ei, bi, sn), () => renderWorkout()));
             });
         }
 
-        window.deleteCustomExercise = async function(exIndex) {
-            const confirmed = await showConfirm("Delete Exercise?", "Remove this exercise from your workout?", "Delete", "Cancel", true);
-            if (!confirmed) { renderWorkout(); return; }
-            
+        window.deleteCustomExercise = function(exIndex) {
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
             if (isCustomProgram) {
                 db[currentProgram].weeks[selectedWeek][selectedDay].splice(exIndex, 1);
@@ -4839,9 +4825,7 @@
             renderWorkout();
         };
 
-        window.deleteSetFromBlock = async function(exIndex, bIndex, setNum) {
-            const confirmed = await showConfirm("Delete Set?", "Remove this set from the block?", "Delete", "Cancel", true);
-            if (!confirmed) { renderWorkout(); return; }
+        window.deleteSetFromBlock = function(exIndex, bIndex, setNum) {
 
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
@@ -6087,28 +6071,34 @@
         };
 
         window.fireConfetti = function() {
+            // Burst from center (PRs and general celebration)
             const colors = ['var(--accent)', 'var(--teal)', '#fff'];
-            for(let i=0; i<40; i++) {
-                let conf = document.createElement('div');
-                conf.style.position = 'fixed';
-                conf.style.width = '8px'; conf.style.height = '8px';
+            for (let i = 0; i < 40; i++) {
+                const conf = document.createElement('div');
+                conf.style.cssText = 'position:fixed;width:8px;height:8px;left:50%;top:50%;z-index:9999;pointer-events:none;';
                 conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                conf.style.left = '50%'; conf.style.top = '50%';
                 conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                conf.style.zIndex = '9999'; conf.style.pointerEvents = 'none';
                 document.body.appendChild(conf);
-
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = 50 + Math.random() * 200;
-                const tx = Math.cos(angle) * velocity;
-                const ty = Math.sin(angle) * velocity - 100;
-
+                const v = 50 + Math.random() * 200;
                 conf.animate([
-                    { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
-                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0) rotate(${Math.random()*720}deg)`, opacity: 0 }
-                ], { duration: 800 + Math.random()*500, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }).onfinish = () => conf.remove();
+                    { transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${Math.cos(angle)*v}px),calc(-50% + ${Math.sin(angle)*v - 100}px)) scale(0) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 800 + Math.random() * 500, easing: 'cubic-bezier(0.25,0.46,0.45,0.94)' }).onfinish = () => conf.remove();
             }
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Victory rumble
+            // Floating pieces on summary card (workout complete screen)
+            const card = document.querySelector('.summary-card');
+            if (card) {
+                card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+                const cardColors = ['var(--accent)','#fb923c','#fbbf24','var(--teal)','#ffffff','#ef4444'];
+                for (let i = 0; i < 22; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'confetti-piece';
+                    el.style.cssText = `left:${8 + Math.random()*84}%;background:${cardColors[i % cardColors.length]};width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;border-radius:${Math.random()>0.5?'50%':'2px'};animation-delay:${(Math.random()*0.6).toFixed(2)}s;animation-duration:${(1.8+Math.random()).toFixed(2)}s;`;
+                    card.appendChild(el);
+                }
+            }
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         };
 
         // --- THE RPE HUB WINDOW (MODAL) ENGINE ---
@@ -6536,29 +6526,6 @@
             }
         };
 
-        // Confetti burst for workout complete
-        window.fireConfetti = function() {
-            const card = document.querySelector('.summary-card');
-            if (!card) return;
-            // Remove any old pieces
-            card.querySelectorAll('.confetti-piece').forEach(el => el.remove());
-            const colors = ['var(--accent)','#fb923c','#fbbf24','var(--teal)','#ffffff','#ef4444'];
-            const count = 22;
-            for (let i = 0; i < count; i++) {
-                const el = document.createElement('div');
-                el.className = 'confetti-piece';
-                el.style.cssText = `
-                    left: ${8 + Math.random() * 84}%;
-                    background: ${colors[i % colors.length]};
-                    width: ${6 + Math.random() * 6}px;
-                    height: ${6 + Math.random() * 6}px;
-                    border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-                    animation-delay: ${(Math.random() * 0.6).toFixed(2)}s;
-                    animation-duration: ${(1.8 + Math.random() * 1).toFixed(2)}s;
-                `;
-                card.appendChild(el);
-            }
-        };
 
         // ── Feature 5: P2P Workout Sharing (Base64) ──────────────────────────
         window.exportCustomWorkout = function() {
@@ -6604,38 +6571,6 @@
             }
         };
 
-        // ── Feature 6: Daily Readiness Score ─────────────────────────────────
-        let _readinessSleep = 3;
-        let _readinessDoms = 3;
-
-        window.selectReadiness = function(type, val, btn) {
-            const scaleId = type === 'sleep' ? 'sleep-scale' : 'doms-scale';
-            document.querySelectorAll(`#${scaleId} .readiness-pip`).forEach(b => b.classList.remove('sel'));
-            btn.classList.add('sel');
-            if (type === 'sleep') _readinessSleep = val;
-            else _readinessDoms = val;
-        };
-
-        window.submitReadiness = function() {
-            const modifier = 0.95 + ((_readinessSleep - 1) / 4 * 0.05) + ((5 - _readinessDoms) / 4 * 0.05);
-            const clamped = Math.max(0.95, Math.min(1.05, modifier));
-            sessionStorage.setItem('readinessModifier', clamped.toFixed(4));
-            sessionStorage.setItem('readinessDate', new Date().toDateString());
-            document.getElementById('readiness-modal').style.display = 'none';
-        };
-
-        window.skipReadiness = function() {
-            sessionStorage.setItem('readinessModifier', '1.0');
-            sessionStorage.setItem('readinessDate', new Date().toDateString());
-            document.getElementById('readiness-modal').style.display = 'none';
-        };
-
-        function showReadinessModal() {
-            const today = new Date().toDateString();
-            if (sessionStorage.getItem('readinessDate') === today) return;
-            const modal = document.getElementById('readiness-modal');
-            if (modal) modal.style.display = 'flex';
-        }
 
         // Boot: try sessionStorage key first (page reload), else show login
         const cachedKey = sessionStorage.getItem('gomu_key');

@@ -391,6 +391,10 @@ button, .pill, .check-circle, .stat-card {
     padding-left: 15px;
 }
 
+#undo-toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(12px); opacity: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; display: flex; align-items: center; gap: 14px; z-index: 1601; transition: opacity 0.2s, transform 0.2s; max-width: calc(100vw - 32px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); pointer-events: all; }
+#undo-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#undo-toast span { color: var(--text-main); font-size: 14px; font-weight: 600; flex: 1; white-space: nowrap; }
+#undo-toast button { background: none; border: none; color: var(--teal); font-size: 13px; font-weight: 900; cursor: pointer; padding: 2px 4px; letter-spacing: 0.5px; flex-shrink: 0; }
 .rest-timer-banner { position: fixed; bottom: -120px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1e1e20; border: 2px solid var(--accent); border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1001; box-shadow: 0 -8px 25px rgba(0,0,0,0.5); transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-sizing: border-box;}
 .rest-timer-banner.active { bottom: 90px; }
 #home-screen.timer-active { padding-bottom: 280px; }
