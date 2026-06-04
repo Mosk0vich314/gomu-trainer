@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.04.2111">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.06.04.2119">
 </head>
 <body>
     <div id="login-screen">
@@ -88,6 +88,20 @@
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('swap-exercise-modal').style.display='none'">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitSwapExercise()">Swap</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pr-video-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 style="margin-bottom: 10px;">Form Video</h2>
+            <p>Paste a YouTube or Google Photos link for this lift.</p>
+            <div class="modal-input-group">
+                <input type="text" id="pr-video-url" placeholder="https://youtu.be/… or photos.app.goo.gl/…" inputmode="url" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="document.getElementById('pr-video-modal').style.display='none'">Cancel</button>
+                <button class="modal-btn confirm" onclick="submitPRVideo()">Save</button>
             </div>
         </div>
     </div>
@@ -694,6 +708,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.06.04.2111" defer></script>
+    <script src="scripts/app.js?v=2026.06.04.2119" defer></script>
 </body>
 </html>

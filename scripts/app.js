@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.04.2111";
+        const APP_VERSION = "v2026.06.04.2119";
 
         // --- THEMES ---
         const THEMES = [
@@ -6752,18 +6752,31 @@
 
         // Feature 3: Save or clear video URL for a PR entry
         window.addPRVideo = function(exName, entryDate) {
-            const url = prompt('Paste a YouTube or Google Photos link for this lift:');
-            if (url === null) return;
+            window.prVideoTargetEx = exName;
+            window.prVideoTargetDate = entryDate;
             const prHist = safeParse('prHistory', {});
-            if (!prHist[exName]) return;
+            const entry = (prHist[exName] || []).find(e => e.date === entryDate);
+            const input = document.getElementById('pr-video-url');
+            input.value = (entry && entry.videoUrl) || '';
+            document.getElementById('pr-video-modal').style.display = 'flex';
+            setTimeout(() => input.focus(), 50);
+        };
+
+        window.submitPRVideo = function() {
+            const exName = window.prVideoTargetEx;
+            const entryDate = window.prVideoTargetDate;
+            const url = document.getElementById('pr-video-url').value;
+            const prHist = safeParse('prHistory', {});
+            if (!prHist[exName]) { document.getElementById('pr-video-modal').style.display = 'none'; return; }
             const entry = prHist[exName].find(e => e.date === entryDate);
-            if (!entry) return;
+            if (!entry) { document.getElementById('pr-video-modal').style.display = 'none'; return; }
             if (url.trim()) {
                 entry.videoUrl = url.trim();
             } else {
                 delete entry.videoUrl;
             }
             localStorage.setItem('prHistory', JSON.stringify(prHist));
+            document.getElementById('pr-video-modal').style.display = 'none';
             const id = 'prtl-' + encodeURIComponent(exName);
             const el = document.getElementById(id);
             if (el) renderPRTimelineEl(exName, el);
