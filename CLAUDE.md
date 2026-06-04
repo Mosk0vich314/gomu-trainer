@@ -152,6 +152,8 @@ Screen transitions use `switchTab(tabId)` which applies directional slide animat
 
 Block types: `"top"` (working/peak sets), `"backoff"` (lighter volume after peak), `"acc"` (accessory, `pct: null`). Both `targetRpe` and `pct` can coexist on the same block — `pct` acts as a reference/fallback.
 
+**AMRAP is a per-SET property, not per-block.** Add `"amrap": true` to a block to mark its **last set** as AMRAP, or `"amrap": <n>` to mark a specific 1-based set index within the block (e.g. a `sets:2` block where only set 2 is AMRAP — see Compact Force W5 D4 Bench). The flagged set is always rendered at **RPE 10** with its reps input **empty** (placeholder `AMRAP`) for the lifter to log achieved reps. The RTS rep-based weight preload is skipped for that set (no known rep count) so its load falls back to `pct` → last-used. An AMRAP set logged without reps counts as 0 reps in the summary. If the whole block is a single AMRAP set (`sets:1`), the block header reads `1 x AMRAP @ … | RPE 10.0`; otherwise the header keeps its normal rep count and appends `· set N AMRAP`. Resolved via `amrapSetIndex(block)` (returns the 1-based AMRAP set index or null), used in both `renderWorkout` and the summary tally.
+
 ### Weight suggestion priority (buildSetRow)
 Order: **RPE-first → pct fallback → last-used weight memory**
 1. If `block.targetRpe` is set and a 1RM exists → use RTS table to calculate load

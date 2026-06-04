@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.01.2305";
+        const APP_VERSION = "v2026.06.04.2106";
 
         // --- THEMES ---
         const THEMES = [
@@ -436,6 +436,16 @@
             updateLibraryUI();
             checkOnboarding();
             updateGDriveUI(); // Feature 1: refresh Drive connection status
+        }
+
+        // AMRAP is a per-SET property, not per-block. A block flagged with `amrap: true`
+        // makes only its LAST set an AMRAP; `amrap: <n>` targets a specific 1-based set
+        // within the block. Returns the 1-based AMRAP set index for the block, or null.
+        function amrapSetIndex(block) {
+            if (!block) return null;
+            if (block.amrap === true) return block.sets;          // last set of the block
+            if (typeof block.amrap === 'number') return block.amrap; // explicit set index
+            return null;
         }
 
         function buildSetRow(params) {
@@ -1447,7 +1457,7 @@
                             completedSets++;
                             const load = parseFloat(savedSession[loadInputId]) || 0;
                             const rpe = savedSession[rpeInputId] || '';
-                            const actualReps = parseFloat(savedSession[repsInputId]) || block.reps; 
+                            const actualReps = parseFloat(savedSession[repsInputId]) || (amrapSetIndex(block) === s ? 0 : block.reps);
                             
                             let effectiveLoad = load;
                             if (isBodyweightExercise(ex.name)) {
@@ -2923,7 +2933,9 @@
             const prHist = safeParse('prHistory', {});
             // Only rebuild for exercises missing prHistory
             const needsRebuild = Object.keys(actualBests).some(ex => !prHist[ex] || prHist[ex].length === 0);
-            if (!needsRebuild) return;
+            // One-time reconciliation of the All-Time vault (actualBests) against real logged history.
+            const needsBestsSync = !localStorage.getItem('actualBestsHistorySync_v2');
+            if (!needsRebuild && !needsBestsSync) return;
 
             const rts = {
                 10:[1.000,0.960,0.920,0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.690],
@@ -2990,6 +3002,25 @@
             });
             if (changed) {
                 localStorage.setItem('prHistory', JSON.stringify(prHist));
+            }
+
+            // Reconcile the All-Time vault (actualBests) with real logged history (one-time).
+            // A legacy/stale best — e.g. an inflated e1RM from the old RTS table — can exceed
+            // anything actually logged and permanently block new PRs from appearing in the vault
+            // (the chart reads history directly so it already shows the true best). `runningBest`
+            // holds each exercise's genuine top-e1RM set from history, so make the vault match it.
+            if (needsBestsSync) {
+                let bestsChanged = false;
+                Object.keys(runningBest).forEach(ex => {
+                    const hb = runningBest[ex];
+                    const cur = actualBests[ex];
+                    if (!cur || Math.abs((cur.e1rm || 0) - hb.e1rm) > 0.05 || cur.weight !== hb.weight || cur.reps !== hb.reps) {
+                        actualBests[ex] = { weight: hb.weight, reps: hb.reps, e1rm: hb.e1rm, date: hb.date };
+                        bestsChanged = true;
+                    }
+                });
+                if (bestsChanged) localStorage.setItem('actualBests', JSON.stringify(actualBests));
+                localStorage.setItem('actualBestsHistorySync_v2', '1');
             }
         }
 
@@ -3832,12 +3863,19 @@
                 let myoActivationLoad = null;
 
                 ex.blocks.forEach((block, bIndex) => {
+                    // AMRAP applies to ONE set in the block (last set when `amrap:true`, or the
+                    // 1-based index when `amrap` is a number). The flagged set is RPE 10 with reps
+                    // left blank for the lifter to log.
+                    const amrapIdx = amrapSetIndex(block);
+                    const blockAllAmrap = amrapIdx !== null && block.sets === 1;
                     let details = [];
                     if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%`);
                     if (block.targetRpe) {
                         const _rpe = block.targetRpe;
                         const _rpeCls = _rpe >= 9 ? 'rpe-pill-max' : _rpe >= 8 ? 'rpe-pill-hard' : _rpe >= 7 ? 'rpe-pill-mod' : 'rpe-pill-easy';
                         details.push(`<span class="rpe-pill ${_rpeCls}">RPE ${_rpe.toFixed(1)}</span>`);
+                    } else if (blockAllAmrap) {
+                        details.push(`<span class="rpe-pill rpe-pill-max">RPE 10.0</span>`);
                     }
                     const detailsStr = details.length > 0 ? ` @ ${details.join(' | ')}` : '';
                     const dotColor = isMain ? 'var(--accent)' : 'var(--teal)';
@@ -3874,7 +3912,9 @@
                         const rpeInfoIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
                         const blockCountLabel = isTimeBased
                             ? `${block.sets} x ${block.durationMin} min${detailsStr}`
-                            : `${block.sets} x ${block.reps} Reps${detailsStr}`;
+                            : blockAllAmrap
+                                ? `${block.sets} x AMRAP${detailsStr}`
+                                : `${block.sets} x ${block.reps} Reps${detailsStr}${amrapIdx !== null ? ` · set ${amrapIdx} AMRAP` : ''}`;
                         const colHeaders = isTimeBased
                             ? `<div class="set-row header" style="grid-template-columns: 0.5fr 2.2fr ${block.targetRpe ? '1.2fr ' : ''}0.8fr;">
                                 <span>Set</span><span style="text-align:left; padding-left: 4px;">Timer</span>${block.targetRpe ? `<span onclick="openRpeHub()" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>` : ''}<span></span>
@@ -3917,8 +3957,9 @@
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
+                        const isAmrap = amrapIdx === s;
                         let smartDefaultLoad = '';
-                        if (block.targetRpe && resolved1RM > 0) {
+                        if (block.targetRpe && resolved1RM > 0 && !isAmrap) {
                             // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
                             const rtsChart = {
                                 10:   [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690],
@@ -3968,8 +4009,8 @@
                         const loadInputId = `${rowId}_load`;
                         const checkId = `${rowId}_check`;
                         
-                        const repsValue = savedSession[repsInputId] || block.reps;
-                        const rpeValue = savedSession[rpeInputId] || (block.targetRpe ? block.targetRpe.toFixed(1) : '');
+                        const repsValue = savedSession[repsInputId] || (isAmrap ? '' : block.reps);
+                        const rpeValue = savedSession[rpeInputId] || (isAmrap ? '10.0' : (block.targetRpe ? block.targetRpe.toFixed(1) : ''));
                         if (isMyoBackoff && myoActivationLoad !== null && !savedSession[loadInputId]) {
                             smartDefaultLoad = myoActivationLoad;
                         }
@@ -4040,8 +4081,8 @@
                             setHtml = `
                             <div class="set-row">
                                 <span>${s}</span>
-                                <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
-                                <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe || ''}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
+                                <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
+                                <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
@@ -5326,6 +5367,45 @@
             }
         }
 
+        // Cascade an activation's load forward to its Myo back-offs (same load) and Drop sets
+        // (activation load × cumulative dropFactor), stopping at the next activation block.
+        // Only updates sets that are NOT yet checked. Shared by toggleCheck (on check) and the
+        // live load-input handler (so editing the activation weight re-strips the drops instantly).
+        window.cascadeMyoDropLoads = function(loadInput, exName) {
+            if (!loadInput || loadInput.value === '') return;
+            const baseId = loadInput.id.replace('_load', '');
+            const exIdMatch = baseId.match(/(ex-\d+)/);
+            const currentBlockMatch = baseId.match(/_b(\d+)_/);
+            if (!exIdMatch || !currentBlockMatch) return;
+            const exId = exIdMatch[1];
+            const currentBIndex = parseInt(currentBlockMatch[1]);
+            const allLoadInputs = document.querySelectorAll(`input[id^="${exId}_b"][id$="_load"]`);
+            const currentLoad = loadInput.value;
+            const activationBase = parseFloat(currentLoad);
+
+            let foundCurrent = false;
+            for (let input of allLoadInputs) {
+                if (input.id === loadInput.id) { foundCurrent = true; continue; }
+                if (!foundCurrent) continue;
+
+                const targetCheck = document.getElementById(input.id.replace('_load', '_check'));
+                // Stop cascading if we hit a NEW Activation block
+                if (targetCheck && targetCheck.dataset.myotype === 'activation' && !input.id.includes(`_b${currentBIndex}_`)) {
+                    break;
+                }
+                if (targetCheck && !targetCheck.classList.contains('checked')) {
+                    let cascadeLoad = currentLoad;
+                    const dropFactor = targetCheck.dataset.myotype === 'drop' ? parseFloat(targetCheck.dataset.dropfactor) : NaN;
+                    if (!isNaN(dropFactor) && !isNaN(activationBase)) {
+                        cascadeLoad = String(roundForEquipment(activationBase * dropFactor, exName));
+                    }
+                    input.value = cascadeLoad;
+                    saveSessionState(input.id, cascadeLoad);
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        };
+
         // --- SMART CASCADE AUTO-FILL AND LOCK ---
         window.toggleCheck = function(el) {
             if (document.querySelector('.preview-mode')) return; // Safety check
@@ -5473,41 +5553,7 @@
                     // MYO-REP / DROP-SET CASCADE: Push load to next sets, but STOP if we hit a new Activation block.
                     // Only an Activation set triggers this; Myo back-offs get the same load, drops get the
                     // activation load stripped by their cumulative factor. Checking a drop never cascades.
-                    const exIdMatch = baseId.match(/(ex-\d+)/);
-                    const currentBlockMatch = baseId.match(/_b(\d+)_/);
-                    if (exIdMatch && currentBlockMatch) {
-                        const exId = exIdMatch[1];
-                        const currentBIndex = parseInt(currentBlockMatch[1]);
-                        const allLoadInputs = document.querySelectorAll(`input[id^="${exId}_b"][id$="_load"]`);
-                        // Base load for drop stripping = this group's activation load (the set just checked)
-                        const activationBase = parseFloat(currentLoad);
-
-                        let foundCurrent = false;
-                        for (let input of allLoadInputs) {
-                            if (input.id === (loadInput ? loadInput.id : '')) {
-                                foundCurrent = true;
-                            } else if (foundCurrent) {
-                                const targetCheckId = input.id.replace('_load', '_check');
-                                const targetCheck = document.getElementById(targetCheckId);
-
-                                // Stop cascading if we hit a NEW Activation block
-                                if (targetCheck && targetCheck.dataset.myotype === 'activation' && !input.id.includes(`_b${currentBIndex}_`)) {
-                                    break;
-                                }
-
-                                if (targetCheck && !targetCheck.classList.contains('checked')) {
-                                    let cascadeLoad = currentLoad;
-                                    const dropFactor = targetCheck.dataset.myotype === 'drop' ? parseFloat(targetCheck.dataset.dropfactor) : NaN;
-                                    if (!isNaN(dropFactor) && !isNaN(activationBase)) {
-                                        cascadeLoad = String(roundForEquipment(activationBase * dropFactor, exName));
-                                    }
-                                    input.value = cascadeLoad;
-                                    saveSessionState(input.id, cascadeLoad);
-                                    input.dispatchEvent(new Event('input', {bubbles: true}));
-                                }
-                            }
-                        }
-                    }
+                    window.cascadeMyoDropLoads(loadInput, exName);
                 } else {
                     // STANDARD CASCADE: Only push load to next sets within the SAME block
                     const match = baseId.match(/(ex-\d+_b\d+)_s(\d+)/);
@@ -5743,8 +5789,15 @@
                         }
                         const suffixMatch = e.target.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
                         if (suffixMatch) lastUsed[exName][suffixMatch[0]] = e.target.value;
-                        
+
                         localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
+
+                        // LIVE DROP/MYO CASCADE: if the edited load is an Activation set, re-strip the
+                        // following drops / back-offs immediately (don't wait for the set to be checked).
+                        const chk = document.getElementById(e.target.id.replace('_load', '_check'));
+                        if (chk && chk.dataset.myotype === 'activation' && !e.target.disabled) {
+                            window.cascadeMyoDropLoads(e.target, exName);
+                        }
                     }
                 });
             });
