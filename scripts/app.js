@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.04.2106";
+        const APP_VERSION = "v2026.06.04.2111";
 
         // --- THEMES ---
         const THEMES = [
@@ -2935,7 +2935,10 @@
             const needsRebuild = Object.keys(actualBests).some(ex => !prHist[ex] || prHist[ex].length === 0);
             // One-time reconciliation of the All-Time vault (actualBests) against real logged history.
             const needsBestsSync = !localStorage.getItem('actualBestsHistorySync_v2');
-            if (!needsRebuild && !needsBestsSync) return;
+            // One-time repair of PR timelines that stalled (missed PRs because a stale vault best
+            // blocked live detection). Separate flag so it re-runs even though v2 already fired.
+            const needsTimelineSync = !localStorage.getItem('prTimelineStaleSync_v1');
+            if (!needsRebuild && !needsBestsSync && !needsTimelineSync) return;
 
             const rts = {
                 10:[1.000,0.960,0.920,0.890,0.860,0.840,0.810,0.790,0.760,0.740,0.710,0.690],
@@ -3021,6 +3024,33 @@
                 });
                 if (bestsChanged) localStorage.setItem('actualBests', JSON.stringify(actualBests));
                 localStorage.setItem('actualBestsHistorySync_v2', '1');
+            }
+
+            // Repair stalled PR timelines: if a stale vault best blocked live PR detection, the
+            // prHistory progression stopped growing (e.g. Bench stuck at an old date) even though
+            // newer PRs exist in workout history. Rebuild ONLY those timelines whose recorded max
+            // e1RM is below the true history max — squat/deadlift already match, so they're left as
+            // is (no duplicates). Carry over any attached form video by matching weight+reps+day.
+            if (needsTimelineSync) {
+                let timelineChanged = false;
+                Object.keys(rebuilt).forEach(ex => {
+                    const rb = rebuilt[ex];
+                    if (!rb || rb.length === 0) return;
+                    const existing = prHist[ex] || [];
+                    const existingMax = existing.reduce((m, e) => Math.max(m, e.e1rm || 0), 0);
+                    const historyMax = rb.reduce((m, e) => Math.max(m, e.e1rm || 0), 0);
+                    if (historyMax > existingMax + 0.05) {
+                        const withVideo = existing.filter(e => e.videoUrl);
+                        prHist[ex] = rb.slice(-30).map(e => {
+                            const v = withVideo.find(o => o.weight === e.weight && o.reps === e.reps &&
+                                localDateKey(new Date(o.date)) === localDateKey(new Date(e.date)));
+                            return v ? { ...e, videoUrl: v.videoUrl } : e;
+                        });
+                        timelineChanged = true;
+                    }
+                });
+                if (timelineChanged) localStorage.setItem('prHistory', JSON.stringify(prHist));
+                localStorage.setItem('prTimelineStaleSync_v1', '1');
             }
         }
 
