@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.07.2348";
+        const APP_VERSION = "v2026.06.08.0014";
 
         // --- THEMES ---
         const THEMES = [
@@ -1077,7 +1077,8 @@
                 if (pm && getResolved1RM(pm[2]) > 0) {
                     const safeFull = ex.name.replace(/'/g, "\\'");
                     const safeParent = pm[2].replace(/'/g, "\\'");
-                    return `${pm[1]} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">(${pm[2]})</span>`;
+                    const linkIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+                    return `${pm[1]} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">${linkIcon}${pm[2]}</span>`;
                 }
             }
             return ex.name;
