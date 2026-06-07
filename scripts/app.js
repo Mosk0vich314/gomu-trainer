@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.07.1140";
+        const APP_VERSION = "v2026.06.07.2325";
 
         // --- THEMES ---
         const THEMES = [
@@ -1296,6 +1296,18 @@
                 });
             }
 
+            // NEW: Apply per-block deletions (swiping the only set of a block removes the
+            // block). Marked by index — not spliced — so saved set-data keys for the
+            // exercise's other blocks stay aligned, mirroring deletedIndices for exercises.
+            if (saved.deletedBlocks) {
+                saved.deletedBlocks.forEach(bKey => {
+                    const [eIdx, bIdx] = bKey.split('_');
+                    if (exercises[eIdx] && exercises[eIdx].blocks[bIdx]) {
+                        exercises[eIdx].blocks[bIdx]._deleted = true;
+                    }
+                });
+            }
+
             // NEW: Apply program-level Myo-rep / Drop Set modes. Keyed by the DB-original
             // name so the same exercise on the corresponding day of EVERY week is converted
             // (mirrors how programSwaps propagates). Each week keeps its own prescribed RPE.
@@ -1446,6 +1458,7 @@
                 let exerciseLog = { name: ex.name, sets: [] };
 
                 ex.blocks.forEach((block, bIndex) => {
+                    if (block._deleted) return; // block removed via swipe-delete of its only set
                     for(let s = 1; s <= block.sets; s++) {
                         const rowId = `${exId}_b${bIndex}_s${s}`;
                         const checkId = `${rowId}_check`;
@@ -3893,6 +3906,7 @@
                 let myoActivationLoad = null;
 
                 ex.blocks.forEach((block, bIndex) => {
+                    if (block._deleted) return; // block removed via swipe-delete of its only set
                     // AMRAP applies to ONE set in the block (last set when `amrap:true`, or the
                     // 1-based index when `amrap` is a number). The flagged set is RPE 10 with reps
                     // left blank for the lifter to log.
@@ -5105,7 +5119,29 @@
             }
 
             if (currentSets <= 1) {
-                alert("Cannot delete the last set. Delete the entire exercise instead.");
+                // Deleting the only set of a block removes the whole block. If it is the
+                // exercise's last remaining block, remove the entire exercise instead.
+                const liveBlocks = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex]
+                    .blocks.filter(b => !b._deleted).length;
+                if (liveBlocks <= 1) {
+                    deleteCustomExercise(exIndex);
+                    return;
+                }
+                // Drop any saved set data for this single-set block so it doesn't linger.
+                ['reps', 'rpe', 'load', 'check'].forEach(suffix => delete savedSession[`ex-${exIndex}_b${bIndex}_s1_${suffix}`]);
+                if (isCustomProgram) {
+                    db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].blocks.splice(bIndex, 1);
+                    const customProgs = safeParse('customPrograms', {});
+                    if (customProgs[currentProgram]) {
+                        customProgs[currentProgram] = db[currentProgram];
+                        localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+                    }
+                } else {
+                    if (!savedSession.deletedBlocks) savedSession.deletedBlocks = [];
+                    savedSession.deletedBlocks.push(`${exIndex}_${bIndex}`);
+                    if (savedSession.modifiedBlocks) delete savedSession.modifiedBlocks[`${exIndex}_${bIndex}`];
+                }
+                localStorage.setItem(key, JSON.stringify(savedSession));
                 renderWorkout();
                 return;
             }
