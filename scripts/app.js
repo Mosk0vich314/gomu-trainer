@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.07.2325";
+        const APP_VERSION = "v2026.06.07.2348";
 
         // --- THEMES ---
         const THEMES = [
@@ -1064,8 +1064,23 @@
             if (lowerName.includes('squat')) return saved1RMs['Squat'] || 0;
             if (lowerName.includes('bench')) return saved1RMs['Bench Press'] || 0;
             if (lowerName.includes('deadlift')) return saved1RMs['Deadlift'] || 0;
-            
+
             return 0;
+        }
+
+        // Renders the exercise title; if the name ends in a parenthetical naming a parent
+        // lift that has a known ref 1RM (e.g. "Larsen Press (bench)"), the parenthetical is
+        // a tappable link that opens the % -> ref-1RM slider modal.
+        function variationTitleHtml(ex, exIndex, isNonExercise) {
+            if (!isNonExercise) {
+                const pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
+                if (pm && getResolved1RM(pm[2]) > 0) {
+                    const safeFull = ex.name.replace(/'/g, "\\'");
+                    const safeParent = pm[2].replace(/'/g, "\\'");
+                    return `${pm[1]} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">(${pm[2]})</span>`;
+                }
+            }
+            return ex.name;
         }
 
         function startProgram(programId) {
@@ -2473,7 +2488,66 @@
             }
             localStorage.setItem('global1RMs', JSON.stringify(global1RMs));
         };
-        
+
+        // --- Variation ref 1RM as a % of its parent lift (e.g. "Larsen Press (bench)") ---
+        // Clicking the parenthetical opens a slider modal; confirming stores a fixed ref 1RM
+        // snapshot for the variation = chosen % * the parent lift's current ref 1RM.
+        function renderVariationPct(pct) {
+            const st = window.variationPctState;
+            if (!st) return;
+            const slider = document.getElementById('vpct-slider');
+            if (slider) slider.value = pct;
+            const kg = Math.round((st.parentRM * pct / 100) * 2) / 2; // nearest 0.5 kg
+            document.getElementById('vpct-value').textContent = pct + '%';
+            document.getElementById('vpct-result').textContent = kg.toFixed(1) + ' kg';
+            st.pct = pct;
+            st.kg = kg;
+        }
+
+        window.setVariationPct = function(pct) {
+            pct = Math.max(75, Math.min(125, Math.round(pct)));
+            renderVariationPct(pct);
+        };
+
+        window.nudgeVariationPct = function(delta) {
+            const cur = (window.variationPctState && window.variationPctState.pct) || 100;
+            setVariationPct(cur + delta);
+        };
+
+        // Slider drag handler: gently magnetises to multiples of 5 (within 1%) so clean
+        // values like 100% are easy to land on. Fine values (96/97/98/102/103…) are still
+        // reachable by dragging, or exactly via the +/- buttons which skip the magnet.
+        window.onVariationPctInput = function(v) {
+            let pct = Math.round(parseFloat(v));
+            const nearest5 = Math.round(pct / 5) * 5;
+            if (Math.abs(pct - nearest5) <= 1) pct = nearest5;
+            setVariationPct(pct);
+        };
+
+        window.openVariationPctModal = function(exIndex, exName, parentName) {
+            const parentRM = getResolved1RM(parentName);
+            if (!(parentRM > 0)) {
+                alert(`Set a ref 1RM for ${parentName} first, then link this variation to it.`);
+                return;
+            }
+            const currentRM = getResolved1RM(exName);
+            let startPct = 100;
+            if (currentRM > 0) startPct = Math.round((currentRM / parentRM) * 100);
+            window.variationPctState = { exName, parentName, parentRM };
+            document.getElementById('vpct-sub').textContent =
+                `% of ${parentName}'s ref 1RM (${parentRM.toFixed(1)} kg)`;
+            setVariationPct(startPct);
+            document.getElementById('variation-pct-modal').style.display = 'flex';
+        };
+
+        window.submitVariationPct = function() {
+            const st = window.variationPctState;
+            if (!st) return;
+            updateManual1RM(normalizeExName(st.exName), st.kg);
+            document.getElementById('variation-pct-modal').style.display = 'none';
+            renderWorkout();
+        };
+
         window.resetSpecificLift = async function(exName) {
             const confirmed = await showConfirm(
                 "Reset Lift?",
@@ -3874,7 +3948,7 @@
                             `}
                             
                             <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
-                                ${ex.name}
+                                ${variationTitleHtml(ex, exIndex, isNonExercise)}
                             </h2>
                             
                             ${isNonExercise ? '' : `
