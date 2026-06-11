@@ -197,6 +197,15 @@ Themes are defined in the `THEMES` array at the top of `app.js`. Each theme obje
 
 **bg/card contrast principle:** `bg` should be near-black (perceivably black, <15 in all RGB channels) with a faint hue tint. `card` should be the first place the theme's color identity is visible. Never make `bg` and `card` too similar — the contrast step is what makes cards readable.
 
+### Exercise database (canonical names)
+The same exercise appears under different names across programs ("Dumbbell Military Press" / "Shoulder Press (Dumbbell)" / "Dumbbell Overhead Press"). Identity is resolved by `EXERCISE_ALIASES` in app.js (lowercased alias → canonical display name) via `normalizeExName(name)`. Rules:
+- **Display names stay raw** — the workout view always shows the program's own name. Only name-keyed *data* (`actualBests`, `prHistory`, `global1RMs`, `lastUsedWeights`, `equipmentModes`, chart grouping) is canonicalized.
+- Canonical names keep the `(bench)/(squat)/(deadlift)` suffix where one exists so the variation→parent 1RM link keeps working.
+- **Never merge distinct training variations**: pause vs touch-and-go, grip widths, tempos, board heights, RDL vs stiff-leg.
+- IndexedDB workout history stays raw; it is canonicalized at read time (`drawChart`, `initChartSelect`, `rebuildPRHistoryFromWorkouts`).
+- `migrateExerciseDB()` (gated by localStorage flag `exerciseDB_v1`) re-keyed pre-existing data once. If the alias map gains entries that must merge *already-stored* data, bump the flag to `exerciseDB_v2` and update the gate.
+- **After injecting a new program, run `python tools/check_exercise_names.py`** — it prints merge groups and fuzzy-flags likely missing aliases.
+
 ### PR system
 PRs are tracked when a set's e1RM exceeds the stored best. On PR:
 1. `actualBests[exName]` is updated with `{ weight, reps, e1rm, date }`

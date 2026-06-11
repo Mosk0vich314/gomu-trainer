@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.12.0049";
+        const APP_VERSION = "v2026.06.12.0105";
 
         // --- THEMES ---
         const THEMES = [
@@ -853,7 +853,8 @@
 
         window.getEquipmentMode = function(exName) {
             const modes = safeParse('equipmentModes', {});
-            if (modes[exName]) return modes[exName];
+            const key = normalizeExName(exName);
+            if (modes[key]) return modes[key];
             // Auto-detect default from exercise name
             if (/dumbbell|dumbell|\bdb\b/i.test(exName)) return '1db';
             if (/cable|machine|pulldown|lat pull|tricep push|face pull/i.test(exName)) return 'cable';
@@ -862,7 +863,7 @@
 
         window.setEquipmentMode = function(exName, mode) {
             const modes = safeParse('equipmentModes', {});
-            modes[exName] = mode;
+            modes[normalizeExName(exName)] = mode;
             localStorage.setItem('equipmentModes', JSON.stringify(modes));
             renderWorkout();
         };
@@ -1045,15 +1046,126 @@
             updateDashboard(); 
         }
 
+        // ── Exercise Database ────────────────────────────────────────────────
+        // Canonical identity for exercises that appear under different names across
+        // programs. Key: lowercased alias → Value: canonical display name. Names not
+        // listed here are their own canonical name. Canonical names keep the
+        // "(bench)/(squat)/(deadlift)" suffix where it exists so the variation→parent
+        // 1RM link keeps working. Distinct training variations (pause vs touch-and-go,
+        // grip widths, tempos, RDL vs stiff-leg) are deliberately NOT merged.
+        // tools/check_exercise_names.py flags unmapped near-duplicates when injecting
+        // a new program.
+        const EXERCISE_ALIASES = {
+            // Big 3
+            'bench': 'Bench Press', 'bench press': 'Bench Press', 'bench press (barbell)': 'Bench Press', 'bench (backoffs)': 'Bench Press',
+            'squat': 'Squat', 'squat (barbell)': 'Squat',
+            'deadlift': 'Deadlift', 'deadlift (barbell)': 'Deadlift',
+            // Pause bench variants
+            '2ct pause bench': '2Ct Pause (bench)', '2-count pause bench (bench)': '2Ct Pause (bench)', '2-count pause bench (backoffs)': '2Ct Pause (bench)',
+            '3ct pause bench': '3-Count Pause Bench (bench)', '3-count pause bench (backoffs)': '3-Count Pause Bench (bench)',
+            '2ct pause close grip bench': '2Ct Pause Close Grip Bench',
+            '2ct pause (deadlift)': '2Ct Pause (deadlift)',
+            'pause (squat)': '2-Count Pause (squat)',
+            // Backoff-slot duplicates fold into their parent lift
+            'close grip (backoffs)': 'Close Grip (bench)',
+            'close grip bench': 'Close Grip (bench)',
+            '1-board (backoffs)': '1-Board (bench)',
+            // Bench variations
+            'larsen press': 'Larsen Press (bench)', 'larsen press (barbell)': 'Larsen Press (bench)',
+            'db bench': 'Dumbbell Bench', 'bench press (dumbbell)': 'Dumbbell Bench', 'dumbbell flat (bench)': 'Dumbbell Bench',
+            'chest machine': 'Machine Chest Press',
+            // Squat variations
+            'high bar squat (barbell)': 'High Bar (squat)',
+            'tempo squat 3:1:3': 'Tempo 3:1:3 (squat)',
+            'leg press / belt squat / hack squat (squat)': 'Leg Press', 'leg press/belt squat/hack squat (squat)': 'Leg Press',
+            // Deadlift variations
+            'halting deadlift': 'Halt Deadlift (deadlift)',
+            'dumbbell romanian deadlift': 'Dumbbell Romanian (deadlift)', 'dumbbell rdl (deadlift)': 'Dumbbell Romanian (deadlift)',
+            'single leg romanian deadlift': 'Single Leg RDL (deadlift)',
+            // Overhead pressing
+            'overhead press': 'Overhead Press (bench)',
+            'seated overhead press': 'Seated BB OHP (bench)', 'seated strict press': 'Seated BB OHP (bench)',
+            'dumbbell military press': 'Dumbbell Overhead Press', 'shoulder press (dumbbell)': 'Dumbbell Overhead Press',
+            // Rows & pulls
+            'one-arm dumbbell row': '1-Arm DB Row', 'one-arm dumbell row': '1-Arm DB Row', 'dumbbell row': '1-Arm DB Row',
+            'barbell bent over row': 'Barbell Row', 'strict bent barbell row': 'Barbell Row',
+            'lat pull down': 'Lat Pulldown', 'lat pulldowns': 'Lat Pulldown',
+            'close grip lat pulldowns': 'Close Grip Lat Pulldown', 'lat pulldown (close grip)': 'Close Grip Lat Pulldown',
+            'pullups': 'Pull-Up', 'pull-up (bodyweight)': 'Pull-Up', 'pull-up (deadlift)': 'Pull-Up',
+            // Arms & shoulders
+            'tricep pushdowns': 'Triceps Pushdown', 'tricep pushdown (cable)': 'Triceps Pushdown',
+            'cable biceps': 'Cable Biceps Curl',
+            'db hammer curls': 'Hammer Curl',
+            'db lateral raise': 'Dumbbell Lateral Raises', 'lateral delt work': 'Dumbbell Lateral Raises',
+            // Legs & posterior
+            'leg curls': 'Leg Curl', 'hamstring curl': 'Leg Curl', 'hamstring curls': 'Leg Curl',
+            'leg extension': 'Leg Extension',
+            'back extension (weighted)': 'Low Back Extension',
+            'db lunges': 'Lunges'
+        };
+
         window.normalizeExName = function(name) {
             if (!name) return name;
-            const lower = name.toLowerCase().trim();
-            // Automatically merges aliases into the core "Big 3" names
-            if (lower === 'bench' || lower === 'bench press' || lower === 'bench press (barbell)') return 'Bench Press';
-            if (lower === 'squat' || lower === 'squat (barbell)') return 'Squat';
-            if (lower === 'deadlift' || lower === 'deadlift (barbell)') return 'Deadlift';
-            return name;
+            return EXERCISE_ALIASES[name.toLowerCase().trim()] || name;
         };
+
+        // One-time migration: re-key all name-indexed stores under canonical names so
+        // data logged under aliases (e.g. "Dumbbell Military Press" vs "Shoulder Press
+        // (Dumbbell)") merges into one record. IndexedDB history stays raw — it is
+        // canonicalized at read time (charts, PR rebuild).
+        function migrateExerciseDB() {
+            if (localStorage.getItem('exerciseDB_v1')) return;
+
+            // actualBests: highest e1RM wins per canonical name
+            const bests = safeParse('actualBests', {});
+            const newBests = {};
+            Object.keys(bests).forEach(k => {
+                const c = normalizeExName(k);
+                if (!newBests[c] || (bests[k].e1rm || 0) > (newBests[c].e1rm || 0)) newBests[c] = bests[k];
+            });
+            localStorage.setItem('actualBests', JSON.stringify(newBests));
+
+            // prHistory: concat alias timelines, re-derive the chronological running-max
+            // progression (a timeline is "PRs over time"). Entries with a form video are
+            // kept even if they fall off the merged progression.
+            const hist = safeParse('prHistory', {});
+            const merged = {};
+            Object.keys(hist).forEach(k => {
+                const c = normalizeExName(k);
+                merged[c] = (merged[c] || []).concat(hist[k] || []);
+            });
+            Object.keys(merged).forEach(c => {
+                const entries = merged[c].sort((a, b) => (a.date || 0) - (b.date || 0));
+                let runMax = 0;
+                merged[c] = entries.filter(e => {
+                    if ((e.e1rm || 0) > runMax + 0.01) { runMax = e.e1rm; return true; }
+                    return !!e.videoUrl;
+                }).slice(-30);
+            });
+            localStorage.setItem('prHistory', JSON.stringify(merged));
+
+            // global1RMs: higher manual override wins
+            const rms = safeParse('global1RMs', {});
+            const newRms = {};
+            Object.keys(rms).forEach(k => {
+                const c = normalizeExName(k);
+                if (!newRms[c] || rms[k] > newRms[c]) newRms[c] = rms[k];
+            });
+            localStorage.setItem('global1RMs', JSON.stringify(newRms));
+
+            // lastUsedWeights + equipmentModes: an entry already stored under the
+            // canonical name wins; otherwise first alias seen.
+            ['lastUsedWeights', 'equipmentModes'].forEach(storeKey => {
+                const store = safeParse(storeKey, {});
+                const out = {};
+                Object.keys(store).forEach(k => { if (normalizeExName(k) === k) out[k] = store[k]; });
+                Object.keys(store).forEach(k => { const c = normalizeExName(k); if (!(c in out)) out[c] = store[k]; });
+                localStorage.setItem(storeKey, JSON.stringify(out));
+            });
+
+            localStorage.setItem('exerciseDB_v1', '1');
+        }
+        migrateExerciseDB();
 
         function getResolved1RM(exName) {
             let saved1RMs = safeParse('global1RMs', {});
@@ -1631,7 +1743,7 @@
         function initChartSelect() {
             let history = safeParse('workoutHistory', []);
             let exSet = new Set();
-            history.forEach(log => log.details.forEach(e => exSet.add(e.name)));
+            history.forEach(log => log.details.forEach(e => exSet.add(normalizeExName(e.name))));
             let listHtml = document.getElementById('chart-exercise-list');
             let selectDisplay = document.getElementById('chart-exercise-btn');
             if(!listHtml || !selectDisplay) return;
@@ -1712,9 +1824,12 @@
             // Group by calendar day — keep only the highest e1RM per day
             let dayMap = {};
             history.forEach(log => {
-                let exMatch = log.details.find(e => e.name === exName);
-                if(exMatch && exMatch.sets && exMatch.sets.length > 0) {
-                    let maxE1RM = Math.max(...exMatch.sets.map(s => getE1RM(s.load, s.reps, s.rpe)));
+                // Canonical-name match: merges data logged under aliases (and multiple
+                // same-lift entries within one session, e.g. a "(Backoffs)" slot)
+                const matches = log.details.filter(e => normalizeExName(e.name) === exName);
+                const allSets = matches.flatMap(m => m.sets || []);
+                if(allSets.length > 0) {
+                    let maxE1RM = Math.max(...allSets.map(s => getE1RM(s.load, s.reps, s.rpe)));
                     if(maxE1RM > 0) {
                         const ts = parseInt(log.id);
                         const dateKey = localDateKey(new Date(ts));
@@ -4139,12 +4254,13 @@
                             }
                         } else if (block.pct && resolved1RM > 0) {
                             smartDefaultLoad = roundForEquipment(resolved1RM * block.pct, ex.name);
-                        } else if (lastUsedWeights[ex.name]) {
+                        } else if (lastUsedWeights[normalizeExName(ex.name)]) {
                             // Fallback to memory if neither PCT nor Target RPE exist
-                            if (typeof lastUsedWeights[ex.name] === 'object' && lastUsedWeights[ex.name] !== null) {
-                                smartDefaultLoad = lastUsedWeights[ex.name][`_b${bIndex}_s${s}`] || lastUsedWeights[ex.name].fallback || '';
+                            const lastUsed = lastUsedWeights[normalizeExName(ex.name)];
+                            if (typeof lastUsed === 'object' && lastUsed !== null) {
+                                smartDefaultLoad = lastUsed[`_b${bIndex}_s${s}`] || lastUsed.fallback || '';
                             } else {
-                                smartDefaultLoad = lastUsedWeights[ex.name]; 
+                                smartDefaultLoad = lastUsed;
                             }
                         }
 
