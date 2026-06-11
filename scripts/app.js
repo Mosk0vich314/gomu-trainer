@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.06.11.2037";
+        const APP_VERSION = "v2026.06.11.2122";
 
         // --- THEMES ---
         const THEMES = [
@@ -1111,28 +1111,56 @@
             updateBanners();
         }
 
+        // Max top-set % programmed in a week — drives the periodization spine bar heights.
+        function weekTopPct(weekData) {
+            let m = 0;
+            for (const d in weekData) {
+                for (const ex of (weekData[d] || [])) {
+                    for (const b of (ex.blocks || [])) {
+                        if (b.pct && b.pct > m) m = b.pct;
+                    }
+                }
+            }
+            return m || 0.7;
+        }
+
         function renderWeekPills() {
             const programWeeks = Object.keys(db[currentProgram].weeks).sort((a,b) => a - b);
             const wContainer = document.getElementById('week-pills');
-            
-            wContainer.innerHTML = programWeeks.map(w => {
+
+            const pcts = programWeeks.map(w => weekTopPct(db[currentProgram].weeks[w]));
+            const maxP = Math.max(...pcts);
+            const minP = Math.min(...pcts);
+
+            wContainer.innerHTML = programWeeks.map((w, i) => {
                 const daysInWeek = Object.keys(db[currentProgram].weeks[w] || {});
                 let allCompleted = false;
-                
                 if (daysInWeek.length > 0) {
-                    allCompleted = daysInWeek.every(d => {
-                        const dKey = `${currentProgram}_w${w}_d${d}`;
-                        return completedDays[dKey] === true;
-                    });
+                    allCompleted = daysInWeek.every(d => completedDays[`${currentProgram}_w${w}_d${d}`] === true);
                 }
-                
-                // Determine the exact classes for the pill
-                let classes = 'pill';
+
+                let classes = 'spine-col';
                 if (w === selectedWeek) classes += ' active';
                 if (allCompleted) classes += ' completed';
-                
-                return `<div class="${classes}" onclick="selectWeek('${w}')">Week ${w}</div>`;
+
+                // Bar height scales with that week's max top-set %; color fades teal → accent across the program (phase progression)
+                const h = Math.round((pcts[i] - minP + 0.01) / (maxP - minP + 0.01) * 32 + 12);
+                const t = programWeeks.length > 1 ? i / (programWeeks.length - 1) : 0;
+                const color = `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--teal))`;
+
+                return `<div class="${classes}" onclick="selectWeek('${w}')" title="Week ${w}: ${Math.round(pcts[i]*100)}%">
+                    <div class="spine-bararea"><div class="spine-bar" style="height:${h}px; background:var(--teal); background:${color};"></div></div>
+                    <div class="spine-wk">${w}</div>
+                </div>`;
             }).join('');
+
+            // Header readout: selected week + its peak intensity
+            const meta = document.getElementById('spine-meta');
+            if (meta) {
+                const idx = programWeeks.indexOf(selectedWeek);
+                const pct = idx >= 0 ? Math.round(pcts[idx] * 100) : null;
+                meta.innerHTML = pct !== null ? `Week ${selectedWeek} · <span class="spine-meta-pct">${pct}%</span>` : '';
+            }
         }
         
         function selectWeek(w) {
@@ -1154,17 +1182,15 @@
                 const dKey = `${currentProgram}_w${selectedWeek}_d${d}`;
                 const isCompleted = completedDays[dKey];
                 const isAct = (activeWorkout && activeWorkout.key === dKey);
-                
-                // Determine the exact classes for the day pill
-                let classes = 'pill';
+
+                let classes = 'dtab';
                 if (d === selectedDay) classes += ' active';
                 if (isCompleted) classes += ' completed';
-                
+
                 let icon = '';
-                // We remove the text checkmark since the green border handles it, 
-                // but keep the orange dot if a workout is currently in progress
-                if (isAct && !isCompleted) icon = `<span class="pill-icon indicator-active">●</span>`;
-                
+                // Green border marks completion; orange dot marks a workout currently in progress
+                if (isAct && !isCompleted) icon = `<span class="indicator-active">●</span>`;
+
                 return `<div class="${classes}" onclick="selectDay('${d}')">Day ${d} ${icon}</div>`;
             }).join('');
         }
@@ -3784,8 +3810,8 @@
                 pmCard.style.display = isCustomProgram ? 'none' : 'block';
             }
 
-            // 4. Hide Week/Day pills for Custom Workouts
-            document.querySelectorAll('.pill-scroll-container').forEach(pContainer => {
+            // 4. Hide Week spine / Day tabs for Custom Workouts
+            document.querySelectorAll('.pill-scroll-container, .spine-wrap').forEach(pContainer => {
                 pContainer.style.display = isCustomProgram ? 'none' : 'block';
             });
 
