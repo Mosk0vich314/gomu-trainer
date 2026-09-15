@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.07.14.0046">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.09.16.0016">
 </head>
 <body>
     <div id="login-screen">
@@ -552,11 +552,20 @@
             Factory Reset App
         </button>
 
+        <!-- Timer Sound Toggle -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+                <div style="font-size:14px;font-weight:800;color:var(--text-main);">🔔 Timer Sound</div>
+                <div style="font-size:12px;color:var(--text-muted);">Beep when rest ends. Off = vibration + notification only.</div>
+            </div>
+            <button id="timer-sound-toggle-btn" onclick="toggleTimerSound()" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;"></button>
+        </div>
+
         <!-- Feature 4: TTS Toggle -->
         <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <div>
                 <div style="font-size:14px;font-weight:800;color:var(--text-main);">🔊 Timer Voice (TTS)</div>
-                <div style="font-size:12px;color:var(--text-muted);">Announces next exercise after rest.</div>
+                <div style="font-size:12px;color:var(--text-muted);">Announces next exercise after rest. May briefly duck your music.</div>
             </div>
             <button id="tts-toggle-btn" onclick="toggleTTS()" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;"></button>
         </div>
@@ -759,6 +768,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.07.14.0046" defer></script>
+    <script src="scripts/app.js?v=2026.09.16.0016" defer></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.07.14.0046";
+        const APP_VERSION = "v2026.09.16.0016";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -931,6 +931,8 @@
             if (idInput && gistId && !idInput.value) idInput.value = gistId;
             const ttsBtn = document.getElementById('tts-toggle-btn');
             if (ttsBtn) ttsBtn.innerText = localStorage.getItem('ttsEnabled') === 'false' ? 'Off' : 'On';
+            const soundBtn = document.getElementById('timer-sound-toggle-btn');
+            if (soundBtn) soundBtn.innerText = localStorage.getItem('timerSoundEnabled') === 'false' ? 'Off' : 'On';
 
             // Backup cadence indicator — silent-failing backups are the worst kind
             const lastEl = document.getElementById('gist-last-backup');
@@ -947,6 +949,14 @@
         };
 
         function updateGDriveUI() { window.updateGistUI(); }
+
+        window.toggleTimerSound = function() {
+            const current = localStorage.getItem('timerSoundEnabled') !== 'false';
+            localStorage.setItem('timerSoundEnabled', current ? 'false' : 'true');
+            if (current) { clearTimeout(beepParkTimer); parkBeepCtx(); }
+            else { unlockBeep(); playBeep(); }   // turning it on previews the ding
+            window.updateGistUI();
+        };
 
         window.toggleTTS = function() {
             const current = localStorage.getItem('ttsEnabled') !== 'false';
@@ -5700,25 +5710,83 @@
             renderWorkout();
         };
 
-        // 1. Load the Audio Objects
-        let activeAudio = new Audio('./assets/audio/ding.mp3');
-        activeAudio.preload = 'auto';
+        // --- REST TIMER BEEP (Web Audio, audio-focus safe) ---
+        // An <audio> element on Android asks the OS for MEDIA audio focus. That ducks
+        // whatever the user is listening to, and because the element stays "a player"
+        // the duck often never lifts (the bug: Spotify stays quiet until another timer
+        // runs out). A short Web Audio tone from a context we explicitly suspend the
+        // moment it has finished releases focus deterministically, so music comes back
+        // up on its own. Do NOT go back to new Audio()/ding.mp3.
+        // Silent mode: localStorage 'timerSoundEnabled' === 'false' → notification +
+        // vibration only (Settings ▸ Timer Sound).
+        let beepCtx = null;
+        let beepUnlocked = false;
+        let beepParkTimer = null;
 
-        // Audio Session hint (Safari 16.4+, newer Chrome): the ding is a transient
-        // sound that should mix with — not take over — background music. Without
-        // this the OS may treat the app as a media player and duck Spotify.
-        // (The old approach — a looping silent <audio> to keep the browser awake —
-        // held audio focus for the entire rest period, ducking music the whole time.
-        // Background alerting is now handled by an SW-scheduled notification instead.)
+        function timerSoundOn() { return localStorage.getItem('timerSoundEnabled') !== 'false'; }
+
+        function getBeepCtx() {
+            if (!beepCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return null;
+                try { beepCtx = new AC({ latencyHint: 'interactive' }); } catch (e) { return null; }
+            }
+            return beepCtx;
+        }
+
+        // Park the context: a suspended context holds no audio focus.
+        function parkBeepCtx() {
+            if (beepCtx && beepCtx.state === 'running') { try { beepCtx.suspend(); } catch (e) {} }
+        }
+
+        // Autoplay policy: the context must be resumed once inside a real user gesture.
+        // We resume, then immediately park it again so it isn't holding focus all session.
+        function unlockBeep() {
+            if (beepUnlocked || !timerSoundOn()) return;
+            const ctx = getBeepCtx();
+            if (!ctx) return;
+            ctx.resume().then(() => { beepUnlocked = true; parkBeepCtx(); }).catch(() => {});
+        }
+        document.addEventListener('pointerdown', unlockBeep, true);
+
+        // Audio Session hint (Safari 16.4+, newer Chromium). 'ambient' = mix with other
+        // audio without ducking it, which is exactly what a gym timer ding wants.
+        // ('transient' — the previous value — is the spec's *duck others* mode.)
         try {
-            if ('audioSession' in navigator) navigator.audioSession.type = 'transient';
+            if ('audioSession' in navigator) navigator.audioSession.type = 'ambient';
         } catch (e) {}
 
         function playBeep() {
-            try {
-                activeAudio.currentTime = 0;
-                activeAudio.play().catch(e => console.log("Audio play blocked:", e));
-            } catch(e) {}
+            if (!timerSoundOn()) return;
+            const ctx = getBeepCtx();
+            if (!ctx) return;
+
+            const fire = () => {
+                try {
+                    beepUnlocked = true;
+                    const t0 = ctx.currentTime + 0.02;
+                    const pip = (freq, at, dur) => {
+                        const osc = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        g.gain.setValueAtTime(0.0001, t0 + at);
+                        g.gain.exponentialRampToValueAtTime(0.55, t0 + at + 0.015);
+                        g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+                        osc.connect(g); g.connect(ctx.destination);
+                        osc.start(t0 + at);
+                        osc.stop(t0 + at + dur + 0.02);
+                    };
+                    pip(880, 0, 0.18);      // A5
+                    pip(1318.5, 0.22, 0.26); // E6
+                    // Hand audio focus back as soon as the tone is done.
+                    clearTimeout(beepParkTimer);
+                    beepParkTimer = setTimeout(parkBeepCtx, 800);
+                } catch (e) { console.log('Beep failed:', e); }
+            };
+
+            if (ctx.state === 'running') fire();
+            else ctx.resume().then(fire).catch(e => console.log('Audio resume blocked:', e));
         }
 
         // --- SW-SCHEDULED TIMER ALARM ---
@@ -5758,15 +5826,8 @@
             const fab = document.querySelector('.global-timer-fab');
             if (fab && seconds > 0) fab.classList.add('timer-active');
 
-            // --- PRIME AUDIO (muted play inside the user gesture unlocks later playback) ---
-            try {
-                activeAudio.volume = 0;
-                activeAudio.play().then(() => {
-                    activeAudio.pause();
-                    activeAudio.volume = 1;
-                    activeAudio.currentTime = 0;
-                }).catch(()=>{});
-            } catch (e) {}
+            // --- UNLOCK AUDIO (resume the context inside the user gesture, then park it) ---
+            unlockBeep();
 
             // Backstop alarm in case the page is frozen when the timer hits 0
             scheduleSWAlarm();
@@ -5816,7 +5877,8 @@
             const fab = document.querySelector('.global-timer-fab');
             if (fab) fab.classList.remove('timer-active'); // Stop Breathing
             
-            if (activeAudio) { activeAudio.pause(); activeAudio.currentTime = 0; }
+            clearTimeout(beepParkTimer);
+            parkBeepCtx();
 
             // Timer dismissed — the SW alarm must not fire later
             cancelSWAlarm();
@@ -5862,8 +5924,12 @@
 
             if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
 
-            // Feature 4: TTS announcement of the next set
-            if (window.speechSynthesis && localStorage.getItem('ttsEnabled') !== 'false') {
+            // Feature 4: TTS announcement of the next set.
+            // Only while the page is visible — Android's TTS engine takes media audio
+            // focus and speaking from a frozen/backgrounded page is the case where the
+            // duck on the user's music reliably fails to lift. When hidden, the
+            // notification above is the alert.
+            if (window.speechSynthesis && !document.hidden && localStorage.getItem('ttsEnabled') !== 'false') {
                 try {
                     const nextCheck = document.querySelector('.check-circle:not(.checked)');
                     let utterText = 'Rest complete.';
