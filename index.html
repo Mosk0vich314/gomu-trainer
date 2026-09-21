@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- maximum-scale/user-scalable=no blocked pinch-zoom entirely, which is rough
+         next to 9-11px type. touch-action + the CSS below handle double-tap zoom. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gomu Trainer</title>
@@ -10,6 +12,12 @@
     <link rel="manifest" href="./assets/manifest.json">
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
+
+    <!-- Fonts moved out of styles.css: an @import there meant the browser had to
+         fetch AND parse the stylesheet before it could even begin the font request. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap">
 
     <link rel="stylesheet" href="./styles/styles.css?v=2026.09.16.0016">
 </head>
@@ -110,7 +118,7 @@
         <div class="modal-card">
             <h2 style="margin-bottom: 10px;">Coach Notes</h2>
             <div class="modal-input-group">
-                <textarea id="edit-note-text" rows="4" style="background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; resize: vertical;" placeholder="Add notes, cues, or instructions here..."></textarea>
+                <textarea id="edit-note-text" rows="4" style="background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif; width: 100%; box-sizing: border-box; resize: vertical;" placeholder="Add notes, cues, or instructions here..."></textarea>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('edit-note-modal').style.display='none'">Cancel</button>
@@ -279,6 +287,7 @@
             </div>
             
             <button class="action-btn" style="background: var(--accent); color: #000; margin: 0;" onclick="saveOnboarding()">Save Baselines</button>
+            <button class="readiness-skip" onclick="skipOnboarding()">I'll add these later</button>
         </div>
     </div>
 
@@ -629,7 +638,7 @@
             </div>
 
             <div class="modal-actions" style="margin-top:10px;">
-                <button class="modal-btn cancel" onclick="submitReadiness()">Confirm</button>
+                <button class="modal-btn confirm" onclick="submitReadiness()">Confirm</button>
             </div>
             <button class="readiness-skip" onclick="skipReadiness()">Skip for today</button>
         </div>

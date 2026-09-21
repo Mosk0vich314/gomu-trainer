@@ -16,7 +16,11 @@ DB_PATH = os.path.join(ROOT, 'scripts', 'database.js')
 ENC_PATH = os.path.join(ROOT, 'scripts', 'database.enc')
 PW_PATH = os.path.join(ROOT, 'password.txt')
 
-ITERATIONS = 100_000
+# database.enc is committed to a PUBLIC repo, so it is offline-crackable at GPU
+# speeds against a human-chosen password. 100k was well under the current OWASP
+# floor for PBKDF2-SHA256 (600k). app.js tries this first and falls back to
+# 100_000, so existing blobs keep working until the next deploy re-encrypts.
+ITERATIONS = 600_000
 
 def main():
     # Read password

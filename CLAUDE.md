@@ -94,7 +94,7 @@ Outputs `clean_app.html` with all plaintext database content removed.
 
 The entire app lives in two files:
 - **`index.html`** — All HTML structure. Contains workout program data injected as JSON comments between `/* PROGRAM_NAME_START */` / `/* PROGRAM_NAME_END */` markers.
-- **`scripts/app.js`** — All application logic (~5700 lines). No build step, no bundler.
+- **`scripts/app.js`** — All application logic (~7,400 lines). No build step, no bundler.
 
 **`styles/styles.css`** — Dark-theme CSS using CSS variables (`--accent` orange, `--teal`, `--bg`, `--card`, `--border`, `--text-main`, `--text-muted`, `--danger`).
 
@@ -113,7 +113,7 @@ The entire app lives in two files:
 - `prHistory` — `{ [exName]: [{ weight, reps, e1rm, date }, ...] }` — PR timeline (max 30 per exercise)
 - `global1RMs` — manually overridden 1RMs
 - `completedDays` — `{ [workoutKey]: true }` — heatmap/streak source. Key format: `${programId}_w${week}_d${day}`
-- `warmupRoutine` — `[{ text: string }, ...]` — editable warmup list
+- `warmupRoutine` — `["Calf Raises", "Dead Bugs…", ...]` — editable warmup list, a flat array of PLAIN STRINGS (not objects; `renderWarmupList` prints the item directly)
 - `bwHistory` — `[{ d: dateStr, w: kg, ts: timestamp }, ...]` — bodyweight history (one entry per day)
 - `preferredUnit` — `'kg'` or `'lbs'`
 - `workoutHistory` — legacy; primary store is IndexedDB
@@ -125,6 +125,7 @@ The entire app lives in two files:
 - `scripts/database.js` (plaintext) is gitignored — never commit it.
 - `password.txt` is gitignored — never commit it.
 - Decryption uses Web Crypto API (PBKDF2 → AES-GCM) entirely client-side.
+- **PBKDF2 iterations: 600,000** (`tools/encrypt_db.py` `ITERATIONS`, matched by `PBKDF2_ITERATION_CANDIDATES` in app.js). `database.enc` is committed to a public repo and is therefore offline-crackable at GPU speeds, so the old 100k was well under the OWASP floor. app.js tries 600k then falls back to 100k so a pre-bump blob still opens — **drop the legacy `100000` entry once you have deployed at least once** after re-running `encrypt_db.py`.
 - `tools/encrypt_db.py` must be run before any deploy to keep `database.enc` current.
 
 ### App screens (by DOM ID)
@@ -154,6 +155,9 @@ Block types: `"top"` (working/peak sets), `"backoff"` (lighter volume after peak
 
 **AMRAP is a per-SET property, not per-block.** Add `"amrap": true` to a block to mark its **last set** as AMRAP, or `"amrap": <n>` to mark a specific 1-based set index within the block (e.g. a `sets:2` block where only set 2 is AMRAP — see Compact Force W5 D4 Bench). The flagged set is always rendered at **RPE 10** with its reps input **empty** (placeholder `AMRAP`) for the lifter to log achieved reps. The RTS rep-based weight preload is skipped for that set (no known rep count) so its load falls back to `pct` → last-used. An AMRAP set logged without reps counts as 0 reps in the summary. If the whole block is a single AMRAP set (`sets:1`), the block header reads `1 x AMRAP @ … | RPE 10.0`; otherwise the header keeps its normal rep count and appends `· set N AMRAP`. Resolved via `amrapSetIndex(block)` (returns the 1-based AMRAP set index or null), used in both `renderWorkout` and the summary tally.
 
+### Parent-lift 1RM resolution
+`getResolved1RM(exName)` resolves in this order: an exact entry in `global1RMs` → an exact SBD name → a **trailing parenthetical** naming an SBD parent (`"Larsen Press (bench)"` → Bench Press). It deliberately does **not** substring-match: that used to give "Dumbbell Bench" the full barbell bench 1RM and "Single Leg RDL (deadlift)" the full deadlift, and the app then preloaded those numbers into the load field. Variations that inherit a parent still default to 100% of it — use the variation-% modal (tap the parenthetical) to scale.
+
 ### Weight suggestion priority (buildSetRow)
 Order: **RPE-first → pct fallback → last-used weight memory**
 1. If `block.targetRpe` is set and a 1RM exists → use RTS table to calculate load
@@ -170,7 +174,10 @@ This was intentionally changed from pct-first to RPE-first to support Panash pro
 - `fmtDuration(ms)` — formats milliseconds to `"1h 23m"` or `"45m"`
 - `fmtShortDate(ts)` — formats timestamp to `"Mar 17, '26"`
 - `dotsLevel(score)` — returns `{ label, color }` for DOTS strength classification
-- `showUndoToast(label, onCommit, onUndo)` — shows a 4-second dismissible toast; calls `onCommit` on timeout, `onUndo` if tapped. Used by all swipe-delete flows.
+- `showUndoToast(label, onCommit, onUndo)` — shows a 4-second dismissible toast; calls `onCommit` on timeout, `onUndo` if tapped. Used by all swipe-delete flows. Opening a second toast **commits the first immediately** (`flushPendingUndo`) — it used to silently drop it, so two quick swipe-deletes only ever deleted the second.
+- `rtsPct(rpe, reps)` / `rtsE1RM(weight, reps, rpe)` — the only RTS table lookups (see RTS table).
+- `escapeHtml(str)` / `escapeJsAttr(str)` — HTML text/attribute escaping, and JS-string-in-attribute escaping.
+- `saveSessionState(key, value)` / `flushSessionState()` — session writes **coalesce** into a cached object and flush on a 150 ms timer (plus on `pagehide` and on tab hide). `safeParse()` flushes first whenever the active session key is read, so no path sees stale data. Passing `undefined` as the value deletes the key.
 
 ## UI patterns
 
@@ -193,7 +200,9 @@ Themes are defined in the `THEMES` array at the top of `app.js`. Each theme obje
   textMuted: '#hex'   // optional — overrides --text-muted (default #a1a1aa)
 }
 ```
-`applyTheme()` sets all 8 CSS variables. `textMain`/`textMuted` fall back to defaults if not specified.
+`applyTheme()` sets 10 CSS variables (`--accent`, `--teal`, `--accent-rgb`, `--teal-rgb`, `--text-main`, `--text-muted`, `--bg`, `--card`, `--input-bg`, `--border`). `textMain`/`textMuted` fall back to defaults if not specified.
+
+**Never hardcode a surface colour.** `styles.css` derives `--surface-sunken`, `--surface-row`, `--line-strong` and `--nav-bg` from the theme vars (with a plain-hex fallback for browsers without `color-mix`). Every card, row, input, pill, check circle and nav must use a var — hardcoded zinc hexes are what previously left half the UI grey when any non-Ember theme or the OLED toggle was on.
 
 **bg/card contrast principle:** `bg` should be near-black (perceivably black, <15 in all RGB channels) with a faint hue tint. `card` should be the first place the theme's color identity is visible. Never make `bg` and `card` too similar — the contrast step is what makes cards readable.
 
@@ -218,14 +227,19 @@ PR timeline is toggled by clicking the exercise card (`window.togglePRTimeline`)
 `rebuildPRHistoryFromWorkouts()` — called at the top of `renderStats()`. Scans `workoutHistoryCache` (oldest-first), recomputes e1RM for every logged set using the RTS table, and fills in `prHistory` for any exercise that is missing it. localStorage flag `prHistoryRTS_v2` gates a one-time wipe of old prHistory built with the wrong RTS table.
 
 ### RTS table
-There is **one canonical RTS table**: the `RTS_TABLE` constant defined near the top of app.js. Every e1RM / load calculation references it (`const rtsChart = RTS_TABLE;`) — **never inline a copy**. The correct first row is:
+There is **one canonical RTS table** (`RTS_TABLE`) and **one canonical lookup**: `rtsPct(rpe, reps)` → % of 1RM, and `rtsE1RM(weight, reps, rpe)` → estimated 1RM. Both sit directly under the table. **Never index `RTS_TABLE` directly and never inline a copy of the lookup** — the lookup used to be copy-pasted at eight call sites, and every copy carried the same bug.
+
+- The table covers **1–12 reps**. Past that, `rtsPct` continues the row's own trailing slope (mean of its last three intervals), floored at `RTS_PCT_FLOOR` (0.40) so it can never invert. The old code clamped to the 12-rep column, which understated e1RM on high-rep sets and — via the render-time preload — prescribed a 12-rep load for a programmed 15-rep block.
+- `rtsPct` returns **`null`** for reps < 1; callers must handle it.
+- RPE below 5 is extrapolated at −2.5% per point, as before.
+- **`PR_MAX_REPS` (12)**: a set above this rep count still shows an e1RM but never sets an all-time PR, because a 20-rep e1RM is not comparable to a 3-rep max. The correct first row is:
 `10: [1.000, 0.960, 0.920, 0.890, 0.860, 0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.690]`
 Any deviation from this (e.g. `0.950, 0.925` in the RPE-10 row) is the **old wrong table** — do not use it.
 
 ### Session journal
 History entries have an optional `note` field (`string`). It is saved from a textarea on the summary screen via `window.saveSessionNote(val)` (debounced 600ms). Displayed as italic text in the history card summary row (`.history-note`). Stored in IndexedDB with the rest of the workout entry.
 
-**Per-set notes:** tapping a set's number during a workout opens a prompt (`window.openSetNote(rowId)`); the note is stored in the session blob as `${rowId}_note`, rendered as an italic line under the set row, carried into the history log by `generateSummary` (`set.note`), and shown in expanded history cards. All user-entered notes are rendered through `escapeHtml()`.
+**Per-set notes:** tapping a set's number during a workout opens a prompt (`window.openSetNote(rowId)`); the note is stored in the session blob as `${rowId}_note`, rendered as an italic line under the set row, carried into the history log by `generateSummary` (`set.note`), and shown in expanded history cards. **Everything user-controlled that reaches `innerHTML` must be escaped.** Exercise names, coach notes, warm-up items, custom program names and history program names are all user-editable and all go through template literals. Use `escapeHtml()` for text and quoted attribute values, and `escapeJsAttr()` for a JS string inside an attribute (`onclick="fn('<value>')"`). This matters beyond self-XSS: `importData()` applies a backup file wholesale, so an unescaped field is a code-execution path into an origin holding the decrypted DB and the GitHub PAT.
 
 ### Backup system (canonical)
 `collectBackup(includePictures)` is the ONE definition of what a backup contains (all localStorage stores incl. `programSwaps_*`/`programModes_*`, full IndexedDB history, optionally progress pictures). `applyBackup(data)` is the one restore path. Both local Export/Import and Gist backup/restore go through them — **never add a field to one path only**. Workout history and progress pictures are merged by `id` on restore (`mergeHistoryById`), never overwritten — a partial snapshot (the Gist keeps only the 200 most recent sessions) must not delete older data. Gist backup success/failure timestamps live in `lastGistBackup`/`lastGistError` and are surfaced in the data sheet.
@@ -299,11 +313,15 @@ Rest timer counts down to 0, beeps, then continues counting up (overtime). The d
 
 ### Overflow / mobile layout rules
 - All `position: fixed` banners/toasts that size to content must have `max-width: calc(100vw - Xpx)` and `box-sizing: border-box`.
+- **Touch targets are 44px minimum.** Where a control must stay visually small (`.check-circle`, `.eq-cycle-chip`), keep the box size and pad the *hit area* out with a centred transparent `::before` — don't shrink the target.
+- Anything that handles its own horizontal drag must be listed in `SWIPE_ZONES` (the tab-swipe handler), or swiping it also switches tabs.
 - Text nodes inside flex items that could be long must have `min-width: 0` on the flex item and `overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on the text element.
 - SBD swipe wrappers need `display: flex` to prevent red background bleeding below shorter cards in the same flex row.
 
 ## Key conventions
-- Version format: `YYYY.MM.DD.HHMM` — generated automatically by `deploy.py`.
+- Version format: `YYYY.MM.DD.HHMM` — generated automatically by `deploy.py`. `deploy.py` fails loudly if a version pattern doesn't match (a silent no-match ships a stale cache-buster) and exits cleanly with a clear message when there is nothing to commit.
+- **Line endings: LF everywhere**, enforced by `.gitattributes` (`* text=auto eol=lf`). Without it a Windows checkout produced a whole-repo phantom diff.
+- The unit toggle (`preferredUnit`) is **display only**. Loads, plate inventory, bar weight and `roundForEquipment()` all work in kg, so the workout screen's load field stays kg; only read-outs convert via `kgDisp()`/`unitSuffix()`.
 - All programs live in `Programs/` and are listed in `Programs/programs-list.json`.
 - `scripts/app.js` is not minified or bundled — edit it directly.
 - There are no tests and no linter configured.

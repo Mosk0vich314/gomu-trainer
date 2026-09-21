@@ -88,13 +88,18 @@ self.addEventListener('notificationclick', function(event) {
     event.notification.close();
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-            for (let i = 0; i < clientList.length; i++) {
-                let client = clientList[i];
-                if (client.url.includes('index.html') && 'focus' in client) {
-                    return client.focus();
+            // Matching on 'index.html' only worked because the manifest start_url
+            // happens to name the file. Open the app at the bare directory and this
+            // spawned a SECOND window instead of focusing the one already open.
+            // Scope-match instead, and fall back to focusing any client we control.
+            var scope = self.registration.scope;
+            for (var i = 0; i < clientList.length; i++) {
+                if (clientList[i].url.indexOf(scope) === 0 && 'focus' in clientList[i]) {
+                    return clientList[i].focus();
                 }
             }
-            if (clients.openWindow) return clients.openWindow('./');
+            if (clientList.length && 'focus' in clientList[0]) return clientList[0].focus();
+            if (clients.openWindow) return clients.openWindow(scope);
         })
     );
 });
@@ -105,6 +110,9 @@ self.addEventListener('notificationclick', function(event) {
 // event.waitUntil keeps this worker alive (Chrome allows ~5 min) so the
 // notification lands on time even while the page is frozen. If the app is
 // visible when the alarm fires, the page's own beep handles it and we skip.
+// Chrome allows an extendable event ~5 minutes; past that the worker is killed
+// and the alarm never fires.
+const MAX_ALARM_MS = 4.5 * 60 * 1000;
 let timerTimeout = null;
 let timerDone = null; // resolver for the waitUntil promise
 
@@ -123,6 +131,13 @@ self.addEventListener('message', (event) => {
     if (event.data.action === 'scheduleTimer') {
         cancelTimerAlarm(); // ±15s adjustments reschedule; only one alarm at a time
         const delay = Math.max(0, event.data.delay || 0);
+        // Chrome keeps an extendable event alive for roughly 5 minutes. A longer
+        // rest (custom timers accept any number of minutes) would silently never
+        // notify, so tell the page rather than pretending the alarm is armed.
+        if (delay > MAX_ALARM_MS) {
+            event.source && event.source.postMessage({ action: 'timerAlarmTooLong', delay: delay });
+            return;
+        }
         event.waitUntil(new Promise((resolve) => {
             timerDone = resolve;
             timerTimeout = setTimeout(async () => {
