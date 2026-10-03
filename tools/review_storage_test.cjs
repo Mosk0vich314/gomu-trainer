@@ -23,11 +23,12 @@ function harness() {
         createElement: () => ({ classList: { add() {}, remove() {} }, remove() { elements.delete(this.id); this.parentNode = null; } }),
         body: { appendChild(el) { el.parentNode = this; elements.set(el.id, el); elements.set('undo-toast-btn', {}); } },
         getElementById: id => elements.get(id) || null,
-        querySelector: () => null
+        querySelector: () => null, addEventListener() {}
     };
     const context = vm.createContext({
         console, URL, localStorage, document, APP_VERSION: 'test',
         workoutHistoryCache: [], completedDays: {}, activeWorkout: null,
+        getWorkoutKey: () => 'Program_w1_d1', addEventListener() {},
         workoutDurationInterval: null, clearInterval() {}, closeTimer() {},
         setDB: async (key, value) => db.set(key, clone(value)), getDB: async (key, fallback) => clone(db.get(key) ?? fallback),
         setTimeout: (fn, ms) => { const id = nextTimer++; timers.set(id, { fn, ms }); return id; },
@@ -39,6 +40,8 @@ function harness() {
     context.window = context;
     context.safeParse = (key, fallback) => key === 'workoutHistory' ? context.workoutHistoryCache : JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
     const code = [
+        section('let _sessionCacheKey =', 'let currentProgram ='),
+        section('function saveSessionState(', 'window.dismissTargetSet ='),
         section('const BACKUP_PREFERENCES', 'function fmtRelTime'),
         section('window.saveSessionNote =', "let currentChartEx = ''"),
         section('let _undoTimer =', '// --- PROGRAM MANAGEMENT FUNCTIONS'),
@@ -61,9 +64,13 @@ function harness() {
     h.localStorage.setItem('Program_w1_d1', JSON.stringify({ row1_done: true, row1_note: 'Paused rep' }));
     h.localStorage.setItem('programModes_Program', JSON.stringify({ Curl: { type: 'myo' } }));
     h.localStorage.setItem('appTheme', 'Ocean');
+    h.localStorage.setItem('onboardingSkipped', '1');
     h.localStorage.setItem('prHistoryRTS_v2', '1');
     c.workoutHistoryCache = [{ id: '200', note: 'Newer' }];
+    c.saveSessionState('row1_load', '55');
     const backup = await c.collectBackup(false);
+    check(backup.workoutSessions.Program_w1_d1.row1_load === '55', 'Export flushes the latest input before collecting session data');
+    check(backup.preferences.onboardingSkipped === '1', 'Backup includes skipped onboarding');
     check(backup.workoutSessions.Program_w1_d1.row1_done, 'Backup preserves checked active sets');
     check(backup.workoutSessions.Program_w1_d1.row1_note === 'Paused rep', 'Backup preserves set notes');
     check(backup.preferences.appTheme === 'Ocean' && backup.migrations.prHistoryRTS_v2 === '1', 'Backup preserves preferences and completed migrations');
@@ -72,6 +79,10 @@ function harness() {
     await c.applyBackup(backup);
     check(c.safeParse('Program_w1_d1', {}).row1_done, 'Restore restores active session inputs');
     check(h.db.get('workoutHistory').length === 2 && h.db.get('workoutHistory')[0].note === 'Newer', 'Restore merges old sessions and reconciles numeric/string IDs');
+    c.saveSessionState('row1_load', '100');
+    await c.applyBackup(backup);
+    c.flushSessionState();
+    check(c.safeParse('Program_w1_d1', {}).row1_load === '55', 'Pending edits cannot overwrite a restored workout');
     await c.applyBackup({ workoutHistory: [], activeWorkout: null, activeProgram: null });
     check(h.localStorage.getItem('activeWorkout') === null, 'Explicit null removes stale active session');
     check(h.db.get('workoutHistory').length === 2, 'Empty incoming history preserves local history');
@@ -123,7 +134,11 @@ function harness() {
     check(requests.length === 2 && reloaded && h.db.get('workoutHistory')[0].id === '500', 'Truncated Gist restore downloads and applies complete content');
 
     h.db.set('progressPictures', [{ id: '600', src: 'private-photo' }]);
+    c.saveSessionState('row1_load', '200');
     await c.clearAllPRs();
+    c.flushSessionState();
     check(h.db.get('progressPictures').length === 0 && h.db.get('workoutHistory').length === 0, 'Factory reset clears both IndexedDB stores');
+    check(h.localStorage.getItem('Program_w1_d1') === null, 'Factory reset removes pending session edits');
+    check(h.localStorage.getItem('gistPAT') === 'test-token', 'Factory reset preserves the backup connection');
     console.log(`Storage review: ${checks} regression checks passed.`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

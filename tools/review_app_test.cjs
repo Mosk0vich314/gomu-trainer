@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const source = fs.readFileSync(path.join(__dirname, '../scripts/app.js'), 'utf8');
 function section(start, end) {
     const from = source.indexOf(start);
@@ -91,6 +92,20 @@ async function main() {
     const decrypt = vm.createContext({ fetch: async () => ({ ok: false, status: 404 }) });
     vm.runInContext(section('async function decryptDatabase(password)', 'async function bootWithPassword'), decrypt);
     await assert.rejects(decrypt.decryptDatabase('test'), /Could not load workout programs/);
-    console.log('PASS: timer catch-up, wake-lock race, warmup escaping, swipe ownership, login fetch failure');
+    for (const iterations of [600000, 100000]) {
+        const salt = crypto.randomBytes(16), iv = crypto.randomBytes(12);
+        const key = crypto.pbkdf2Sync('fixture-password', salt, iterations, 32, 'sha256');
+        const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+        const ciphertext = Buffer.concat([cipher.update('window.db = { fixture: true };'), cipher.final()]);
+        const blob = Buffer.concat([salt, iv, ciphertext, cipher.getAuthTag()]).toString('base64');
+        const compatible = vm.createContext({ crypto: crypto.webcrypto, TextEncoder, TextDecoder, atob,
+            APP_VERSION: 'test', fetch: async () => ({ ok: true, text: async () => blob }) });
+        compatible.window = compatible;
+        vm.runInContext(section('const PBKDF2_ITERATION_CANDIDATES', 'async function bootWithPassword'), compatible);
+        await compatible.decryptDatabase('fixture-password');
+        assert.equal(compatible.db.fixture, true, `Database unlocks at ${iterations} iterations`);
+        await assert.rejects(compatible.decryptDatabase('wrong-password'), { name: 'OperationError' });
+    }
+    console.log('PASS: timer catch-up, wake-lock race, warmup escaping, swipe ownership, login failures and both encryption formats');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

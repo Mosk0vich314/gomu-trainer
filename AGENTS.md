@@ -18,12 +18,19 @@ import os, base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
+from cryptography.exceptions import InvalidTag
 password = open('password.txt').read().strip()
 blob = base64.b64decode(open('scripts/database.enc').read().strip())
 salt, iv, ct = blob[:16], blob[16:28], blob[28:]
-kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100_000)
-key = kdf.derive(password.encode())
-plaintext = AESGCM(key).decrypt(iv, ct, None)
+for iterations in (600_000, 100_000):
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=iterations)
+    key = kdf.derive(password.encode())
+    try:
+        plaintext = AESGCM(key).decrypt(iv, ct, None)
+        break
+    except InvalidTag:
+        if iterations == 100_000:
+            raise
 open('scripts/database.js', 'w', encoding='utf-8').write(plaintext.decode('utf-8'))
 print('Decrypted', len(plaintext), 'bytes')
 "

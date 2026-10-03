@@ -19,11 +19,14 @@ function context() {
         workoutHistoryCache: [], workoutDurationInterval: null, clearInterval() {},
         db: { Custom_test: { name: 'Test', weeks: { 1: { 1: [{ name: 'Row', type: 'accessory', blocks: [{ sets: 3, reps: 10, targetRpe: 8 }] }] } } } },
         renderWorkout() {}, renderDayPills() {}, updateBanners() {}, updateDashboard() {}, closeTimer() {},
-        document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] },
+        document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {} },
+        addEventListener() {}, setTimeout: () => 1, clearTimeout() {},
         scrollTo() {}, gdriveBackup() {}, setDB() {}, isBodyweightExercise: () => false, kgDisp: n => n, unitSuffix: () => 'kg',
         showConfirm: async () => true, navigator: {}, console
     });
     c.window = c;
+    vm.runInContext(section('let _sessionCacheKey =', 'let currentProgram ='), c);
+    vm.runInContext(section('function saveSessionState(', 'window.dismissTargetSet ='), c);
     vm.runInContext(section('function getWorkoutKey()', 'function generateSummary('), c);
     vm.runInContext(section('function reindexSessionAfterDelete(', 'window.openSwapModal ='), c);
     vm.runInContext(section('window.addSetToBlock =', '// --- EXERCISE'), c);
@@ -82,6 +85,28 @@ test('added exercises receive program-level swaps', () => {
     assert.equal(ex._originalName, 'Curl');
 });
 
+test('a new batched edit cannot resurrect a deleted set after reindexing', () => {
+    const c = context(), key = c.getWorkoutKey();
+    c.saveSessionState('ex-0_b0_s1_note', 'Delete this');
+    c.saveSessionState('ex-0_b0_s2_note', 'Keep this');
+    c.deleteSetFromBlock(0, 0, 1);
+    c.saveSessionState('ex-0_b0_s1_load', '25');
+    c.flushSessionState();
+    const reloaded = JSON.parse(c.localStorage.getItem(key));
+    assert.equal(reloaded['ex-0_b0_s1_note'], 'Keep this');
+    assert.equal(reloaded['ex-0_b0_s1_load'], '25');
+    assert.equal(reloaded['ex-0_b0_s2_note'], undefined);
+});
+
+test('cancel flushes and removes pending session edits before reload', () => {
+    const c = context(), key = c.getWorkoutKey();
+    c.activeWorkout = { key };
+    c.saveSessionState('ex-0_b0_s1_load', '90');
+    c.discardActiveWorkout();
+    c.flushSessionState();
+    assert.equal(c.localStorage.getItem(key), null);
+});
+
 test('final-day summary uses swaps and converted blocks before cleanup', async () => {
     const c = context(), key = c.getWorkoutKey();
     c.localStorage.setItem('programSwaps_Custom_test', JSON.stringify({ Row: 'Cable Row' }));
@@ -109,7 +134,7 @@ test('discard restores all snapshots and clears the running session even while p
 
 test('summary preserves zero reps and includes bodyweight in target-set volume', () => {
     const c = context(), key = c.getWorkoutKey();
-    vm.runInContext(section('function amrapSetIndex(', 'function buildSetRow('), c);
+    vm.runInContext(section('function amrapSetIndex(', 'const TAB_ORDER'), c);
     vm.runInContext(section('function generateSummary(', 'window.saveSessionNote ='), c);
     c.isBodyweightExercise = () => true;
     c.localStorage.setItem('userBodyweight', '80');
@@ -147,8 +172,17 @@ test('variation names remain text and preserve quotes in click arguments', () =>
     const html = c.variationTitleHtml({ name }, 2, false);
     assert(!html.includes('<img'));
     const handler = html.match(/onclick="([^"]*)"/)[1]
-        .replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
+        .replaceAll('&quot;', '"').replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
     let captured;
     vm.runInNewContext(handler, { event: { stopPropagation() {} }, openVariationPctModal: (...args) => { captured = args; } });
     assert.deepEqual(captured, [2, name, 'bench']);
+});
+
+test('inline callback strings preserve line breaks in imported exercise names', () => {
+    const c = context();
+    vm.runInContext(section('function escapeHtml(str)', '// --- GLOBAL ERROR SURFACE'), c);
+    const name = 'Coach\'s "A"\r\nPause \\ Press & <tag>';
+    const encoded = c.escapeJsAttr(name);
+    const decoded = encoded.replaceAll('&quot;', '"').replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
+    assert.equal(vm.runInNewContext(`'${decoded}'`), name);
 });

@@ -2,16 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- maximum-scale/user-scalable=no blocked pinch-zoom entirely, which is rough
+         next to 9-11px type. touch-action + the CSS below handle double-tap zoom. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gomu Trainer</title>
-    
+
     <link rel="manifest" href="./assets/manifest.json">
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.10.03.1834">
+    <!-- Fonts moved out of styles.css: an @import there meant the browser had to
+         fetch AND parse the stylesheet before it could even begin the font request. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap">
+
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.10.04.0146">
 </head>
 <body>
     <div id="login-screen">
@@ -21,10 +29,10 @@
             </div>
             <h2 style="margin: 0 0 5px 0; font-size: 24px; letter-spacing: -0.5px;">Gomu Trainer</h2>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Enter coach password to access.</p>
-            
+
             <input type="password" id="login-password" aria-label="Coach password" autocomplete="current-password" class="login-input" placeholder="••••••••" onkeypress="if(event.key === 'Enter') checkLogin()">
             <div id="login-error" class="login-error" role="alert">Incorrect password.</div>
-            
+
             <button class="action-btn btn-start" style="margin: 0; padding: 15px;" onclick="checkLogin()">Unlock Vault</button>
         </div>
     </div>
@@ -32,10 +40,10 @@
         <div class="modal-card" style="padding: 20px; max-height: 85vh; display: flex; flex-direction: column;">
             <h2 style="margin-bottom: 5px;">Reorder Exercises</h2>
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px;">Drag the handles to rearrange your workout.</p>
-            
+
             <div id="reorder-list" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; text-align: left; touch-action: none;">
                 </div>
-            
+
             <div class="modal-actions" style="margin-top: 15px;">
                 <button class="modal-btn cancel" onclick="document.getElementById('reorder-modal').style.display='none'">Cancel</button>
                 <button class="modal-btn confirm" onclick="saveReorder()">Save</button>
@@ -224,7 +232,7 @@
         <div class="modal-card" style="padding: 20px;">
             <h2 style="margin-bottom: 5px;">Gym Inventory</h2>
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Set your bar weight and available plates.</p>
-            
+
             <div style="display: flex; justify-content: space-between; align-items: center; background: #27272a; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--accent); margin-bottom: 15px;">
                 <label for="settings-bar-weight" style="font-weight: 700; color: var(--text-main); font-size: 15px;">Barbell Weight</label>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -267,19 +275,20 @@
         <div class="modal-card">
             <h2>Welcome to Gomu Trainer</h2>
             <p>Enter your current estimated 1RMs to automatically pre-fill your targets.</p>
-            
+
             <div class="modal-input-group">
                 <label for="ob-sq">Squat 1RM (kg)</label>
                 <input type="number" id="ob-sq" placeholder="e.g. 140" inputmode="decimal">
-                
+
                 <label for="ob-bp">Bench Press 1RM (kg)</label>
                 <input type="number" id="ob-bp" placeholder="e.g. 100" inputmode="decimal">
-                
+
                 <label for="ob-dl">Deadlift 1RM (kg)</label>
                 <input type="number" id="ob-dl" placeholder="e.g. 180" inputmode="decimal">
             </div>
-            
+
             <button class="action-btn" style="background: var(--accent); color: #000; margin: 0;" onclick="saveOnboarding()">Save Baselines</button>
+            <button class="readiness-skip" onclick="skipOnboarding()">I'll add these later</button>
         </div>
     </div>
 
@@ -308,18 +317,18 @@
         <div class="modal-card" style="padding: 20px; animation: none;">
             <h2 style="margin-bottom: 5px;">Custom Rest</h2>
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Select a preset or enter minutes.</p>
-            
+
             <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
                 <button class="pill" onclick="startTimer(60); closeCustomTimerModal()" style="flex:1; justify-content:center;">1m</button>
                 <button class="pill" onclick="startTimer(120); closeCustomTimerModal()" style="flex:1; justify-content:center;">2m</button>
                 <button class="pill" onclick="startTimer(180); closeCustomTimerModal()" style="flex:1; justify-content:center;">3m</button>
                 <button class="pill" onclick="startTimer(300); closeCustomTimerModal()" style="flex:1; justify-content:center;">5m</button>
             </div>
-            
+
             <div class="modal-input-group" style="margin-bottom: 20px;">
                 <input type="number" id="custom-timer-input" aria-label="Rest duration in minutes" placeholder="Custom (e.g. 2.5)" inputmode="decimal" style="text-align: center;">
             </div>
-            
+
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeCustomTimerModal()">Cancel</button>
                 <button class="modal-btn confirm" onclick="submitCustomTimer()">Start</button>
@@ -463,7 +472,7 @@
                 <div class="program-card" role="button" tabindex="0" data-program-id="MaxEfficiency" onclick="startProgram('MaxEfficiency')"><h3 class="program-title">Max Efficiency</h3><p class="program-desc">Time-Optimized Training</p></div>
                 <div class="program-card" role="button" tabindex="0" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
                 <div class="program-card" role="button" tabindex="0" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
-                
+
                 <details style="background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
                     <summary class="folder-header" style="padding: 12px 14px; font-size: 15px; border-bottom: none;">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -496,7 +505,7 @@
                 </div>
             </div>
         </details>
-        
+
     </div>
 
     <div id="history-screen" class="app-screen">
@@ -523,7 +532,7 @@
                 <button class="chart-range-pill" data-range="all" onclick="setChartRange('all')">All</button>
             </div>
         </div>
-        
+
         <div id="volume-heatmap-card" class="history-card" style="padding: 16px 16px 14px; margin-bottom: 15px;"></div>
 
         <div id="history-container">
@@ -631,7 +640,7 @@
             </div>
 
             <div class="modal-actions" style="margin-top:10px;">
-                <button class="modal-btn cancel" onclick="submitReadiness()">Confirm</button>
+                <button class="modal-btn confirm" onclick="submitReadiness()">Confirm</button>
             </div>
             <button class="readiness-skip" onclick="skipReadiness()">Skip for today</button>
         </div>
@@ -643,7 +652,7 @@
             <h2 style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 18px;">Stats</h2>
             <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
-        
+
         <div id="stats-container" style="margin-top: 20px;">
             <div class="skeleton-block" style="height:180px;margin-bottom:16px;"></div>
             <div class="skeleton-block" style="height:54px;margin-bottom:10px;"></div>
@@ -657,21 +666,21 @@
         <div class="summary-card" style="animation: slideUpSpring 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
             <h2>🎉 Workout Complete!</h2>
             <p style="color: var(--text-muted); font-size: 15px;">Incredible work today. Here are your stats:</p>
-            
+
             <div class="summary-stats">
                 <div class="s-stat"><span>Time</span><strong id="sum-time">00:00</strong></div>
                 <div class="s-stat"><span>Volume</span><strong id="sum-vol">0 kg</strong></div>
                 <div class="s-stat"><span>Sets</span><strong id="sum-sets">0</strong></div>
                 <div class="s-stat"><span>Heaviest</span><strong id="sum-max">0 kg</strong></div>
             </div>
-            
+
             <textarea id="session-note" aria-label="Session note" placeholder="How did this session feel? (optional)" maxlength="300" oninput="saveSessionNote(this.value)" style="width:100%;box-sizing:border-box;background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:12px;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;min-height:72px;outline:none;margin:16px 0 4px;display:block;"></textarea>
             <button class="action-btn" style="background: var(--accent); color: #000;" onclick="switchTab('home-screen')">Return to Dashboard</button>
         </div>
     </div>
 
     <div id="workout-screen" class="app-screen">
-        
+
         <div class="header-nav">
             <button class="back-btn" onclick="switchTab('library-screen')">◀ Library</button>
             <div style="flex:1; text-align:center;">
@@ -680,7 +689,7 @@
             </div>
             <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
-        
+
         <div class="spine-wrap">
             <div class="spine-head">
                 <span class="spine-title">Periodization</span>
@@ -697,13 +706,13 @@
                 <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Program Management</span>
                 <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
             </summary>
-            
+
             <div class="warmup-content">
-                <div class="warmup-image-header" 
-                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
+                <div class="warmup-image-header"
+                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%),
                                url('./assets/images/management.jpg');">
                 </div>
-                
+
                 <div class="warmup-charcoal-box" style="display: flex; flex-direction: column; gap: 10px;">
                     <button class="reset-btn" style="border-color: var(--teal); color: var(--teal);" onclick="openSwitchProgramModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="8" x2="12" y2="16"/><polyline points="8 12 12 8 16 12"/></svg> Switch Program (Keep Position)</button>
                     <button class="reset-btn" style="border-color: var(--border); color: var(--text-main);" onclick="stopProgram()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Stop &amp; Exit Program</button>
@@ -719,13 +728,13 @@
                 <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Standard Warm-Up Routine</span>
                 <span class="warmup-arrow">▼</span>
             </summary>
-            
+
             <div class="warmup-content">
-                <div class="warmup-image-header" 
-                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
+                <div class="warmup-image-header"
+                        style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%),
                             url('./assets/images/warmup.jpg');">
                 </div>
-                
+
                 <div class="warmup-charcoal-box">
                     <div id="warmup-list"></div>
                 </div>
@@ -760,16 +769,16 @@
     <div id="rpe-modal" onclick="closeRpeModal(event)">
         <div id="rpe-modal-content" onclick="event.stopPropagation()">
             <div id="rpe-modal-header">How to Rate Your RPE</div>
-            
+
             <div id="rpe-modal-scroller">
                 </div>
-            
+
             <div id="rpe-modal-footer" style="border-top: 1px solid var(--border); margin-top: 15px; padding-top: 15px; display: flex; justify-content: center;">
                 <button class="action-btn" style="background: var(--input-bg); color: var(--text-main); margin: 0; padding: 12px 24px; font-size: 14px; width: 100%; border: 1px solid var(--border);" onclick="closeRpeModal()">Close Guide</button>
             </div>
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.10.03.1834" defer></script>
+    <script src="./scripts/app.js?v=2026.10.04.0146" defer></script>
 </body>
 </html>

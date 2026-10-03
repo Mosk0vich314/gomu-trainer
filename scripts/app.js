@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.03.1834";
+        const APP_VERSION = "v2026.10.04.0146";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -30,10 +30,76 @@
             5:    [0.840, 0.810, 0.790, 0.760, 0.740, 0.710, 0.680, 0.650, 0.630, 0.600, 0.570, 0.540]
         };
 
-        // --- HTML ESCAPE (user-entered notes rendered via innerHTML) ---
+        // --- CANONICAL RTS LOOKUP ---
+        // The ONE place the table is indexed. Every e1RM / load calculation goes
+        // through rtsPct() or rtsE1RM() — never index RTS_TABLE directly.
+        //
+        // The table covers 1-12 reps. Past that it used to clamp to the 12-rep
+        // column, which UNDER-states e1RM on high-rep sets (the real % of 1RM is
+        // lower than the 12-rep value, and e1RM = weight / pct). Worse, the
+        // render-time preload used the clamped % against block.reps, so a
+        // programmed 15-rep block was prescribed a 12-rep load — too heavy.
+        // We now continue the row's own trailing slope, floored so it can never
+        // invert or run away.
+        const RTS_MAX_REPS = 12;
+        // High-rep e1RM is not comparable to a low-rep max, so sets above this
+        // rep count still display an e1RM but never set an all-time PR.
+        const PR_MAX_REPS = 12;
+        const RTS_PCT_FLOOR = 0.40;
+
+        function rtsPct(rpe, reps) {
+            const r = Math.round(Number(reps));
+            if (!isFinite(r) || r < 1) return null;
+
+            let p = rpe == null || String(rpe).trim() === '' ? 10 : Number(rpe);
+            if (!isFinite(p) || p < 0 || p > 10) p = 10;
+            p = Math.round(p * 2) / 2;
+
+            // RPE below the table's floor of 5: subtract 2.5% per RPE point dropped.
+            const row = RTS_TABLE[p >= 5 ? p : 5];
+            const belowFloor = p < 5 ? (5 - p) * 0.025 : 0;
+
+            if (r <= RTS_MAX_REPS) {
+                return Math.max(RTS_PCT_FLOOR, row[r - 1] - belowFloor);
+            }
+            // Mean of the row's last three intervals, continued per extra rep.
+            const tailStep = (row[RTS_MAX_REPS - 4] - row[RTS_MAX_REPS - 1]) / 3;
+            const extrapolated = row[RTS_MAX_REPS - 1] - tailStep * (r - RTS_MAX_REPS);
+            return Math.max(RTS_PCT_FLOOR, extrapolated - belowFloor);
+        }
+
+        function rtsE1RM(weight, reps, rpe) {
+            const w = Number(weight);
+            if (!isFinite(w) || w <= 0) return 0;
+            const pct = rtsPct(rpe, reps);
+            if (!pct || pct <= 0) return 0;
+            return w / pct;
+        }
+
+        // --- HTML ESCAPE ---
+        // Every user-controlled string that reaches innerHTML goes through one of
+        // these two. Exercise names, coach notes and warm-up items are all
+        // user-editable and all end up in template literals, so "it's only my own
+        // data" is not a defence: importData() applies a backup file wholesale.
+        //
+        // escapeHtml  -> HTML text content AND quoted attribute values (single or double).
+        // escapeJsAttr -> a JS single-quoted string inside an HTML attribute,
+        //                 e.g. onclick="doThing('<value>')".
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeJsAttr(str) {
+            if (str === null || str === undefined) return '';
+            // Backslash-escape for the JS string literal first, then HTML-escape:
+            // the attribute parser decodes entities before the JS parser runs.
+            return escapeHtml(String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
         }
 
         // --- GLOBAL ERROR SURFACE ---
@@ -125,7 +191,10 @@
         loadTheme();
 
         // --- ENCRYPTED DATABASE LOGIC ---
-        const PBKDF2_ITERATIONS = 100000;
+        // tools/encrypt_db.py now derives at 600k (the OWASP floor for PBKDF2-SHA256);
+        // 100k stays in the list so a database.enc produced before that bump still
+        // opens. Drop the legacy entry once you have deployed at least once.
+        const PBKDF2_ITERATION_CANDIDATES = [600000, 100000];
 
         async function decryptDatabase(password) {
             let b64;
@@ -151,16 +220,23 @@
             const keyMaterial = await crypto.subtle.importKey(
                 'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
             );
-            const key = await crypto.subtle.deriveKey(
-                { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-                keyMaterial,
-                { name: 'AES-GCM', length: 256 },
-                false,
-                ['decrypt']
-            );
-            const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-            const code = new TextDecoder().decode(decrypted);
-            new Function(code)();
+
+            let lastErr = null;
+            for (const iterations of PBKDF2_ITERATION_CANDIDATES) {
+                try {
+                    const key = await crypto.subtle.deriveKey(
+                        { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+                        keyMaterial,
+                        { name: 'AES-GCM', length: 256 },
+                        false,
+                        ['decrypt']
+                    );
+                    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+                    new Function(new TextDecoder().decode(decrypted))();
+                    return;
+                } catch (e) { lastErr = e; }
+            }
+            throw lastErr || new Error('Decryption failed');
         }
 
         async function bootWithPassword(password, silent) {
@@ -266,9 +342,31 @@
             workoutHistoryCache = dbHistory;
         }
 
+        // --- BATCHED SESSION WRITES ---
+        // Declared above safeParse on purpose: safeParse touches _sessionFlushTimer
+        // and runs at module load (activeWorkout / completedDays), so a `let` sitting
+        // further down the file would be in its temporal dead zone.
+        let _sessionCacheKey = null;
+        let _sessionCache = null;
+        let _sessionFlushTimer = null;
+
+        function flushSessionState() {
+            if (_sessionFlushTimer) { clearTimeout(_sessionFlushTimer); _sessionFlushTimer = null; }
+            if (_sessionCacheKey && _sessionCache) {
+                try { localStorage.setItem(_sessionCacheKey, JSON.stringify(_sessionCache)); }
+                catch (e) { console.error('Session save failed:', e); }
+            }
+            // Other edit paths write directly to storage after flushing. Re-read on
+            // the next batch so an old cached object cannot overwrite those edits.
+            _sessionCacheKey = null;
+            _sessionCache = null;
+        }
+
         // --- UPDATED SAFEPARSE (Hijacks history reads to use memory cache) ---
         function safeParse(key, fallback) {
             if (key === 'workoutHistory') return workoutHistoryCache;
+            // A pending batched session write must land before anyone reads that key.
+            if (_sessionFlushTimer && key === _sessionCacheKey) flushSessionState();
             
             try {
                 const item = localStorage.getItem(key);
@@ -551,41 +649,6 @@
             return null;
         }
 
-        function buildSetRow(params) {
-            const { 
-                s, rowId, exId, exName, isMain, block, 
-                repsValue, rpeValue, loadValue, isChecked, 
-                smartDefaultLoad, restSeconds 
-            } = params;
-
-            const disabledAttr = isChecked ? 'disabled' : '';
-            const repsClass = 'input-box saveable calc-trigger';
-            const rpeClass = 'input-box input-rpe saveable calc-trigger';
-            const loadClass = `input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}`;
-            
-            // Calculate initial plates if there's a load value
-            const initialPlates = getPlateString(parseFloat(loadValue) || parseFloat(smartDefaultLoad));
-
-            let e1rmCell = '';
-            if (isMain) {
-                e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${escapeHtml(exName)}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
-            }
-
-            return `
-            <div class="set-row" style="${!isMain ? 'grid-template-columns: 0.8fr 1fr 1.2fr 1.5fr 1.6fr 0.8fr;' : ''}">
-                <span>${s}</span>
-                <span><input type="number" id="${rowId}_reps" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
-                <span><input type="number" id="${rowId}_rpe" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
-                <span style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                    <input type="number" id="${rowId}_load" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${escapeHtml(exName)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" ${disabledAttr}>
-                    <div id="${rowId}_plates" style="font-size: 9px; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px;">${initialPlates}</div>
-                </span>
-                ${e1rmCell}
-                <span class="check-circle ${isChecked}" id="${rowId}_check" data-rest="${restSeconds}" onclick="toggleCheck(this)"></span>
-            </div>
-            `;
-        }
-
         const TAB_ORDER = ['library-screen', 'home-screen', 'history-screen'];
         function switchTab(tabId) {
             const currentScreen = document.querySelector('.app-screen.active');
@@ -597,6 +660,7 @@
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
 
             const next = document.getElementById(tabId);
+            if (!next) { console.error('switchTab: no screen with id', tabId); return; }
             next.classList.add('active');
             if (slideLeft) next.classList.add('slide-left');
             
@@ -640,13 +704,12 @@
         (function() {
             const TABS = ['library-screen', 'home-screen', 'history-screen'];
             const WORKOUT_SCREENS = new Set(['workout-screen', 'stats-screen', 'summary-screen']);
+            const SWIPE_ZONES = '.hist-swipable, .swipable, .stat-swipable, .swipe-wrapper, .slider-container, .pill-scroll, .spine, .modal-overlay, .bottom-sheet, .bottom-sheet-overlay, #data-sheet, #data-sheet-overlay, [data-no-tab-swipe], input, textarea, select, button, a, [role="button"]';
             let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
             let canSwipeTab = false;
             document.addEventListener('touchstart', function(e) {
                 // Card deletion, sheets and form controls own their gestures.
-                canSwipeTab = e.touches.length === 1 && !e.target.closest(
-                    '.swipe-wrapper, .modal-overlay, .bottom-sheet-overlay, #data-sheet, #data-sheet-overlay, input, textarea, select, button, a, [role="button"]'
-                );
+                canSwipeTab = e.touches.length === 1 && !e.target.closest(SWIPE_ZONES);
                 if (!canSwipeTab) return;
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
@@ -822,7 +885,7 @@
             const desc = document.getElementById('pr-toast-desc');
             if (!toast || !desc) return;
 
-            desc.innerText = `${exName}: ${weight}kg x ${reps}`;
+            desc.innerText = `${exName}: ${kgDisp(weight)}${unitSuffix()} x ${reps}`;
             toast.classList.add('show');
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // Special PR Rumble
 
@@ -862,10 +925,11 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped'];
         const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
+            flushSessionState();
             const backup = {
                 version: APP_VERSION,
                 timestamp: new Date().toISOString(),
@@ -945,6 +1009,7 @@
 
         async function applyBackup(data) {
             validateBackup(data); // Check the entire file before changing any store.
+            flushSessionState();
             const setJSON = (key, val) => { if (val === null) localStorage.removeItem(key); else if (val !== undefined) localStorage.setItem(key, JSON.stringify(val)); };
             const setStr = (key, val) => { if (val === null) localStorage.removeItem(key); else if (val !== undefined) localStorage.setItem(key, val); };
             setJSON('completedDays', data.completedDays);
@@ -1332,7 +1397,15 @@
             if (el) el.style.display = 'none';
         };
 
+        window.skipOnboarding = function() {
+            // Without this the modal had no exit: leaving any one field blank meant
+            // it reappeared on every single launch, forever.
+            localStorage.setItem('onboardingSkipped', '1');
+            document.getElementById('onboarding-modal').style.display = 'none';
+        };
+
         function checkOnboarding() {
+            if (localStorage.getItem('onboardingSkipped')) return;
             let saved1RMs = safeParse('global1RMs', {});
             if (!saved1RMs['Squat'] || !saved1RMs['Bench Press'] || !saved1RMs['Deadlift']) {
                 document.getElementById('ob-sq').value = '';
@@ -1353,6 +1426,7 @@
             if(dl) saved1RMs['Deadlift'] = dl;
             
             localStorage.setItem('global1RMs', JSON.stringify(saved1RMs));
+            localStorage.setItem('onboardingSkipped', '1');
             document.getElementById('onboarding-modal').style.display = 'none';
             updateDashboard(); 
         }
@@ -1478,15 +1552,29 @@
         }
         migrateExerciseDB();
 
+        // Parent-lift fallback. This used to substring-match, so "Dumbbell Bench"
+        // inherited the full BARBELL bench 1RM and "Single Leg RDL (deadlift)"
+        // inherited the full deadlift — the app then preloaded those numbers into
+        // the load field. Now only a trailing "(bench)" / "(squat)" / "(deadlift)"
+        // parenthetical, which is the app's explicit variation marker, inherits;
+        // and the variation-% modal is the way to tune it.
+        const SBD_PARENTS = { bench: 'Bench Press', squat: 'Squat', deadlift: 'Deadlift' };
+
         function getResolved1RM(exName) {
-            let saved1RMs = safeParse('global1RMs', {});
+            const saved1RMs = safeParse('global1RMs', {});
             const normName = normalizeExName(exName);
             if (saved1RMs[normName]) return saved1RMs[normName];
-            
-            const lowerName = normName.toLowerCase();
-            if (lowerName.includes('squat')) return saved1RMs['Squat'] || 0;
-            if (lowerName.includes('bench')) return saved1RMs['Bench Press'] || 0;
-            if (lowerName.includes('deadlift')) return saved1RMs['Deadlift'] || 0;
+
+            // Exact SBD name.
+            const exact = SBD_PARENTS[String(normName).toLowerCase()];
+            if (exact) return saved1RMs[exact] || 0;
+
+            // Explicit variation marker: "Larsen Press (bench)" -> Bench Press.
+            const pm = String(normName).match(/\(([^()]+)\)\s*$/);
+            if (pm) {
+                const parent = SBD_PARENTS[pm[1].trim().toLowerCase()];
+                if (parent) return saved1RMs[parent] || 0;
+            }
 
             return 0;
         }
@@ -1498,10 +1586,10 @@
             if (!isNonExercise) {
                 const pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
                 if (pm && getResolved1RM(pm[2]) > 0) {
-                    const safeFull = escapeHtml(JSON.stringify(ex.name));
-                    const safeParent = escapeHtml(JSON.stringify(pm[2]));
+                    const safeFull = escapeJsAttr(ex.name);
+                    const safeParent = escapeJsAttr(pm[2]);
                     const linkIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
-                    return `${escapeHtml(pm[1])} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, ${safeFull}, ${safeParent})">${linkIcon}${escapeHtml(pm[2])}</span>`;
+                    return `${escapeHtml(pm[1])} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">${linkIcon}${escapeHtml(pm[2])}</span>`;
                 }
             }
             return escapeHtml(ex.name);
@@ -1552,8 +1640,17 @@
         }
 
         function renderWeekPills() {
-            const programWeeks = Object.keys(db[currentProgram].weeks).sort((a,b) => a - b);
             const wContainer = document.getElementById('week-pills');
+            if (!wContainer) return;
+            // currentProgram is null after stopProgram(), and a program can vanish
+            // from the DB between releases. Render empty rather than throwing.
+            if (!currentProgram || !db[currentProgram] || !db[currentProgram].weeks) {
+                wContainer.innerHTML = '';
+                const meta0 = document.getElementById('spine-meta');
+                if (meta0) meta0.innerHTML = '';
+                return;
+            }
+            const programWeeks = Object.keys(db[currentProgram].weeks).sort((a,b) => a - b);
 
             const pcts = programWeeks.map(w => weekTopPct(db[currentProgram].weeks[w]));
             const maxP = Math.max(...pcts);
@@ -1599,7 +1696,13 @@
         }
 		
         function renderDayPills() {
-            const days = Object.keys(db[currentProgram]?.weeks[selectedWeek] || {}).sort((a,b) => a - b);
+            const dContainer0 = document.getElementById('day-pills');
+            if (!dContainer0) return;
+            if (!currentProgram || !db[currentProgram] || !db[currentProgram].weeks) {
+                dContainer0.innerHTML = '';
+                return;
+            }
+            const days = Object.keys(db[currentProgram]?.weeks?.[selectedWeek] || {}).sort((a,b) => a - b);
             if (!selectedDay || !days.includes(selectedDay)) {
                 selectedDay = days.length > 0 ? days[0] : null;
             }
@@ -1630,7 +1733,9 @@
 
         function updateBanners() {
             const banner = document.getElementById('floating-banner');
-            const currentTabId = document.querySelector('.app-screen.active').id;
+            const activeScreen = document.querySelector('.app-screen.active');
+            if (!banner || !activeScreen) return;
+            const currentTabId = activeScreen.id;
             
             // ZOMBIE CHECK: Added db[activeWorkout.program] to ensure we only show banners for completely valid programs
             if (activeWorkout && db[activeWorkout.program] && currentTabId !== 'workout-screen' && currentTabId !== 'home-screen' && currentTabId !== 'summary-screen') {
@@ -1703,6 +1808,7 @@
 
         function discardActiveWorkout() {
             if (!activeWorkout) return;
+            flushSessionState();
             const snapshot = activeWorkout.backupState;
             if (snapshot) {
                 ['actualBests', 'global1RMs', 'lastUsedWeights', 'prHistory'].forEach(store => {
@@ -2031,9 +2137,10 @@
             const exEl = document.getElementById('sum-ex');
 
             if (timeEl) timeEl.innerText = timeString;
-            if (volEl) volEl.innerText = `${kgDisp(totalVolume).toLocaleString()} ${unitSuffix()}`;
+            // These hardcoded "kg" meant the summary lied in lbs mode.
+            if (volEl) volEl.innerText = `${kgDisp(totalVolume, 0).toLocaleString()} ${unitSuffix()}`;
             if (setsEl) setsEl.innerText = completedSets;
-            if (maxEl) maxEl.innerText = `${kgDisp(maxLoad)} ${unitSuffix()}`;
+            if (maxEl) maxEl.innerText = `${kgDisp(maxLoad, 1)} ${unitSuffix()}`;
             if (exEl) exEl.innerText = exCount;
             // ------------------------
             
@@ -2118,7 +2225,7 @@
             
             // Map the options into the new scrollable modal list
             listHtml.innerHTML = options.map(o => 
-                `<div class="custom-option" style="padding: 15px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" onclick="selectChartEx('${o.replace(/'/g, "\\'")}')">${o}</div>`
+                `<div class="custom-option" style="padding: 15px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" onclick="selectChartEx('${escapeJsAttr(o)}')">${escapeHtml(o)}</div>`
             ).join('');
             
             drawChart();
@@ -2139,27 +2246,7 @@
             let history = safeParse('workoutHistory', []).slice().reverse(); 
             
             // --- NEW: e1RM CALCULATION ENGINE FOR PLOTTING ---
-            const getE1RM = (weight, reps, rpe) => {
-                if (!weight || weight <= 0 || !reps || reps <= 0) return 0;
-                
-                const rtsChart = RTS_TABLE;
-
-                // Parse RPE, default to 10 (max effort) if the user didn't enter one
-                let parsedRpe = parseFloat(rpe);
-                if (isNaN(parsedRpe) || parsedRpe < 0 || parsedRpe > 10) parsedRpe = 10;
-                
-                let roundedRpe = Math.round(parsedRpe * 2) / 2;
-                let repIndex = Math.max(0, Math.min(11, reps - 1));
-                
-                let percentage = 0;
-                if (roundedRpe >= 5) {
-                    percentage = rtsChart[roundedRpe][repIndex];
-                } else {
-                    percentage = Math.max(0.1, rtsChart[5][repIndex] - ((5 - roundedRpe) * 0.025));
-                }
-                
-                return weight / percentage;
-            };
+            const getE1RM = (weight, reps, rpe) => rtsE1RM(weight, reps, rpe);
 
             // Group by calendar day — keep only the highest e1RM per day
             let dayMap = {};
@@ -2243,8 +2330,8 @@
                 const showVal = !many || i === maxIdx || i === data.length - 1;
                 const showDate = !many || i % dateStep === 0 || i === data.length - 1;
                 let svg = `<circle cx="${x}" cy="${y}" r="${many ? 3 : 5}" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>`;
-                if (showVal) svg += `<text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Inter">${d.value}kg</text>`;
-                if (showDate) svg += `<text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Inter">${fmtDate(d.ts)}</text>`;
+                if (showVal) svg += `<text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Space Grotesk, DM Sans, sans-serif">${d.value}kg</text>`;
+                if (showDate) svg += `<text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Space Grotesk, DM Sans, sans-serif">${fmtDate(d.ts)}</text>`;
                 return svg;
             }).join('');
             
@@ -2392,7 +2479,10 @@
         };
 
         // Colorbar labels
-        const fmtVol = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : Math.round(v)) + ' kg';
+        const fmtVol = (vKg) => {
+            const v = getUnit() === 'lbs' ? vKg * 2.2046 : vKg;
+            return (v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : Math.round(v)) + ' ' + unitSuffix();
+        };
 
         let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -2561,7 +2651,7 @@
             <div style="border-top:1px solid #2a2a2e;padding-top:6px;">
                 ${legend}
             </div>
-            <div style="text-align:center;margin-top:4px;font-size:8px;color:#52525b;">${Math.round(totalVol).toLocaleString()} kg total</div>`;
+            <div style="text-align:center;margin-top:4px;font-size:8px;color:var(--text-muted);opacity:0.75;">${kgDisp(totalVol, 0).toLocaleString()} ${unitSuffix()} total</div>`;
         tip.style.cssText = `position:fixed;background:#18181b;border:1px solid #3f3f46;border-radius:12px;padding:12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none;`;
 
         document.body.appendChild(tip);
@@ -2621,14 +2711,12 @@
 
                 const dur = fmtDuration(log.duration);
                 const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
-                const safeId  = escapeHtml(log.id);
-                const safeKey = escapeHtml(log.key);
                 return `
                 <div class="swipe-wrapper hist-swipe">
                     <div class="swipe-delete-bg" style="right:15px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </div>
-                    <details class="history-card hist-swipable" data-id="${safeId}" data-key="${safeKey}">
+                    <details class="history-card hist-swipable" data-id="${escapeHtml(log.id || '')}" data-key="${escapeHtml(log.key || '')}">
                         <summary class="history-summary">
                             <span class="history-date">${escapeHtml(log.date)}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
                             <h3 class="history-title">${escapeHtml(log.programName)} (W${escapeHtml(log.week)} D${escapeHtml(log.day)})</h3>
@@ -2736,9 +2824,12 @@
 
         let _undoTimer = null;
         let _undoDismiss = null;
+        function flushPendingUndo() {
+            if (_undoDismiss) _undoDismiss(true);
+        }
         function showUndoToast(label, onCommit, onUndo) {
             // Replacing a toast ends the previous undo window; commit that deletion.
-            if (_undoDismiss) _undoDismiss(true);
+            flushPendingUndo();
             const existing = document.getElementById('undo-toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
@@ -2761,7 +2852,13 @@
             _undoTimer = setTimeout(() => dismiss(true), 4000);
         }
 
+        // Deleting a history CARD removes that log. It used to also delete
+        // completedDays[key] and the whole saved session blob, so removing an old
+        // duplicate log un-completed the program day and wiped the set data for the
+        // session you were currently in. The day is only un-completed when no other
+        // log still covers it.
         function deleteHistoryLog(id, key) {
+            flushSessionState();
             workoutHistoryCache = workoutHistoryCache.filter(h => String(h.id) !== String(id));
             setDB('workoutHistory', workoutHistoryCache);
             // A repeated day can have several history entries and a new active session.
@@ -2796,8 +2893,8 @@
                     const badge = samePos
                         ? `<span style="color:var(--teal);font-size:11px;font-weight:700;flex-shrink:0;">W${targetWeek} D${targetDay} ✓</span>`
                         : `<span style="color:var(--accent);font-size:11px;font-weight:700;flex-shrink:0;">→ W${targetWeek} D${targetDay}</span>`;
-                    return `<button class="reset-btn" style="justify-content:space-between;" onclick="switchToProgram('${pid}')">
-                        <span style="font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+                    return `<button class="reset-btn" style="justify-content:space-between;" onclick="switchToProgram('${escapeJsAttr(pid)}')">
+                        <span style="font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(name)}</span>
                         ${badge}
                     </button>`;
                 }).join('');
@@ -2806,7 +2903,7 @@
             document.getElementById('switch-program-modal').style.display = 'flex';
         };
 
-        window.switchToProgram = function(newProgramId) {
+        window.switchToProgram = async function(newProgramId) {
             if (!db[newProgramId]) return;
 
             const weeks = Object.keys(db[newProgramId].weeks).sort((a, b) => a - b);
@@ -2814,7 +2911,17 @@
             const days = Object.keys(db[newProgramId].weeks[targetWeek] || {}).sort((a, b) => a - b);
             const targetDay = days.includes(selectedDay) ? selectedDay : days[days.length - 1];
 
+            // Switching used to drop an in-progress session with no warning AND without
+            // reverting its snapshot, so PRs and 1RMs set during the abandoned workout
+            // stuck around. Now it asks, and reverts exactly like cancelActiveWorkout.
             if (activeWorkout) {
+                const ok = await showConfirm(
+                    'Discard active workout?',
+                    'You have a session in progress. Switching programs will discard it and revert any PRs set during it.',
+                    'Discard & Switch', 'Keep Lifting', true
+                );
+                if (!ok) return;
+                delete completedDays[activeWorkout.key];
                 discardActiveWorkout();
             }
 
@@ -2875,6 +2982,7 @@
                 const key = getWorkoutKey();
                 
                 // REVERT ENGINE: Restore the snapshot if resetting the currently active day
+                flushSessionState();
                 if (activeWorkout && activeWorkout.key === key) discardActiveWorkout();
 
                 localStorage.removeItem(key);
@@ -2897,6 +3005,7 @@
                 true
             );
             if(confirmed) {
+                flushSessionState();
                 const days = Object.keys(db[currentProgram]?.weeks[selectedWeek] || {});
                 days.forEach(d => {
                     const key = `${currentProgram}_w${selectedWeek}_d${d}`;
@@ -2922,6 +3031,7 @@
                 true
             );
             if(confirmed) {
+                flushSessionState();
                 const weeks = Object.keys(db[currentProgram]?.weeks || {});
                 weeks.forEach(w => {
                     const days = Object.keys(db[currentProgram]?.weeks[w] || {});
@@ -2948,17 +3058,25 @@
         async function clearAllPRs() {
             const confirmed = await showConfirm(
                 "Factory Reset?",
-                "This will wipe absolutely everything: history, PRs, active programs, and all data. This cannot be undone.",
+                "This will delete workout history, PRs, programs, and progress photos. Backup connection and display preferences will be kept. This cannot be undone.",
                 "Wipe Everything",
                 "Cancel",
                 true
             );
             if (confirmed) {
+                const keep = {};
+                ['gistPAT', 'gistId', 'appTheme', 'bgMode', 'preferredUnit',
+                 'timerSoundEnabled', 'ttsEnabled'].forEach(k => {
+                    const value = localStorage.getItem(k);
+                    if (value !== null) keep[k] = value;
+                });
                 // Remove photos before clearing their privacy-lock settings.
                 await setDB('progressPictures', []);
                 await setDB('workoutHistory', []);
                 discardActiveWorkout();
+                flushSessionState();
                 localStorage.clear();
+                Object.keys(keep).forEach(k => localStorage.setItem(k, keep[k]));
                 workoutHistoryCache = [];
                 
                 completedDays = {};
@@ -2997,7 +3115,7 @@
             if (slider) slider.value = pct;
             const kg = Math.round((st.parentRM * pct / 100) * 2) / 2; // nearest 0.5 kg
             document.getElementById('vpct-value').textContent = pct + '%';
-            document.getElementById('vpct-result').textContent = kg.toFixed(1) + ' kg';
+            document.getElementById('vpct-result').textContent = kgDisp(kg) + ' ' + unitSuffix();
             st.pct = pct;
             st.kg = kg;
         }
@@ -3525,15 +3643,7 @@
             const needsTimelineSync = !localStorage.getItem('prTimelineStaleSync_v1');
             if (!needsRebuild && !needsBestsSync && !needsTimelineSync) return;
 
-            const rts = RTS_TABLE;
-            const calcE1RM = (w, r, rpe) => {
-                if (!w || w <= 0 || !r || r <= 0) return 0;
-                let p = isNaN(rpe) || rpe < 0 || rpe > 10 ? 10 : rpe;
-                let rounded = Math.round(p * 2) / 2;
-                let rIdx = Math.max(0, Math.min(11, r - 1));
-                let pct = rounded >= 5 ? rts[rounded][rIdx] : Math.max(0.1, rts[5][rIdx] - ((5 - rounded) * 0.025));
-                return w / pct;
-            };
+            const calcE1RM = (w, r, rpe) => rtsE1RM(w, r, rpe);
 
             // Sort oldest-first
             const sorted = [...history].sort((a, b) => parseInt(a.id) - parseInt(b.id));
@@ -3548,8 +3658,9 @@
                     if (!ex.sets) return;
                     ex.sets.forEach(set => {
                         const w = set.load || 0;
-                        const r = set.reps || 0;
-                        const rpe = parseFloat(set.rpe) || 10;
+                        const r = Number(set.reps) || 0;
+                        if (r <= 0 || r > PR_MAX_REPS) return;
+                        const rpe = set.rpe;
                         let effectiveW = w;
                         if (isBodyweightExercise(exName)) {
                             const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
@@ -3769,7 +3880,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                 <h3 style="color:var(--text-main);font-size:18px;margin:0;">Lifter Profile</h3>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <button class="unit-toggle-btn" onclick="window.toggleUnit()">${currentUnit === 'kg' ? 'kg → lbs' : 'lbs → kg'}</button>
+                    <button class="unit-toggle-btn" onclick="window.toggleUnit()" title="${currentUnit === 'kg' ? 'Show readouts in lbs (you still log loads in kg)' : 'Show readouts in kg'}">${currentUnit === 'kg' ? 'kg → lbs' : 'lbs → kg'}</button>
                     <button style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;" onclick="updateOfficialSBD()">↻ Lock Total</button>
                 </div>
             </div>
@@ -4019,7 +4130,7 @@
                     alert("Backup imported successfully! The app will now refresh.");
                     location.reload();
                 } catch(err) {
-                    alert("Error: Invalid backup file.");
+                    alert("Error: Invalid backup file. " + (err && err.message ? err.message : ''));
                 }
             };
             reader.readAsText(file);
@@ -4027,9 +4138,16 @@
 
         window.openWarmupGenerator = function(exId, exName, isMain, scheme) {
             const firstLoadInput = document.querySelector(`input[id$="_load"][data-exid="${exId}"]`);
+            // No load input exists for a time-based exercise, or for one whose every
+            // block has been swipe-deleted. This used to throw on .value.
+            if (!firstLoadInput) {
+                alert("⚠️ This exercise has no weighted sets to warm up for.");
+                return;
+            }
             const targetWeight = parseFloat(firstLoadInput.value);
-            
-            const firstRepsInput = firstLoadInput.closest('.set-row').querySelector('input[id$="_reps"]');
+
+            const setRow = firstLoadInput.closest('.set-row');
+            const firstRepsInput = setRow ? setRow.querySelector('input[id$="_reps"]') : null;
             const targetReps = firstRepsInput && firstRepsInput.value ? parseFloat(firstRepsInput.value) : 5;
             
             if (!targetWeight || targetWeight <= 0) {
@@ -4043,9 +4161,9 @@
             
             let html = `
                 <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px;">
-                    <button class="pill ${scheme === 5 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 5)" style="flex: 1; justify-content: center;">5 Sets</button>
-                    <button class="pill ${scheme === 3 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 3)" style="flex: 1; justify-content: center;">3 Sets</button>
-                    <button class="pill ${scheme === 2 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${exName.replace(/'/g, "\\'")}', ${isMain}, 2)" style="flex: 1; justify-content: center;">2 Sets</button>
+                    <button class="pill ${scheme === 5 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${escapeJsAttr(exName)}', ${isMain}, 5)" style="flex: 1; justify-content: center;">5 Sets</button>
+                    <button class="pill ${scheme === 3 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${escapeJsAttr(exName)}', ${isMain}, 3)" style="flex: 1; justify-content: center;">3 Sets</button>
+                    <button class="pill ${scheme === 2 ? 'active' : ''}" onclick="openWarmupGenerator('${exId}', '${escapeJsAttr(exName)}', ${isMain}, 2)" style="flex: 1; justify-content: center;">2 Sets</button>
                 </div>
                 <table class="warmup-table" style="margin-bottom: 20px; text-align: center; width: 100%; border-collapse: collapse;">
                     <tr>
@@ -4184,12 +4302,11 @@
         // Compares best e1RM across recent sessions to detect adaptation or fatigue
         function getRpeDrift(exName) {
             const history = safeParse('workoutHistory', []);
-            const rts = RTS_TABLE;
+            // Drift compares like with like, so sub-5 RPEs are pinned to the table floor.
             const calcE1RM = (load, reps, rpe) => {
-                if (!load || load <= 0 || !reps || reps <= 0) return 0;
-                let r = parseFloat(rpe); if (isNaN(r) || r < 0 || r > 10) r = 10;
-                let rounded = Math.round(r * 2) / 2; if (rounded < 5) rounded = 5;
-                return load / rts[rounded][Math.max(0, Math.min(11, reps - 1))];
+                let r = parseFloat(rpe);
+                if (isNaN(r) || r < 5) r = Math.max(5, isNaN(r) ? 10 : r);
+                return rtsE1RM(load, reps, Math.min(10, r));
             };
 
             // Collect best e1RM per session, most-recent first (up to 6 sessions).
@@ -4221,7 +4338,12 @@
 
         function renderWorkout() {
             const container = document.getElementById('workout-container');
+            if (!container) return;
             container.innerHTML = '';
+            if (!currentProgram || !db[currentProgram]) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No program selected.</div>';
+                return;
+            }
             renderWarmupList();
             
             document.getElementById('workout-program-title').innerText = db[currentProgram]?.name || "Workout";
@@ -4335,7 +4457,7 @@
                 }
 
                 const resolved1RM = getResolved1RM(ex.name);
-                const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${resolved1RM.toFixed(1)}kg` : '1RM --';
+                const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${kgDisp(resolved1RM)} ${unitSuffix()}` : '1RM --';
 
                 // RPE Drift indicator
                 let driftHtml = '';
@@ -4347,7 +4469,6 @@
                     driftHtml = `<span style="margin-left:auto; font-size:11px; font-weight:800; color:${color}; display:inline-flex; align-items:center; gap:3px; letter-spacing:0.5px;">${arrow} ${drift.label} <span style="opacity:0.7; font-weight:600;">(${delta})</span></span>`;
                 }
 
-                const notesHtml = ex.notes ? `<div class="coach-notes">${escapeHtml(ex.notes)}</div>` : '';
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
                 const warmupColor = isMain ? 'var(--accent)' : 'var(--teal)';
@@ -4398,13 +4519,13 @@
                             <div style="position: absolute; left: 12px; top: 16px;">
                                 <button class="btn-warmup-icon"
                                         style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;"
-                                        onclick="openSwapModal(${exIndex}, ${escapeHtml(JSON.stringify(ex._originalName || ex.name))})" title="Swap Exercise">
+                                        onclick="openSwapModal(${exIndex}, '${escapeJsAttr(ex._originalName || ex.name)}')" title="Swap Exercise">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                                 </button>
                             </div>
                             `}
                             
-                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay(${escapeHtml(JSON.stringify(ex.name))})` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
+                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${escapeJsAttr(ex.name)}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
                                 ${variationTitleHtml(ex, exIndex, isNonExercise)}
                             </h2>
                             
@@ -4536,17 +4657,8 @@
                         let smartDefaultLoad = '';
                         if (block.targetRpe && resolved1RM > 0 && !isAmrap) {
                             // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
-                            const rtsChart = RTS_TABLE;
-                            let rRoundedRpe = Math.round(block.targetRpe * 2) / 2;
-                            let rRepIndex = Math.max(0, Math.min(11, block.reps - 1));
-                            
-                            let targetPct = 0;
-                            if (rRoundedRpe >= 5) {
-                                targetPct = rtsChart[rRoundedRpe][rRepIndex];
-                            } else {
-                                targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
-                            }
-                            
+                            const targetPct = rtsPct(block.targetRpe, block.reps) || 0;
+
                             if (targetPct > 0) {
                                 let calcWeight = roundForEquipment(resolved1RM * targetPct, ex.name);
                                 if (isBodyweightExercise(ex.name)) {
@@ -5945,10 +6057,30 @@
         // schedules the "Rest Complete" notification at timer start; it fires on
         // time (with the system notification sound + vibration) even if the page
         // is frozen. The SW skips it if the app is visible when it fires.
+        // navigator.serviceWorker.controller is null on the very first load after
+        // install (nothing is controlling the page yet), so this silently did nothing
+        // and the background alarm never armed for that first session. Fall back to
+        // the active registration.
         function postToSW(msg) {
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            if (!('serviceWorker' in navigator)) return;
+            if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage(msg);
+                return;
             }
+            navigator.serviceWorker.ready
+                .then(reg => { if (reg && reg.active) reg.active.postMessage(msg); })
+                .catch(() => {});
+        }
+
+        // The SW can only hold an alarm alive for ~4.5 min. Rather than pretend,
+        // it tells us and we say so — a silent missing alarm on a 10-minute rest is
+        // exactly the failure you'd only notice by missing a set.
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.action === 'timerAlarmTooLong') {
+                    showErrorToast('Rest over 4 min: keep the app open for the beep');
+                }
+            });
         }
         function scheduleSWAlarm() {
             postToSW({ action: 'scheduleTimer', delay: timerTargetMs - Date.now() });
@@ -6220,15 +6352,7 @@
                         }
 
                         // Calculate Estimated 1RM for true strength comparison
-                        const getSetE1RM = (w, r, rpe) => {
-                            if (!w || w <= 0 || !r || r <= 0) return 0;
-                            const rts = RTS_TABLE;
-                            let parsed = isNaN(rpe) || rpe < 0 || rpe > 10 ? 10 : rpe;
-                            let rounded = Math.round(parsed * 2) / 2;
-                            let rIdx = Math.max(0, Math.min(11, r - 1));
-                            let pct = rounded >= 5 ? rts[rounded][rIdx] : Math.max(0.1, rts[5][rIdx] - ((5 - rounded) * 0.025));
-                            return w / pct;
-                        };
+                        const getSetE1RM = (w, r, rpe) => rtsE1RM(w, r, rpe);
 
                         const newE1RM = getSetE1RM(effectiveWeight, reps, rpeVal);
                         let oldRecord = actualBests[exName];
@@ -6246,7 +6370,11 @@
                         const isNewE1rmBetter = (newE1RM - oldE1RM) > 0.01;
                         const isSameE1rmButHeavier = !!oldRecord && Math.abs(newE1RM - oldE1RM) <= 0.01 && val > oldRecord.weight;
 
-                        if (!oldRecord || isNewE1rmBetter || isSameE1rmButHeavier) {
+                        // A 20-rep set's e1RM is not comparable to a 3-rep max, so
+                        // high-rep sets display an e1RM but never set an all-time PR.
+                        const prEligible = reps > 0 && reps <= PR_MAX_REPS;
+
+                        if (prEligible && (!oldRecord || isNewE1rmBetter || isSameE1rmButHeavier)) {
 
                             // Detect if this is a PR (only fire if beating a previously established record)
                             if (oldRecord) {
@@ -6254,12 +6382,21 @@
                                 showPRToast(exName, val, reps);
                             }
 
-                            actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM, date: Date.now() };
+                            const prStamp = Date.now();
+                            // Remember what this set overwrote so unchecking can undo it —
+                            // a mistyped 200kg used to leave a permanent phantom PR.
+                            saveSessionState(baseId + '_prundo', {
+                                exName: exName,
+                                prevBest: oldRecord || null,
+                                stamp: prStamp
+                            });
+
+                            actualBests[exName] = { weight: val, reps: reps, e1rm: newE1RM, date: prStamp };
                             localStorage.setItem('actualBests', JSON.stringify(actualBests));
                             // Append to PR timeline history
                             const prHist = safeParse('prHistory', {});
                             if (!prHist[exName]) prHist[exName] = [];
-                            prHist[exName].push({ weight: val, reps: reps, e1rm: parseFloat(newE1RM.toFixed(1)), date: Date.now() });
+                            prHist[exName].push({ weight: val, reps: reps, e1rm: parseFloat(newE1RM.toFixed(1)), date: prStamp });
                             if (prHist[exName].length > 30) prHist[exName] = prHist[exName].slice(-30);
                             localStorage.setItem('prHistory', JSON.stringify(prHist));
                         } else {
@@ -6379,15 +6516,71 @@
                 if (loadInput) loadInput.disabled = false;
                 if (rpeInput) rpeInput.disabled = false;
                 if (repsInput) repsInput.disabled = false; // Unlocks reps
+
+                // Roll back a PR this set created, so a mistyped entry can be undone
+                // by simply unchecking it.
+                const undoKey = baseId + '_prundo';
+                const session = safeParse(getWorkoutKey(), {});
+                const undo = session[undoKey];
+                if (undo && undo.exName) {
+                    const bests = safeParse('actualBests', {});
+                    const hist = safeParse('prHistory', {});
+                    if (Array.isArray(hist[undo.exName])) {
+                        hist[undo.exName] = hist[undo.exName].filter(e => e && e.date !== undo.stamp);
+                        if (hist[undo.exName].length === 0) delete hist[undo.exName];
+                        localStorage.setItem('prHistory', JSON.stringify(hist));
+                    }
+
+                    // An earlier set can be unchecked after a later one has beaten it.
+                    // Keep that later best, and bypass this record in its undo chain so
+                    // unchecking the later set cannot resurrect the removed PR.
+                    Object.entries(session).forEach(([key, laterUndo]) => {
+                        if (key !== undoKey && key.endsWith('_prundo') && laterUndo &&
+                            laterUndo.exName === undo.exName && laterUndo.prevBest?.date === undo.stamp) {
+                            saveSessionState(key, { ...laterUndo, prevBest: undo.prevBest || null });
+                        }
+                    });
+                    if (bests[undo.exName]?.date === undo.stamp) {
+                        let previous = undo.prevBest || null;
+                        (hist[undo.exName] || []).forEach(entry => {
+                            if (!previous || entry.e1rm > previous.e1rm + 0.01 ||
+                                (Math.abs(entry.e1rm - previous.e1rm) <= 0.01 && entry.weight > previous.weight)) {
+                                previous = entry;
+                            }
+                        });
+                        if (previous) bests[undo.exName] = previous;
+                        else delete bests[undo.exName];
+                        localStorage.setItem('actualBests', JSON.stringify(bests));
+                    }
+                    saveSessionState(undoKey, undefined);
+                }
             }
         };
 
+        // Every keystroke in every input used to JSON.parse the whole session blob,
+        // mutate it and JSON.stringify it back. Now writes coalesce into a cached
+        // object and flush on a short timer. safeParse() flushes first whenever the
+        // active session key is read, so no other code path can ever see stale data.
         function saveSessionState(key, value) {
             const workoutKey = getWorkoutKey();
-            let savedSession = safeParse(workoutKey, {});
-            savedSession[key] = value;
-            localStorage.setItem(workoutKey, JSON.stringify(savedSession));
+            if (_sessionCacheKey !== workoutKey) {
+                flushSessionState();
+                _sessionCacheKey = workoutKey;
+                _sessionCache = null;
+            }
+            if (!_sessionCache) {
+                _sessionCache = JSON.parse(JSON.stringify(safeParse(workoutKey, {})));
+            }
+            if (value === undefined) delete _sessionCache[key];
+            else _sessionCache[key] = value;
+            if (!_sessionFlushTimer) _sessionFlushTimer = setTimeout(flushSessionState, 150);
         }
+
+        // Never lose a pending write to a backgrounded or closed tab.
+        window.addEventListener('pagehide', flushSessionState);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushSessionState();
+        });
 
         window.dismissTargetSet = function(exIndex, bIndex, setId, extraIndex) {
             const workoutKey = getWorkoutKey();
@@ -6435,22 +6628,9 @@
 
             // Did we undershoot?
             if (inputRpe < block.targetRpe) {
-                // Updated Coach's Custom RPE Chart (RPE 5 to 10)
-                const rtsChart = RTS_TABLE;
-
-                // Unlocked to allow RPE down to 0
-                let rInputRpe = Math.max(0, Math.min(10, Math.round(inputRpe * 2) / 2));
-                let rTargetRpe = Math.max(0, Math.min(10, Math.round(block.targetRpe * 2) / 2));
-                let repIndex = Math.max(0, Math.min(11, reps - 1));
-
-                // NEW: Dynamic Extrapolator for RPE < 5 (Subtracts 2.5% per RPE point dropped)
-                const getPct = (rpe, rIdx) => {
-                    if (rpe >= 5) return rtsChart[rpe][rIdx];
-                    return Math.max(0.1, rtsChart[5][rIdx] - ((5 - rpe) * 0.025));
-                };
-
-                const currentPct = getPct(rInputRpe, repIndex);
-                const targetPct = getPct(rTargetRpe, repIndex);
+                const currentPct = rtsPct(inputRpe, reps);
+                const targetPct = rtsPct(block.targetRpe, reps);
+                if (!currentPct || !targetPct) return;
 
                 let effectiveWeight = weight;
                 if (isBodyweightExercise(ex.name)) {
@@ -6555,23 +6735,11 @@
 
                 if (effectiveWeight > 0 && rpe >= 0 && rpe <= 10 && reps > 0) {
                     
-                    const rtsChart = RTS_TABLE;
-
-                    let roundedRpe = Math.round(rpe * 2) / 2;
-                    let repIndex = Math.max(0, Math.min(11, reps - 1));
-
-                    // NEW: Calculate percentage with extrapolation
-                    let percentage = 0;
-                    if (roundedRpe >= 5) {
-                        percentage = rtsChart[roundedRpe][repIndex];
-                    } else {
-                        percentage = Math.max(0.1, rtsChart[5][repIndex] - ((5 - roundedRpe) * 0.025));
-                    }
-                    
                     // FIX: Use effectiveWeight (Load + Bodyweight) so Pull-ups/Dips calculate correctly!
-                    const e1rm = effectiveWeight / percentage;
+                    const e1rm = rtsE1RM(effectiveWeight, reps, rpe);
 
-                    btn.innerHTML = `<span class="e1rm-label">e1RM</span><span class="e1rm-value">${e1rm.toFixed(1)}</span>`;
+                    // Display converts; dataset stays in kg because every calculation reads it.
+                    btn.innerHTML = `<span class="e1rm-label">e1RM</span><span class="e1rm-value">${kgDisp(e1rm)}</span>`;
                     btn.dataset.e1rm = e1rm;
                     btn.classList.add('ready');
 
@@ -6579,7 +6747,7 @@
                     const _actBests = safeParse('actualBests', {});
                     const _best = _actBests[exName];
                     const _bestE1rm = _best ? (_best.e1rm || 0) : 0;
-                    if (_bestE1rm > 0 && e1rm > _bestE1rm + 0.01) {
+                    if (reps <= PR_MAX_REPS && _bestE1rm > 0 && e1rm > _bestE1rm + 0.01) {
                         btn.classList.add('pr');
                     } else {
                         btn.classList.remove('pr');
@@ -6614,7 +6782,7 @@
                         localStorage.setItem('global1RMs', JSON.stringify(saved1RMs));
                         
                         const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
-                        if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${e1rm.toFixed(1)}kg`;
+                        if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${kgDisp(e1rm)} ${unitSuffix()}`;
 
                         const clickedBlockMatch = clickedRowId.match(/_b(\d+)_/);
                         const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
@@ -6644,15 +6812,7 @@
                                 const trRpe = parseFloat(targetRpeInput.value);
                                 
                                 if (trReps > 0 && trRpe >= 0 && trRpe <= 10) {
-                                    const rtsChart = RTS_TABLE;
-                                    let rRoundedRpe = Math.round(trRpe * 2) / 2;
-                                    let rRepIndex = Math.max(0, Math.min(11, trReps - 1));
-                                    
-                                    if (rRoundedRpe >= 5) {
-                                        targetPct = rtsChart[rRoundedRpe][rRepIndex];
-                                    } else {
-                                        targetPct = Math.max(0.1, rtsChart[5][rRepIndex] - ((5 - rRoundedRpe) * 0.025));
-                                    }
+                                    targetPct = rtsPct(trRpe, trReps) || targetPct;
                                 }
                             }
 
@@ -6689,9 +6849,17 @@
             const container = document.getElementById('streak-container');
             if(!container) return;
             let history = safeParse('workoutHistory', []);
+            // log.id is the completion timestamp and is the same source the heatmap
+            // and chart use. This used to parse h.date — a LOCALISED display string
+            // ("Mar 17, 2026") — whose parsing is implementation-defined, and which
+            // yields NaN (so: silently never a match) for any log without it.
             let workoutDates = history.map(h => {
-                let d = new Date(h.date); d.setHours(0,0,0,0); return d.getTime();
-            });
+                const ts = parseInt(h && h.id);
+                const d = new Date(isNaN(ts) ? Date.parse(h && h.date) : ts);
+                if (isNaN(d.getTime())) return NaN;
+                d.setHours(0, 0, 0, 0);
+                return d.getTime();
+            }).filter(t => !isNaN(t));
             
             // Get today in your local timezone
             let today = new Date();
@@ -6734,10 +6902,12 @@
             let ltSets = 0;
             let ltVol = 0;
             history.forEach(log => { ltSets += (log.sets || 0); ltVol += (log.volume || 0); });
-            const formatVol = (v) => {
-                if (v >= 1000000) return (v/1000000).toFixed(1) + 'm kg';
-                if (v >= 1000) return (v/1000).toFixed(1) + 'k kg';
-                return Math.round(v) + ' kg';
+            const formatVol = (vKg) => {
+                const v = getUnit() === 'lbs' ? vKg * 2.2046 : vKg;
+                const u = unitSuffix();
+                if (v >= 1000000) return (v/1000000).toFixed(1) + 'm ' + u;
+                if (v >= 1000) return (v/1000).toFixed(1) + 'k ' + u;
+                return Math.round(v) + ' ' + u;
             };
             const wEl = document.getElementById('lt-workouts');
             const sEl = document.getElementById('lt-sets');
@@ -7004,6 +7174,7 @@
                 const key = getWorkoutKey();
                 
                 // Clear old checkmarks and session data so the boxes unlock
+                flushSessionState();
                 localStorage.removeItem(key); 
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
@@ -7365,10 +7536,17 @@
             const v = getUnit() === 'lbs' ? kg * 2.2046 : kg;
             return dec === 0 ? Math.round(v) : parseFloat(v.toFixed(dec));
         }
+        // NOTE: this is a DISPLAY unit only. Loads, plate inventory, bar weight and
+        // roundForEquipment() all work in kg, so the workout screen's load field
+        // stays kg — converting data entry means a unit-aware plate model, which is
+        // a feature, not a bug fix.
         window.toggleUnit = function() {
             localStorage.setItem('preferredUnit', getUnit() === 'kg' ? 'lbs' : 'kg');
             renderStats();
             renderHistory();
+            if (typeof renderWorkout === 'function' && document.getElementById('workout-container')) {
+                try { if (currentProgram) renderWorkout(); } catch (e) {}
+            }
         };
         function ipfLevel(score) {
             if (score >= 110) return { label: 'World Class', color: 'var(--accent)' };

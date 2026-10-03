@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v2026.10.03.1834'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.10.04.0146'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -109,6 +109,9 @@ self.addEventListener('notificationclick', function(event) {
 // event.waitUntil keeps this worker alive (Chrome allows ~5 min) so the
 // notification lands on time even while the page is frozen. If the app is
 // visible when the alarm fires, the page's own beep handles it and we skip.
+// Chrome allows an extendable event ~5 minutes; past that the worker is killed
+// and the alarm never fires.
+const MAX_ALARM_MS = 4.5 * 60 * 1000;
 let timerTimeout = null;
 let timerDone = null; // resolver for the waitUntil promise
 let timerGeneration = 0;
@@ -130,6 +133,13 @@ self.addEventListener('message', (event) => {
         cancelTimerAlarm(); // ±15s adjustments reschedule; only one alarm at a time
         const generation = timerGeneration;
         const delay = Math.max(0, event.data.delay || 0);
+        // Chrome keeps an extendable event alive for roughly 5 minutes. A longer
+        // rest (custom timers accept any number of minutes) would silently never
+        // notify, so tell the page rather than pretending the alarm is armed.
+        if (delay > MAX_ALARM_MS) {
+            event.source && event.source.postMessage({ action: 'timerAlarmTooLong', delay: delay });
+            return;
+        }
         event.waitUntil(new Promise((resolve) => {
             timerDone = resolve;
             timerTimeout = setTimeout(async () => {

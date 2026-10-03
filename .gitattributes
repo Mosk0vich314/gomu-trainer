@@ -1,0 +1,15 @@
+# Every file in this repo is text. Normalise to LF in the index AND in the
+# working tree, so a Windows checkout can't produce a whole-repo phantom diff
+# (git status showed 13 files / 9,677 changed lines that were pure CRLF churn).
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.mp3  binary
+*.webp binary
+
+# The encrypted DB is base64 text but diffing it is meaningless noise.
+scripts/database.enc -diff
