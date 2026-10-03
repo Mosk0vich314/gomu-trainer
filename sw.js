@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v2026.09.16.0016'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.10.03.1834'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -33,7 +33,7 @@ self.addEventListener('activate', function(event) {
         caches.keys().then(function(cacheNames) {
             return Promise.all(
                 cacheNames.map(function(cacheName) {
-                    if (cacheName !== CACHE_NAME) {
+                    if (cacheName.startsWith('gomu-trainer-v') && cacheName !== CACHE_NAME) {
                         return caches.delete(cacheName);
                     }
                 })
@@ -54,34 +54,38 @@ self.addEventListener('fetch', function(event) {
     // Never intercept API calls (e.g. GitHub Gist backup)
     if (event.request.url.includes('api.github.com')) return;
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(function(cached) {
-                // ignoreSearch fallback: install caches './scripts/database.enc' but the
-                // app requests it with '?v=...' — without this, offline login breaks
-                // until the versioned URL has been fetched online once.
-                if (cached) return cached;
-                return caches.match(event.request, { ignoreSearch: true });
-            })
-            .then(function(cached) {
-                const network = fetch(event.request)
-                    .then(function(response) {
-                        // Cache good responses. Opaque (status 0) covers cross-origin
-                        // no-cors resources like Google Fonts so they work offline too.
-                        if (response && (response.status === 200 || response.type === 'opaque')) {
-                            const responseClone = response.clone();
-                            caches.open(CACHE_NAME).then(function(cache) {
-                                cache.put(event.request, responseClone);
-                            });
-                        }
-                        return response;
-                    })
-                    .catch(function() {
-                        return cached; // offline and nothing fresher — serve what we have
-                    });
-                return cached || network;
-            })
-    );
+    const cachePromise = caches.open(CACHE_NAME);
+    const cachedPromise = cachePromise.then(async cache => {
+        const cached = await cache.match(event.request);
+        // ignoreSearch fallback: install caches './scripts/database.enc' but the
+        // app requests it with '?v=...' — without this, offline login breaks
+        // until the versioned URL has been fetched online once.
+        return cached || cache.match(event.request, { ignoreSearch: true });
+    }).catch(() => undefined);
+    const network = fetch(event.request)
+        .then(async function(response) {
+            // Cache good responses. Opaque (status 0) covers cross-origin
+            // no-cors resources like Google Fonts so they work offline too.
+            if (response && (response.status === 200 || response.type === 'opaque')) {
+                const responseClone = response.clone();
+                try {
+                    const cache = await cachePromise;
+                    await cache.put(event.request, responseClone);
+                } catch (err) {
+                    // A full/disabled cache must not discard a good network response.
+                    console.warn('Could not refresh offline cache:', err);
+                }
+            }
+            return response;
+        })
+        .catch(() => undefined);
+    // Keep both the refresh and cache write alive after a cached response is served.
+    event.waitUntil(network.then(() => undefined));
+    event.respondWith(cachedPromise.then(async cached => {
+        if (cached) return cached;
+        const response = await network;
+        return response || Response.error();
+    }));
 });
 // 4. NOTIFICATION CLICK: Open or focus the app
 self.addEventListener('notificationclick', function(event) {
@@ -90,11 +94,11 @@ self.addEventListener('notificationclick', function(event) {
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
             for (let i = 0; i < clientList.length; i++) {
                 let client = clientList[i];
-                if (client.url.includes('index.html') && 'focus' in client) {
+                if (client.url.startsWith(self.registration.scope) && 'focus' in client) {
                     return client.focus();
                 }
             }
-            if (clients.openWindow) return clients.openWindow('./');
+            if (clients.openWindow) return clients.openWindow(self.registration.scope);
         })
     );
 });
@@ -107,9 +111,11 @@ self.addEventListener('notificationclick', function(event) {
 // visible when the alarm fires, the page's own beep handles it and we skip.
 let timerTimeout = null;
 let timerDone = null; // resolver for the waitUntil promise
+let timerGeneration = 0;
 
 function cancelTimerAlarm() {
-    if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+    timerGeneration++;
+    if (timerTimeout !== null) { clearTimeout(timerTimeout); timerTimeout = null; }
     if (timerDone) { timerDone(); timerDone = null; }
 }
 
@@ -122,15 +128,16 @@ self.addEventListener('message', (event) => {
 
     if (event.data.action === 'scheduleTimer') {
         cancelTimerAlarm(); // ±15s adjustments reschedule; only one alarm at a time
+        const generation = timerGeneration;
         const delay = Math.max(0, event.data.delay || 0);
         event.waitUntil(new Promise((resolve) => {
             timerDone = resolve;
             timerTimeout = setTimeout(async () => {
                 timerTimeout = null;
-                timerDone = null;
-                const clientList = await self.clients.matchAll({ type: 'window' });
-                const appVisible = clientList.some(c => c.visibilityState === 'visible');
-                if (!appVisible) {
+                try {
+                    const clientList = await self.clients.matchAll({ type: 'window' });
+                    const appVisible = clientList.some(c => c.visibilityState === 'visible');
+                    if (generation !== timerGeneration || appVisible) return;
                     await self.registration.showNotification("⏱️ Rest Complete!", {
                         body: "Time for your next set. Tap to resume.",
                         icon: "./assets/logo-192.png",
@@ -139,8 +146,12 @@ self.addEventListener('message', (event) => {
                         renotify: true,
                         requireInteraction: true
                     });
+                } catch (err) {
+                    console.warn('Could not show rest notification:', err);
+                } finally {
+                    if (generation === timerGeneration) timerDone = null;
+                    resolve();
                 }
-                resolve();
             }, delay);
         }));
     }

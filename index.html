@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gomu Trainer</title>
@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="./assets/logo.png">
     <link rel="apple-touch-icon" href="./assets/logo.png">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.09.16.0016">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.10.03.1834">
 </head>
 <body>
     <div id="login-screen">
@@ -22,8 +22,8 @@
             <h2 style="margin: 0 0 5px 0; font-size: 24px; letter-spacing: -0.5px;">Gomu Trainer</h2>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Enter coach password to access.</p>
             
-            <input type="password" id="login-password" class="login-input" placeholder="••••••••" onkeypress="if(event.key === 'Enter') checkLogin()">
-            <div id="login-error" class="login-error">Incorrect password.</div>
+            <input type="password" id="login-password" aria-label="Coach password" autocomplete="current-password" class="login-input" placeholder="••••••••" onkeypress="if(event.key === 'Enter') checkLogin()">
+            <div id="login-error" class="login-error" role="alert">Incorrect password.</div>
             
             <button class="action-btn btn-start" style="margin: 0; padding: 15px;" onclick="checkLogin()">Unlock Vault</button>
         </div>
@@ -46,7 +46,7 @@
         <div class="modal-card">
             <h2 style="margin-bottom: 16px;">Add Exercise</h2>
             <div class="modal-input-group">
-                <label>Exercise Name</label>
+                <label for="add-ex-name">Exercise Name</label>
                 <input type="text" id="add-ex-name" list="exercise-name-list" placeholder="e.g. Incline Dumbbell Press">
 
                 <div style="display:flex; gap:8px; margin-top:12px;">
@@ -55,19 +55,19 @@
                 </div>
 
                 <div id="add-ex-standard-fields" style="display:flex; gap:10px; margin-top:10px;">
-                    <div style="flex:1;"><label>Sets</label><input type="number" id="add-ex-sets" value="3" inputmode="numeric"></div>
-                    <div style="flex:1;"><label>Reps</label><input type="number" id="add-ex-reps" value="10" inputmode="numeric"></div>
-                    <div style="flex:1;"><label>RPE (Opt)</label><input type="number" id="add-ex-rpe" placeholder="7.5" step="0.5" inputmode="decimal"></div>
+                    <div style="flex:1;"><label for="add-ex-sets">Sets</label><input type="number" id="add-ex-sets" value="3" inputmode="numeric"></div>
+                    <div style="flex:1;"><label for="add-ex-reps">Reps</label><input type="number" id="add-ex-reps" value="10" inputmode="numeric"></div>
+                    <div style="flex:1;"><label for="add-ex-rpe">RPE (Opt)</label><input type="number" id="add-ex-rpe" placeholder="7.5" step="0.5" inputmode="decimal"></div>
                 </div>
 
                 <div id="add-ex-myo-fields" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
                     <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label>Act. Reps</label><input type="number" id="add-ex-act-reps" value="12" inputmode="numeric"></div>
-                        <div style="flex:1;"><label>Act. RPE</label><input type="number" id="add-ex-act-rpe" value="8" step="0.5" inputmode="decimal"></div>
+                        <div style="flex:1;"><label for="add-ex-act-reps">Act. Reps</label><input type="number" id="add-ex-act-reps" value="12" inputmode="numeric"></div>
+                        <div style="flex:1;"><label for="add-ex-act-rpe">Act. RPE</label><input type="number" id="add-ex-act-rpe" value="8" step="0.5" inputmode="decimal"></div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label>Backoff Sets</label><input type="number" id="add-ex-bo-sets" value="4" inputmode="numeric"></div>
-                        <div style="flex:1;"><label>Backoff Reps</label><input type="number" id="add-ex-bo-reps" value="5" inputmode="numeric"></div>
+                        <div style="flex:1;"><label for="add-ex-bo-sets">Backoff Sets</label><input type="number" id="add-ex-bo-sets" value="4" inputmode="numeric"></div>
+                        <div style="flex:1;"><label for="add-ex-bo-reps">Backoff Reps</label><input type="number" id="add-ex-bo-reps" value="5" inputmode="numeric"></div>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
             <h2 style="margin-bottom: 10px;">Swap Exercise</h2>
             <p>Replace this exercise with a similar variation (keeps the exact same sets, reps, and targets).</p>
             <div class="modal-input-group">
-                <input type="text" id="swap-ex-name" list="exercise-name-list" placeholder="e.g. Dumbbell Bench Press">
+                <input type="text" id="swap-ex-name" aria-label="Replacement exercise name" list="exercise-name-list" placeholder="e.g. Dumbbell Bench Press">
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('swap-exercise-modal').style.display='none'">Cancel</button>
@@ -97,7 +97,7 @@
             <h2 style="margin-bottom: 10px;">Form Video</h2>
             <p>Paste a YouTube or Google Photos link for this lift.</p>
             <div class="modal-input-group">
-                <input type="text" id="pr-video-url" placeholder="https://youtu.be/… or photos.app.goo.gl/…" inputmode="url" autocomplete="off">
+                <input type="text" id="pr-video-url" aria-label="Form video link" placeholder="https://youtu.be/… or photos.app.goo.gl/…" inputmode="url" autocomplete="off">
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('pr-video-modal').style.display='none'">Cancel</button>
@@ -110,7 +110,7 @@
         <div class="modal-card">
             <h2 style="margin-bottom: 10px;">Coach Notes</h2>
             <div class="modal-input-group">
-                <textarea id="edit-note-text" rows="4" style="background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; resize: vertical;" placeholder="Add notes, cues, or instructions here..."></textarea>
+                <textarea id="edit-note-text" aria-label="Coach notes" rows="4" style="background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif; width: 100%; box-sizing: border-box; resize: vertical;" placeholder="Add notes, cues, or instructions here..."></textarea>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="document.getElementById('edit-note-modal').style.display='none'">Cancel</button>
@@ -124,16 +124,16 @@
             <h2 style="margin-bottom: 10px;">Myo-rep Setup</h2>
             <p>Customize your Myo-rep protocol.</p>
             <div class="modal-input-group">
-                <label>Activation Set Reps</label>
+                <label for="myo-act-reps">Activation Set Reps</label>
                 <input type="number" id="myo-act-reps" value="12" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Number of Activation Sets</label>
+                <label for="myo-act-sets" style="margin-top: 10px;">Number of Activation Sets</label>
                 <input type="number" id="myo-act-sets" value="1" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Number of Back-off Sets</label>
+                <label for="myo-back-sets" style="margin-top: 10px;">Number of Back-off Sets</label>
                 <input type="number" id="myo-back-sets" value="4" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Back-off Reps</label>
+                <label for="myo-back-reps" style="margin-top: 10px;">Back-off Reps</label>
                 <input type="number" id="myo-back-reps" value="5" inputmode="numeric">
             </div>
             <div class="modal-actions">
@@ -148,16 +148,16 @@
             <h2 style="margin-bottom: 10px;">Drop Set Setup</h2>
             <p>All-out activation set, then strip weight each drop.</p>
             <div class="modal-input-group">
-                <label>Activation Set Reps</label>
+                <label for="drop-act-reps">Activation Set Reps</label>
                 <input type="number" id="drop-act-reps" value="6" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Number of Activation Sets</label>
+                <label for="drop-act-sets" style="margin-top: 10px;">Number of Activation Sets</label>
                 <input type="number" id="drop-act-sets" value="1" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Number of Drops</label>
+                <label for="drop-count" style="margin-top: 10px;">Number of Drops</label>
                 <input type="number" id="drop-count" value="2" inputmode="numeric">
 
-                <label style="margin-top: 10px;">Strip % per Drop</label>
+                <label for="drop-strip-pct" style="margin-top: 10px;">Strip % per Drop</label>
                 <input type="number" id="drop-strip-pct" value="20" inputmode="numeric">
             </div>
             <div class="modal-actions">
@@ -180,9 +180,9 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-                <button class="vpct-step" onclick="nudgeVariationPct(-1)">−</button>
-                <input type="range" id="vpct-slider" class="vpct-slider" min="75" max="125" step="1" value="100" oninput="onVariationPctInput(this.value)">
-                <button class="vpct-step" onclick="nudgeVariationPct(1)">+</button>
+                <button class="vpct-step" aria-label="Decrease reference percentage" onclick="nudgeVariationPct(-1)">−</button>
+                <input type="range" id="vpct-slider" aria-label="Reference 1RM percentage" class="vpct-slider" min="75" max="125" step="1" value="100" oninput="onVariationPctInput(this.value)">
+                <button class="vpct-step" aria-label="Increase reference percentage" onclick="nudgeVariationPct(1)">+</button>
             </div>
 
             <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center;">
@@ -217,6 +217,7 @@
             <div class="sheet-handle"></div>
             <h2 id="history-overlay-title" style="margin-top:0; margin-bottom: 20px; color: var(--text-main); font-size: 20px; text-align: center; font-weight: 800; letter-spacing: -0.5px;"></h2>
             <div id="history-overlay-content"></div>
+            <button class="modal-btn cancel" style="width:100%;margin-top:16px;" onclick="closeHistoryOverlay()">Close</button>
         </div>
     </div>
     <div id="plate-settings-modal" class="modal-overlay" onclick="if(event.target.id === 'plate-settings-modal') closePlateSettings()">
@@ -225,7 +226,7 @@
             <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Set your bar weight and available plates.</p>
             
             <div style="display: flex; justify-content: space-between; align-items: center; background: #27272a; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--accent); margin-bottom: 15px;">
-                <span style="font-weight: 700; color: var(--text-main); font-size: 15px;">Barbell Weight</span>
+                <label for="settings-bar-weight" style="font-weight: 700; color: var(--text-main); font-size: 15px;">Barbell Weight</label>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <input type="number" id="settings-bar-weight" class="input-box" style="width: 65px; padding: 8px; text-align: center;" value="20" onchange="updateBarbellWeight(this.value)" inputmode="decimal">
                     <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
@@ -253,7 +254,7 @@
             <h2>Save Template?</h2>
             <p>Give this on-the-fly workout a name to save it to your Library for next time.</p>
             <div class="modal-input-group">
-                <input type="text" id="save-custom-name" placeholder="e.g. Heavy Push Day">
+                <input type="text" id="save-custom-name" aria-label="Workout template name" placeholder="e.g. Heavy Push Day">
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="skipSaveCustom()">Skip</button>
@@ -268,13 +269,13 @@
             <p>Enter your current estimated 1RMs to automatically pre-fill your targets.</p>
             
             <div class="modal-input-group">
-                <label>Squat 1RM (kg)</label>
+                <label for="ob-sq">Squat 1RM (kg)</label>
                 <input type="number" id="ob-sq" placeholder="e.g. 140" inputmode="decimal">
                 
-                <label>Bench Press 1RM (kg)</label>
+                <label for="ob-bp">Bench Press 1RM (kg)</label>
                 <input type="number" id="ob-bp" placeholder="e.g. 100" inputmode="decimal">
                 
-                <label>Deadlift 1RM (kg)</label>
+                <label for="ob-dl">Deadlift 1RM (kg)</label>
                 <input type="number" id="ob-dl" placeholder="e.g. 180" inputmode="decimal">
             </div>
             
@@ -299,6 +300,7 @@
             <p style="margin-bottom: 15px;">Pyramidal progression up to your working weight.</p>
             <div id="warmup-modal-content">
                 </div>
+            <button class="modal-btn cancel" style="width:100%;" onclick="document.getElementById('warmup-modal').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -315,7 +317,7 @@
             </div>
             
             <div class="modal-input-group" style="margin-bottom: 20px;">
-                <input type="number" id="custom-timer-input" placeholder="Custom (e.g. 2.5)" inputmode="decimal" style="text-align: center;">
+                <input type="number" id="custom-timer-input" aria-label="Rest duration in minutes" placeholder="Custom (e.g. 2.5)" inputmode="decimal" style="text-align: center;">
             </div>
             
             <div class="modal-actions">
@@ -349,7 +351,7 @@
         </button>
     </nav>
 
-    <div id="floating-banner" class="floating-banner" onclick="resumeWorkout()"></div>
+    <div id="floating-banner" class="floating-banner" role="button" tabindex="0" onclick="resumeWorkout()"></div>
 
     <div id="rest-timer-banner" class="rest-timer-banner">
         <div class="timer-display" id="timer-display">03:00</div>
@@ -362,7 +364,7 @@
 
     <div id="home-screen" class="app-screen active">
 
-        <div class="dashboard-wordmark">GOMA<span>.</span></div>
+        <div class="dashboard-wordmark">GOMU<span>.</span></div>
         <div class="app-version-display" id="app-version-text">v1.0.0</div>
 
         <div class="hero-card active-state" id="hero-resume" style="display: none;" onclick="resumeWorkout()">
@@ -437,13 +439,13 @@
                 <span style="color: var(--text-muted); font-size: 14px;">▼</span>
             </summary>
             <div class="folder-content">
-                <div class="program-card" data-program-id="Full_Force" onclick="startProgram('Full_Force')"><h3 class="program-title">Full Force</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="Meta_5-3-1" onclick="startProgram('Meta_5-3-1')"><h3 class="program-title">Meta 5/3/1</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="Power_Rush" onclick="startProgram('Power_Rush')"><h3 class="program-title">Power Rush</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="Ultra_Power" onclick="startProgram('Ultra_Power')"><h3 class="program-title">Ultra Power</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="Bench_Monster" onclick="startProgram('Bench_Monster')"><h3 class="program-title">Bench Monster</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="Compact_Strength" onclick="startProgram('Compact_Strength')"><h3 class="program-title">Compact Strength</h3><p class="program-desc">Panash Powerlifting</p></div>
-                <div class="program-card" data-program-id="12week_Peak" onclick="startProgram('12week_Peak')"><h3 class="program-title">12-Week Peak</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Full_Force" onclick="startProgram('Full_Force')"><h3 class="program-title">Full Force</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Meta_5-3-1" onclick="startProgram('Meta_5-3-1')"><h3 class="program-title">Meta 5/3/1</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Power_Rush" onclick="startProgram('Power_Rush')"><h3 class="program-title">Power Rush</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Ultra_Power" onclick="startProgram('Ultra_Power')"><h3 class="program-title">Ultra Power</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Bench_Monster" onclick="startProgram('Bench_Monster')"><h3 class="program-title">Bench Monster</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Compact_Strength" onclick="startProgram('Compact_Strength')"><h3 class="program-title">Compact Strength</h3><p class="program-desc">Panash Powerlifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="12week_Peak" onclick="startProgram('12week_Peak')"><h3 class="program-title">12-Week Peak</h3><p class="program-desc">Panash Powerlifting</p></div>
             </div>
         </details>
 
@@ -456,11 +458,11 @@
                 <span style="color: var(--text-muted); font-size: 14px;">▼</span>
             </summary>
             <div class="folder-content">
-                <div class="program-card" data-program-id="16week-3" onclick="startProgram('16week-3')"><h3 class="program-title">16-Week Peak 3</h3><p class="program-desc">Competition Prep</p></div>
-                <div class="program-card" data-program-id="dontCall_it_aComeback" onclick="startProgram('dontCall_it_aComeback')"><h3 class="program-title">Don't Call it a Comeback</h3><p class="program-desc">Return to Lifting</p></div>
-                <div class="program-card" data-program-id="MaxEfficiency" onclick="startProgram('MaxEfficiency')"><h3 class="program-title">Max Efficiency</h3><p class="program-desc">Time-Optimized Training</p></div>
-                <div class="program-card" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
-                <div class="program-card" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="16week-3" onclick="startProgram('16week-3')"><h3 class="program-title">16-Week Peak 3</h3><p class="program-desc">Competition Prep</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="dontCall_it_aComeback" onclick="startProgram('dontCall_it_aComeback')"><h3 class="program-title">Don't Call it a Comeback</h3><p class="program-desc">Return to Lifting</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="MaxEfficiency" onclick="startProgram('MaxEfficiency')"><h3 class="program-title">Max Efficiency</h3><p class="program-desc">Time-Optimized Training</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
+                <div class="program-card" role="button" tabindex="0" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
                 
                 <details style="background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
                     <summary class="folder-header" style="padding: 12px 14px; font-size: 15px; border-bottom: none;">
@@ -470,10 +472,10 @@
                         <span style="color: var(--text-muted); font-size: 12px;">▼</span>
                     </summary>
                     <div class="folder-content" style="padding: 10px; padding-top: 0; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-                        <div class="program-card" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">POP I</h3><p class="program-desc">Foundation Block</p></div>
-                        <div class="program-card" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">POP II</h3><p class="program-desc">Development Block</p></div>
-                        <div class="program-card" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">POP III</h3><p class="program-desc">Accumulation Block</p></div>
-                        <div class="program-card" data-program-id="POP_4" onclick="startProgram('POP_4')"><h3 class="program-title">POP IV</h3><p class="program-desc">Realization Block</p></div>
+                        <div class="program-card" role="button" tabindex="0" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">POP I</h3><p class="program-desc">Foundation Block</p></div>
+                        <div class="program-card" role="button" tabindex="0" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">POP II</h3><p class="program-desc">Development Block</p></div>
+                        <div class="program-card" role="button" tabindex="0" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">POP III</h3><p class="program-desc">Accumulation Block</p></div>
+                        <div class="program-card" role="button" tabindex="0" data-program-id="POP_4" onclick="startProgram('POP_4')"><h3 class="program-title">POP IV</h3><p class="program-desc">Realization Block</p></div>
                     </div>
                 </details>
             </div>
@@ -488,7 +490,7 @@
                 <span style="color: var(--text-muted); font-size: 14px;">▼</span>
             </summary>
             <div class="folder-content" id="boostcamp-folder-content">
-                <div class="program-card" data-program-id="strongman_bromley" onclick="startProgram('strongman_bromley')">
+                <div class="program-card" role="button" tabindex="0" data-program-id="strongman_bromley" onclick="startProgram('strongman_bromley')">
                     <h3 class="program-title">Bromley Strongman</h3>
                     <p class="program-desc">12-Week Strongman for Beginners</p>
                 </div>
@@ -545,7 +547,7 @@
         <label class="action-btn" style="background:var(--input-bg);color:var(--text-main);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Import Backup
-            <input type="file" style="display:none;" accept=".json" onchange="importData(event)">
+            <input type="file" class="visually-hidden" accept=".json" onchange="importData(event)">
         </label>
         <button class="reset-btn" style="width:100%;padding:16px;margin-top:10px;text-align:center;border:1px solid var(--danger);color:var(--danger);display:flex;align-items:center;justify-content:center;gap:8px;" onclick="clearAllPRs()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -580,7 +582,7 @@
             </div>
             <div id="gist-last-backup" style="display:none;font-size:11px;color:var(--text-muted);margin:-4px 0 10px;"></div>
             <div class="gdrive-client-row">
-                <input type="password" id="gdrive-client-id-input" placeholder="Paste GitHub Personal Access Token" autocomplete="off" oninput="localStorage.setItem('gistPAT', this.value.trim()); window.updateGistUI()">
+                <input type="password" id="gdrive-client-id-input" aria-label="GitHub personal access token" placeholder="Paste GitHub Personal Access Token" autocomplete="off" oninput="localStorage.setItem('gistPAT', this.value.trim()); window.updateGistUI()">
             </div>
             <button id="gdrive-backup-now-btn" class="action-btn" style="display:none;background:var(--input-bg);color:#22c55e;border:1px solid rgba(34,197,94,0.3);align-items:center;justify-content:center;gap:8px;" onclick="gdriveBackupNow()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -588,7 +590,7 @@
             </button>
             <div id="gist-restore-row" style="display:none;margin-top:10px;">
                 <div class="gdrive-client-row" style="margin-bottom:8px;">
-                    <input type="text" id="gist-id-input" placeholder="Gist ID (to restore on a new device)">
+                    <input type="text" id="gist-id-input" aria-label="Gist ID" placeholder="Gist ID (to restore on a new device)">
                 </div>
                 <button class="action-btn" style="background:var(--input-bg);color:var(--teal);border:1px solid rgba(var(--teal-rgb), 0.3);display:flex;align-items:center;justify-content:center;gap:8px;" onclick="restoreFromGist()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
@@ -663,7 +665,7 @@
                 <div class="s-stat"><span>Heaviest</span><strong id="sum-max">0 kg</strong></div>
             </div>
             
-            <textarea id="session-note" placeholder="How did this session feel? (optional)" maxlength="300" oninput="saveSessionNote(this.value)" style="width:100%;box-sizing:border-box;background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:12px;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;min-height:72px;outline:none;margin:16px 0 4px;display:block;"></textarea>
+            <textarea id="session-note" aria-label="Session note" placeholder="How did this session feel? (optional)" maxlength="300" oninput="saveSessionNote(this.value)" style="width:100%;box-sizing:border-box;background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:12px;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;min-height:72px;outline:none;margin:16px 0 4px;display:block;"></textarea>
             <button class="action-btn" style="background: var(--accent); color: #000;" onclick="switchTab('home-screen')">Return to Dashboard</button>
         </div>
     </div>
@@ -732,7 +734,7 @@
 
         <div id="workout-container"></div>
 
-        <button class="global-timer-fab" onclick="openCustomTimerModal()">
+        <button class="global-timer-fab" aria-label="Open rest timer" onclick="openCustomTimerModal()">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>
         </button>
 
@@ -768,6 +770,6 @@
         </div>
     </div>
 
-    <script src="scripts/app.js?v=2026.09.16.0016" defer></script>
+    <script src="scripts/app.js?v=2026.10.03.1834" defer></script>
 </body>
 </html>

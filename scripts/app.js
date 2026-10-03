@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.09.16.0016";
+        const APP_VERSION = "v2026.10.03.1834";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -128,9 +128,21 @@
         const PBKDF2_ITERATIONS = 100000;
 
         async function decryptDatabase(password) {
-            const resp = await fetch('./scripts/database.enc?v=' + APP_VERSION);
-            const b64 = await resp.text();
-            const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            let b64;
+            try {
+                const resp = await fetch('./scripts/database.enc?v=' + APP_VERSION);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                b64 = await resp.text();
+            } catch (e) {
+                throw new Error('Could not load workout programs. Reconnect and try again.');
+            }
+            let raw;
+            try {
+                raw = Uint8Array.from(atob(b64.trim()), c => c.charCodeAt(0));
+                if (raw.length < 44) throw new Error('Incomplete encrypted database');
+            } catch (e) {
+                throw new Error('Workout programs could not be read. Reconnect and try again.');
+            }
 
             const salt = raw.slice(0, 16);
             const iv = raw.slice(16, 28);
@@ -152,21 +164,23 @@
         }
 
         async function bootWithPassword(password, silent) {
-            // Decrypt failures mean a wrong password; anything that breaks AFTER a
-            // successful decryption is a real boot error and must not masquerade as
-            // "incorrect password".
+            // Preserve the cached password on network failures; only an actual
+            // decryption failure invalidates it.
             try {
                 await decryptDatabase(password);
             } catch (e) {
-                if (silent) {
-                    // sessionStorage key is stale/wrong — show login
+                if (silent && e.name === 'OperationError') {
                     sessionStorage.removeItem('gomu_key');
                     localStorage.removeItem('gomu_auth_passed');
-                    document.getElementById('login-screen').style.display = '';
-                } else {
-                    const errorText = document.getElementById('login-error');
+                }
+                document.getElementById('login-screen').style.display = '';
+                const errorText = document.getElementById('login-error');
+                errorText.textContent = e.name === 'OperationError'
+                    ? 'Unable to unlock. Check your password and try again.'
+                    : (e.message || 'Unable to start the app. Please try again.');
+                errorText.style.display = 'block';
+                if (!silent) {
                     const card = document.getElementById('login-card');
-                    errorText.style.display = 'block';
                     card.style.transform = 'translateX(-10px)';
                     setTimeout(() => card.style.transform = 'translateX(10px)', 50);
                     setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
@@ -311,15 +325,24 @@
         let wakeLockPending = false;
         async function requestWakeLock() {
             if (!('wakeLock' in navigator) || wakeLockSentinel || wakeLockPending) return;
-            if (document.visibilityState !== 'visible') return;
+            if (!activeWorkout || document.visibilityState !== 'visible') return;
             wakeLockPending = true;
             try {
-                wakeLockSentinel = await navigator.wakeLock.request('screen');
-                wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+                const sentinel = await navigator.wakeLock.request('screen');
+                // A workout can finish while the OS is granting the request.
+                if (!activeWorkout || document.visibilityState !== 'visible') {
+                    await sentinel.release();
+                    return;
+                }
+                wakeLockSentinel = sentinel;
+                sentinel.addEventListener('release', () => {
+                    if (wakeLockSentinel === sentinel) wakeLockSentinel = null;
+                });
             } catch (e) {
                 wakeLockSentinel = null; // e.g. battery saver mode denies it — not fatal
+            } finally {
+                wakeLockPending = false;
             }
-            wakeLockPending = false;
         }
         function releaseWakeLock() {
             if (wakeLockSentinel) {
@@ -350,12 +373,11 @@
 
                 // 3. Catch up the timer!
                 const banner = document.getElementById('rest-timer-banner');
-                if (banner && banner.classList.contains('active') && !banner.classList.contains('finished')) {
+                if (banner && banner.classList.contains('active')) {
                     timeLeft = Math.round((timerTargetMs - Date.now()) / 1000);
                     updateTimerDisplay();
                     
-                    if (timeLeft <= 0) {
-                        timerWorker.postMessage('stop');
+                    if (timeLeft <= 0 && !banner.classList.contains('finished')) {
                         playBeep(); // Play the sound the exact second they open the app
                         completeTimer(); 
                     }
@@ -546,7 +568,7 @@
 
             let e1rmCell = '';
             if (isMain) {
-                e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${exName}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
+                e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${escapeHtml(exName)}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
             }
 
             return `
@@ -555,7 +577,7 @@
                 <span><input type="number" id="${rowId}_reps" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" inputmode="numeric" ${disabledAttr}></span>
                 <span><input type="number" id="${rowId}_rpe" class="${rpeClass}" data-rowid="${rowId}" value="${rpeValue}" step="0.5" inputmode="decimal" ${disabledAttr}></span>
                 <span style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                    <input type="number" id="${rowId}_load" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${exName}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" ${disabledAttr}>
+                    <input type="number" id="${rowId}_load" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${escapeHtml(exName)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" ${disabledAttr}>
                     <div id="${rowId}_plates" style="font-size: 9px; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px;">${initialPlates}</div>
                 </span>
                 ${e1rmCell}
@@ -619,12 +641,20 @@
             const TABS = ['library-screen', 'home-screen', 'history-screen'];
             const WORKOUT_SCREENS = new Set(['workout-screen', 'stats-screen', 'summary-screen']);
             let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+            let canSwipeTab = false;
             document.addEventListener('touchstart', function(e) {
+                // Card deletion, sheets and form controls own their gestures.
+                canSwipeTab = e.touches.length === 1 && !e.target.closest(
+                    '.swipe-wrapper, .modal-overlay, .bottom-sheet-overlay, #data-sheet, #data-sheet-overlay, input, textarea, select, button, a, [role="button"]'
+                );
+                if (!canSwipeTab) return;
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
                 touchStartTime = Date.now();
             }, { passive: true });
             document.addEventListener('touchend', function(e) {
+                if (!canSwipeTab) return;
+                canSwipeTab = false;
                 const dx = e.changedTouches[0].clientX - touchStartX;
                 const dy = e.changedTouches[0].clientY - touchStartY;
                 const dt = Date.now() - touchStartTime;
@@ -636,7 +666,16 @@
                 if (dx < 0 && idx < TABS.length - 1) switchTab(TABS[idx + 1]);
                 if (dx > 0 && idx > 0) switchTab(TABS[idx - 1]);
             }, { passive: true });
+            document.addEventListener('touchcancel', () => { canSwipeTab = false; }, { passive: true });
         })();
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const card = e.target.closest('[role="button"][tabindex="0"]');
+            if (!card || e.target !== card || card.matches('button, input, a')) return;
+            e.preventDefault();
+            if (!e.repeat) card.click();
+        });
 
         function updateLibraryUI() {
             const mainProgram = localStorage.getItem('activeProgram'); 
@@ -659,10 +698,10 @@
 
                 Object.keys(customProgs).forEach(pid => {
                     html += `
-                    <div class="program-card" data-program-id="${pid}" onclick="startProgram('${pid}')" style="cursor: pointer;">
+                    <div class="program-card" role="button" tabindex="0" data-program-id="${escapeHtml(pid)}" onclick="startProgram(this.dataset.programId)" style="cursor: pointer;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <h3 class="program-title" style="margin: 0;">${customProgs[pid].name}</h3>
-                            <button onclick="event.stopPropagation(); deleteCustomProgram('${pid}')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">🗑️</button>
+                            <h3 class="program-title" style="margin: 0;">${escapeHtml(customProgs[pid].name)}</h3>
+                            <button aria-label="Delete custom workout" onclick="event.stopPropagation(); deleteCustomProgram(this.closest('.program-card').dataset.programId)" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">🗑️</button>
                         </div>
                         <p class="program-desc" style="margin: 0;">Custom Template</p>
                     </div>`;
@@ -823,6 +862,9 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal'];
+        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
+        const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
             const backup = {
                 version: APP_VERSION,
@@ -845,12 +887,18 @@
                 gymPlateInventory: safeParse('gymPlateInventory', null),
                 programSwaps: {},
                 programModes: {},
+                workoutSessions: {},
+                preferences: {},
+                migrations: {},
                 workoutHistory: workoutHistoryCache,
             };
+            BACKUP_PREFERENCES.forEach(k => { backup.preferences[k] = localStorage.getItem(k); });
+            BACKUP_MIGRATIONS.forEach(k => { backup.migrations[k] = localStorage.getItem(k); });
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
                 if (k && k.startsWith('programSwaps_')) backup.programSwaps[k] = safeParse(k, {});
                 if (k && k.startsWith('programModes_')) backup.programModes[k] = safeParse(k, {});
+                if (k && isWorkoutStorageKey(k)) backup.workoutSessions[k] = safeParse(k, {});
             }
             if (includePictures) backup.progressPictures = await getDB('progressPictures', []);
             return backup;
@@ -861,14 +909,44 @@
         // restore silently truncating long histories).
         function mergeHistoryById(existing, incoming) {
             const byId = new Map();
-            (existing || []).forEach(h => { if (h && h.id) byId.set(h.id, h); });
-            (incoming || []).forEach(h => { if (h && h.id) byId.set(h.id, h); });
+            (existing || []).forEach(h => { if (h && h.id != null) byId.set(String(h.id), h); });
+            (incoming || []).forEach(h => { if (h && h.id != null) byId.set(String(h.id), h); });
             return Array.from(byId.values()).sort((a, b) => parseInt(b.id) - parseInt(a.id));
         }
 
+        function validateBackup(data) {
+            const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+            const fail = () => { throw new Error('Invalid backup structure. No data was restored.'); };
+            if (!isObject(data) || !['workoutHistory', 'actualBests', 'completedDays', 'customPrograms'].some(k => Object.hasOwn(data, k))) fail();
+            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'programSwaps', 'programModes', 'workoutSessions', 'preferences', 'migrations'];
+            maps.forEach(k => { if (data[k] != null && !isObject(data[k])) fail(); });
+            ['workoutHistory', 'progressPictures', 'bwHistory', 'warmupRoutine', 'gymPlateInventory'].forEach(k => {
+                if (data[k] != null && !Array.isArray(data[k])) fail();
+            });
+            ['activeProgram', 'userBodyweight', 'userGender', 'preferredUnit', 'gymBarbellWeight'].forEach(k => {
+                if (data[k] != null && !['string', 'number'].includes(typeof data[k])) fail();
+            });
+            if (data.activeWorkout != null && (!isObject(data.activeWorkout) || !isWorkoutStorageKey(data.activeWorkout.key || ''))) fail();
+            for (const [field, validKey] of [['programSwaps', k => k.startsWith('programSwaps_')], ['programModes', k => k.startsWith('programModes_')], ['workoutSessions', isWorkoutStorageKey]]) {
+                Object.entries(data[field] || {}).forEach(([k, value]) => { if (!validKey(k) || !isObject(value)) fail(); });
+            }
+            for (const [field, keys] of [['preferences', BACKUP_PREFERENCES], ['migrations', BACKUP_MIGRATIONS]]) {
+                Object.entries(data[field] || {}).forEach(([k, value]) => { if (!keys.includes(k) || (value !== null && typeof value !== 'string')) fail(); });
+            }
+            Object.values(data.prHistory || {}).forEach(entries => { if (!Array.isArray(entries) || entries.some(e => !isObject(e))) fail(); });
+            ['workoutHistory', 'progressPictures'].forEach(k => (data[k] || []).forEach(entry => {
+                if (!isObject(entry) || !['string', 'number'].includes(typeof entry.id) || String(entry.id).trim() === '') fail();
+                if (k === 'workoutHistory' && entry.details != null) {
+                    if (!Array.isArray(entry.details)) fail();
+                    entry.details.forEach(ex => { if (!isObject(ex) || typeof ex.name !== 'string' || !Array.isArray(ex.sets) || ex.sets.some(set => !isObject(set))) fail(); });
+                }
+            }));
+        }
+
         async function applyBackup(data) {
-            const setJSON = (key, val) => { if (val !== undefined && val !== null) localStorage.setItem(key, JSON.stringify(val)); };
-            const setStr = (key, val) => { if (val !== undefined && val !== null) localStorage.setItem(key, val); };
+            validateBackup(data); // Check the entire file before changing any store.
+            const setJSON = (key, val) => { if (val === null) localStorage.removeItem(key); else if (val !== undefined) localStorage.setItem(key, JSON.stringify(val)); };
+            const setStr = (key, val) => { if (val === null) localStorage.removeItem(key); else if (val !== undefined) localStorage.setItem(key, val); };
             setJSON('completedDays', data.completedDays);
             setJSON('global1RMs', data.global1RMs);
             setJSON('actualBests', data.actualBests);
@@ -887,18 +965,18 @@
             setStr('gymBarbellWeight', data.gymBarbellWeight);
             if (data.programSwaps) Object.keys(data.programSwaps).forEach(k => setJSON(k, data.programSwaps[k]));
             if (data.programModes) Object.keys(data.programModes).forEach(k => setJSON(k, data.programModes[k]));
+            if (data.workoutSessions) Object.keys(data.workoutSessions).forEach(k => setJSON(k, data.workoutSessions[k]));
+            if (data.preferences) Object.keys(data.preferences).forEach(k => setStr(k, data.preferences[k]));
+            if (data.migrations) Object.keys(data.migrations).forEach(k => setStr(k, data.migrations[k]));
             if (data.workoutHistory && data.workoutHistory.length) {
                 const existing = await getDB('workoutHistory', []);
                 const merged = mergeHistoryById(existing, data.workoutHistory);
-                workoutHistoryCache = merged;
                 await setDB('workoutHistory', merged);
+                workoutHistoryCache = merged;
             }
             if (data.progressPictures && data.progressPictures.length) {
                 const existingPics = await getDB('progressPictures', []);
-                const byId = new Map();
-                existingPics.forEach(p => { if (p && p.id) byId.set(p.id, p); });
-                data.progressPictures.forEach(p => { if (p && p.id) byId.set(p.id, p); });
-                await setDB('progressPictures', Array.from(byId.values()).sort((a, b) => parseInt(b.id) - parseInt(a.id)));
+                await setDB('progressPictures', mergeHistoryById(existingPics, data.progressPictures));
             }
         }
 
@@ -967,16 +1045,16 @@
         async function gdriveBackup() {
             const pat = localStorage.getItem('gistPAT') || '';
             if (!pat.trim()) return;
-            const backup = await collectBackup(false);
-            // Keep the Gist under GitHub's 1MB raw-fetch truncation limit;
-            // restore merges by id so a partial snapshot can't delete older sessions.
-            backup.workoutHistory = workoutHistoryCache.slice(0, 200);
-            const content = JSON.stringify(backup, null, 2);
-            const gistId = localStorage.getItem('gistId') || '';
-            const headers = { 'Authorization': `token ${pat}`, 'Content-Type': 'application/json' };
-            const body = JSON.stringify({ description: 'Gomu Trainer backup', public: false, files: { 'gomu-trainer-backup.json': { content } } });
             let ok = false;
             try {
+                const backup = await collectBackup(false);
+                // Limit cloud history size; large files are fetched via raw_url on restore.
+                // Merging by id preserves older sessions already stored on the device.
+                backup.workoutHistory = workoutHistoryCache.slice(0, 200);
+                const content = JSON.stringify(backup, null, 2);
+                const gistId = localStorage.getItem('gistId') || '';
+                const headers = { 'Authorization': `token ${pat}`, 'Content-Type': 'application/json' };
+                const body = JSON.stringify({ description: 'Gomu Trainer backup', public: false, files: { 'gomu-trainer-backup.json': { content } } });
                 if (gistId) {
                     const resp = await fetch(`https://api.github.com/gists/${gistId}`, { method: 'PATCH', headers, body });
                     ok = resp.ok;
@@ -1001,9 +1079,11 @@
         window.gdriveBackupNow = async function() {
             const btn = document.getElementById('gdrive-backup-now-btn');
             if (btn) { btn.innerText = 'Backing up…'; btn.disabled = true; }
-            await gdriveBackup();
-            if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Backup Now'; btn.disabled = false; }
-            window.updateGistUI();
+            try { await gdriveBackup(); }
+            finally {
+                if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Backup Now'; btn.disabled = false; }
+                window.updateGistUI();
+            }
         };
 
         window.restoreFromGist = async function() {
@@ -1018,7 +1098,14 @@
                 const resp = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${pat}` } });
                 if (!resp.ok) { alert('Could not fetch gist. Check your PAT and Gist ID.'); return; }
                 const data = await resp.json();
-                const content = data.files['gomu-trainer-backup.json']?.content;
+                const file = data.files?.['gomu-trainer-backup.json'];
+                let content = file?.content;
+                if (file?.truncated) {
+                    if (!file.raw_url) throw new Error('The backup is truncated and has no download URL.');
+                    const raw = await fetch(file.raw_url);
+                    if (!raw.ok) throw new Error('Could not download the complete backup.');
+                    content = await raw.text();
+                }
                 if (!content) { alert('No backup file found in this gist.'); return; }
                 const backup = JSON.parse(content);
                 await applyBackup(backup); // full restore; history merged by id, never truncated
@@ -1411,13 +1498,13 @@
             if (!isNonExercise) {
                 const pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
                 if (pm && getResolved1RM(pm[2]) > 0) {
-                    const safeFull = ex.name.replace(/'/g, "\\'");
-                    const safeParent = pm[2].replace(/'/g, "\\'");
+                    const safeFull = escapeHtml(JSON.stringify(ex.name));
+                    const safeParent = escapeHtml(JSON.stringify(pm[2]));
                     const linkIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
-                    return `${pm[1]} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">${linkIcon}${pm[2]}</span>`;
+                    return `${escapeHtml(pm[1])} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, ${safeFull}, ${safeParent})">${linkIcon}${escapeHtml(pm[2])}</span>`;
                 }
             }
-            return ex.name;
+            return escapeHtml(ex.name);
         }
 
         function startProgram(programId) {
@@ -1556,7 +1643,7 @@
                         </div>
                         <div class="fb-text">
                             <div class="fb-title">Workout in Progress</div>
-                            <div class="fb-subtitle">${pName} • W${activeWorkout.week} D${activeWorkout.day}</div>
+                            <div class="fb-subtitle">${escapeHtml(pName)} • W${activeWorkout.week} D${activeWorkout.day}</div>
                         </div>
                     </div>
                     <div class="fb-action">Resume</div>
@@ -1614,18 +1701,30 @@
             return `${currentProgram}_w${selectedWeek}_d${selectedDay}`;
         }
 
+        function discardActiveWorkout() {
+            if (!activeWorkout) return;
+            const snapshot = activeWorkout.backupState;
+            if (snapshot) {
+                ['actualBests', 'global1RMs', 'lastUsedWeights', 'prHistory'].forEach(store => {
+                    if (snapshot[store] !== undefined) localStorage.setItem(store, JSON.stringify(snapshot[store]));
+                });
+            }
+            // The selected preview may be a different day from the running session.
+            localStorage.removeItem(activeWorkout.key);
+            activeWorkout = null;
+            localStorage.removeItem('activeWorkout');
+            clearInterval(workoutDurationInterval);
+            Object.values(window.exTimerState || {}).forEach(state => clearInterval(state.interval));
+            window.exTimerState = {};
+            closeTimer();
+        }
+
         function getActiveExercises(prog, w, d, key) {
             let base = db[prog]?.weeks[w]?.[d] || [];
             let exercises = JSON.parse(JSON.stringify(base)); // Deep copy
 
             // Tag each exercise with its DB-original name before any swaps
             exercises.forEach(ex => { ex._originalName = ex.name; });
-
-            // Apply program-level swaps (persist across all days; cleared on reset/program-finish)
-            const programSwaps = safeParse(`programSwaps_${prog}`, {});
-            exercises.forEach(ex => {
-                if (programSwaps[ex._originalName]) ex.name = programSwaps[ex._originalName];
-            });
 
             let saved = safeParse(key, {});
 
@@ -1634,6 +1733,12 @@
                 added.forEach(ex => { ex._originalName = ex._originalName || ex.name; });
                 exercises = exercises.concat(added);
             }
+
+            // Added exercises can be swapped through the same control as prescribed ones.
+            const programSwaps = safeParse(`programSwaps_${prog}`, {});
+            exercises.forEach(ex => {
+                if (programSwaps[ex._originalName]) ex.name = programSwaps[ex._originalName];
+            });
 
             if (saved.deletedIndices) {
                 saved.deletedIndices.forEach(idx => {
@@ -1669,6 +1774,17 @@
                 });
             }
 
+            // Modes define the final block structure; set-count and deletion edits below
+            // refer to that rendered structure, including blocks absent from the source DB.
+            const programModes = safeParse(`programModes_${prog}`, {});
+            exercises.forEach(ex => {
+                const m = programModes[ex._originalName];
+                if (m && (m.type === 'myo' || m.type === 'dropset')) {
+                    ex.blocks = buildModeBlocks(ex, m);
+                    ex._mode = m.type;
+                }
+            });
+
             // NEW: Apply modified set counts
             if (saved.modifiedBlocks) {
                 Object.keys(saved.modifiedBlocks).forEach(bKey => {
@@ -1690,18 +1806,6 @@
                     }
                 });
             }
-
-            // NEW: Apply program-level Myo-rep / Drop Set modes. Keyed by the DB-original
-            // name so the same exercise on the corresponding day of EVERY week is converted
-            // (mirrors how programSwaps propagates). Each week keeps its own prescribed RPE.
-            const programModes = safeParse(`programModes_${prog}`, {});
-            exercises.forEach(ex => {
-                const m = programModes[ex._originalName];
-                if (m && (m.type === 'myo' || m.type === 'dropset')) {
-                    ex.blocks = buildModeBlocks(ex, m);
-                    ex._mode = m.type;
-                }
-            });
 
             return exercises;
         }
@@ -1754,6 +1858,7 @@
                         true
                     );
                     if (!confirmed) return;
+                    discardActiveWorkout();
                 }
                 
                 // NEW: Make this the official active program ONLY if it is a real database program
@@ -1791,10 +1896,6 @@
                         completedDays[`${currentProgram}_w${w}_d${d}`]
                     )
                 );
-                if (allDone) {
-                    localStorage.removeItem(`programSwaps_${currentProgram}`);
-                    localStorage.removeItem(`programModes_${currentProgram}`);
-                }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 closeTimer();
                 clearInterval(workoutDurationInterval);
@@ -1802,6 +1903,12 @@
                 if (timerEl) timerEl.style.display = 'none';
                 
                 generateSummary(keyForSummary, durationMs);
+                // The summary must read the same swapped names and converted blocks
+                // that were shown while logging the final workout.
+                if (allDone) {
+                    localStorage.removeItem(`programSwaps_${currentProgram}`);
+                    localStorage.removeItem(`programModes_${currentProgram}`);
+                }
                 gdriveBackup(); // Feature 1: silent cloud backup
                 updateDashboard();
                 return;
@@ -1855,7 +1962,9 @@
                             completedSets++;
                             const load = parseFloat(savedSession[loadInputId]) || 0;
                             const rpe = savedSession[rpeInputId] || '';
-                            const actualReps = parseFloat(savedSession[repsInputId]) || (amrapSetIndex(block) === s ? 0 : block.reps);
+                            const enteredReps = parseFloat(savedSession[repsInputId]);
+                            const actualReps = Number.isFinite(enteredReps) ? enteredReps :
+                                (amrapSetIndex(block) === s ? 0 : (parseFloat(block.reps) || 0));
                             
                             let effectiveLoad = load;
                             if (isBodyweightExercise(ex.name)) {
@@ -1886,10 +1995,15 @@
                                 const rpe = savedSession[`${extraRowId}_rpe`] || '';
                                 
                                 let actualReps = parseFloat(savedSession[`${extraRowId}_reps`]);
-                                if (isNaN(actualReps)) actualReps = extraData.reps;
+                                if (isNaN(actualReps)) actualReps = parseFloat(extraData.reps) || 0;
                                 
-                                totalVolume += (load * actualReps);
-                                if (load > maxLoad) maxLoad = load;
+                                let effectiveLoad = load;
+                                if (isBodyweightExercise(ex.name)) {
+                                    const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
+                                    if (bw > 0) effectiveLoad += bw;
+                                }
+                                totalVolume += (effectiveLoad * actualReps);
+                                if (effectiveLoad > maxLoad) maxLoad = effectiveLoad;
                                 
                                 exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe, isTargetSet: true });
                             }
@@ -1917,9 +2031,9 @@
             const exEl = document.getElementById('sum-ex');
 
             if (timeEl) timeEl.innerText = timeString;
-            if (volEl) volEl.innerText = `${totalVolume.toLocaleString()} kg`;
+            if (volEl) volEl.innerText = `${kgDisp(totalVolume).toLocaleString()} ${unitSuffix()}`;
             if (setsEl) setsEl.innerText = completedSets;
-            if (maxEl) maxEl.innerText = `${maxLoad} kg`;
+            if (maxEl) maxEl.innerText = `${kgDisp(maxLoad)} ${unitSuffix()}`;
             if (exEl) exEl.innerText = exCount;
             // ------------------------
             
@@ -1952,17 +2066,14 @@
             }
         }
 
-        let _noteDebounce = null;
         window.saveSessionNote = function(val) {
-            clearTimeout(_noteDebounce);
-            _noteDebounce = setTimeout(() => {
-                if (!window._lastSummaryLogId) return;
-                const idx = workoutHistoryCache.findIndex(h => h.id === window._lastSummaryLogId);
-                if (idx === -1) return;
-                if (val.trim()) workoutHistoryCache[idx].note = val.trim();
-                else delete workoutHistoryCache[idx].note;
-                setDB('workoutHistory', workoutHistoryCache);
-            }, 600);
+            const entry = workoutHistoryCache.find(h => h.id === window._lastSummaryLogId);
+            if (!entry) return;
+            if (val.trim()) entry.note = val.trim();
+            else delete entry.note;
+            // Start persistence while the input event is active, before navigation or
+            // closing the PWA can discard a debounce timer. Exports see the edit now too.
+            return setDB('workoutHistory', workoutHistoryCache);
         };
 
     let currentChartEx = '';
@@ -2491,13 +2602,13 @@
                 if (log.details && log.details.length > 0) {
                     detailsHtml = `<div class="history-details">`;
                     log.details.forEach(ex => {
-                        detailsHtml += `<div class="hd-ex-name">${ex.name}</div>`;
+                        detailsHtml += `<div class="hd-ex-name">${escapeHtml(ex.name)}</div>`;
                         ex.sets.forEach((set, i) => {
-                            let rpeText = set.rpe ? `RPE ${set.rpe}` : '';
+                            let rpeText = set.rpe ? `RPE ${escapeHtml(set.rpe)}` : '';
                             detailsHtml += `
                             <div class="hd-set-row">
                                 <span>Set ${i+1}</span>
-                                <span>${kgDisp(set.load)} ${unitSuffix()} × ${set.reps}</span>
+                                <span>${kgDisp(set.load)} ${unitSuffix()} × ${escapeHtml(set.reps)}</span>
                                 <span>${rpeText}</span>
                             </div>`;
                             if (set.note) detailsHtml += `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 0 6px 12px;">↳ ${escapeHtml(set.note)}</div>`;
@@ -2510,8 +2621,8 @@
 
                 const dur = fmtDuration(log.duration);
                 const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
-                const safeId  = (log.id  || '').replace(/'/g, "\\'");
-                const safeKey = (log.key || '').replace(/'/g, "\\'");
+                const safeId  = escapeHtml(log.id);
+                const safeKey = escapeHtml(log.key);
                 return `
                 <div class="swipe-wrapper hist-swipe">
                     <div class="swipe-delete-bg" style="right:15px;">
@@ -2519,9 +2630,9 @@
                     </div>
                     <details class="history-card hist-swipable" data-id="${safeId}" data-key="${safeKey}">
                         <summary class="history-summary">
-                            <span class="history-date">${log.date}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
-                            <h3 class="history-title">${log.programName} (W${log.week} D${log.day})</h3>
-                            <div class="history-stats">${log.sets} Sets • ${volDisplay} Volume</div>
+                            <span class="history-date">${escapeHtml(log.date)}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
+                            <h3 class="history-title">${escapeHtml(log.programName)} (W${escapeHtml(log.week)} D${escapeHtml(log.day)})</h3>
+                            <div class="history-stats">${escapeHtml(log.sets)} Sets • ${volDisplay} Volume</div>
                             ${log.note ? `<div class="history-note">"${escapeHtml(log.note)}"</div>` : ''}
                             <div class="history-expand-indicator">▼ Expand</div>
                         </summary>
@@ -2624,8 +2735,10 @@
         };
 
         let _undoTimer = null;
+        let _undoDismiss = null;
         function showUndoToast(label, onCommit, onUndo) {
-            if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+            // Replacing a toast ends the previous undo window; commit that deletion.
+            if (_undoDismiss) _undoDismiss(true);
             const existing = document.getElementById('undo-toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
@@ -2633,25 +2746,30 @@
             toast.innerHTML = `<span>${label}</span><button id="undo-toast-btn">UNDO</button>`;
             document.body.appendChild(toast);
             requestAnimationFrame(() => toast.classList.add('show'));
+            let dismissed = false;
             const dismiss = (commit) => {
+                if (dismissed) return;
+                dismissed = true;
                 clearTimeout(_undoTimer); _undoTimer = null;
+                _undoDismiss = null;
                 toast.classList.remove('show');
                 setTimeout(() => { if (toast.parentNode) toast.remove(); }, 250);
                 if (commit) onCommit(); else if (onUndo) onUndo();
             };
+            _undoDismiss = dismiss;
             document.getElementById('undo-toast-btn').onclick = () => dismiss(false);
             _undoTimer = setTimeout(() => dismiss(true), 4000);
         }
 
         function deleteHistoryLog(id, key) {
-            workoutHistoryCache = workoutHistoryCache.filter(h => h.id !== id);
+            workoutHistoryCache = workoutHistoryCache.filter(h => String(h.id) !== String(id));
             setDB('workoutHistory', workoutHistoryCache);
-            delete completedDays[key];
-            localStorage.setItem('completedDays', JSON.stringify(completedDays));
-            localStorage.removeItem(key);
-            if (activeWorkout && activeWorkout.key === key) {
-                activeWorkout = null;
-                localStorage.removeItem('activeWorkout');
+            // A repeated day can have several history entries and a new active session.
+            // Deleting one old log must preserve those other sessions and their inputs.
+            if (!workoutHistoryCache.some(h => h.key === key)) {
+                delete completedDays[key];
+                localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                if (!activeWorkout || activeWorkout.key !== key) localStorage.removeItem(key);
             }
             renderHistory();
             updateDashboard();
@@ -2697,8 +2815,7 @@
             const targetDay = days.includes(selectedDay) ? selectedDay : days[days.length - 1];
 
             if (activeWorkout) {
-                activeWorkout = null;
-                localStorage.removeItem('activeWorkout');
+                discardActiveWorkout();
             }
 
             // Mark all days before the target position as completed in the new program
@@ -2737,10 +2854,9 @@
                 true
             );
             if(confirmed) {
+                discardActiveWorkout();
                 currentProgram = null;
                 localStorage.removeItem('activeProgram');
-                activeWorkout = null;
-                localStorage.removeItem('activeWorkout');
                 updateLibraryUI();
                 switchTab('home-screen');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2759,20 +2875,11 @@
                 const key = getWorkoutKey();
                 
                 // REVERT ENGINE: Restore the snapshot if resetting the currently active day
-                if (activeWorkout && activeWorkout.key === key && activeWorkout.backupState) {
-                    localStorage.setItem('actualBests', JSON.stringify(activeWorkout.backupState.actualBests));
-                    localStorage.setItem('global1RMs', JSON.stringify(activeWorkout.backupState.global1RMs));
-                    localStorage.setItem('lastUsedWeights', JSON.stringify(activeWorkout.backupState.lastUsedWeights));
-                    if (activeWorkout.backupState.prHistory) localStorage.setItem('prHistory', JSON.stringify(activeWorkout.backupState.prHistory));
-                }
+                if (activeWorkout && activeWorkout.key === key) discardActiveWorkout();
 
                 localStorage.removeItem(key);
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                if (activeWorkout && activeWorkout.key === key) {
-                    activeWorkout = null;
-                    localStorage.removeItem('activeWorkout');
-                }
                 renderDayPills();
                 renderWorkout(); 
                 updateBanners();
@@ -2798,8 +2905,7 @@
                 });
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
                 if(activeWorkout && activeWorkout.program === currentProgram && activeWorkout.week === selectedWeek) {
-                    activeWorkout = null;
-                    localStorage.removeItem('activeWorkout');
+                    discardActiveWorkout();
                 }
                 renderDayPills();
                 renderWorkout();
@@ -2830,8 +2936,7 @@
                 localStorage.removeItem(`programSwaps_${currentProgram}`);
                 localStorage.removeItem(`programModes_${currentProgram}`);
                 if(activeWorkout && activeWorkout.program === currentProgram) {
-                    activeWorkout = null;
-                    localStorage.removeItem('activeWorkout');
+                    discardActiveWorkout();
                 }
                 renderWeekPills();
                 renderDayPills();
@@ -2849,9 +2954,12 @@
                 true
             );
             if (confirmed) {
+                // Remove photos before clearing their privacy-lock settings.
+                await setDB('progressPictures', []);
+                await setDB('workoutHistory', []);
+                discardActiveWorkout();
                 localStorage.clear();
                 workoutHistoryCache = [];
-                await setDB('workoutHistory', []); // Clear DB
                 
                 completedDays = {};
                 activeWorkout = null;
@@ -3749,8 +3857,8 @@
             sorted1RMs = [...sorted1RMs, ...other1RMs];
 
             sorted1RMs.forEach(ex => {
-                const safeExJS = ex.replace(/'/g, "\\'");
-                const safeExHTML = ex.replace(/"/g, '&quot;');
+                const safeExJS = escapeHtml(JSON.stringify(ex));
+                const safeExHTML = escapeHtml(ex);
                 html += `
                 <div class="swipe-wrapper stat-swipe">
                     <div class="swipe-delete-bg" style="right: 15px;">
@@ -3759,7 +3867,7 @@
                     <div class="stat-card stat-swipable" style="padding: 12px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
                         <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
                         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                            <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM('${safeExJS}', this.value)" inputmode="decimal">
+                            <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM(${safeExJS}, this.value)" inputmode="decimal">
                             <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
                         </div>
                     </div>
@@ -3786,13 +3894,13 @@
                     html += '<div class="pr-sbd-row">';
                     sbdPresent.forEach(ex => {
                         const b = actualBests[ex];
-                        const safeExHTML = ex.replace(/"/g, '&quot;');
-                        const safeExJS = ex.replace(/'/g, "\\'");
+                        const safeExHTML = escapeHtml(ex);
+                        const safeExJS = escapeHtml(JSON.stringify(ex));
                         html += `<div class="swipe-wrapper sbd-swipe">
                             <div class="swipe-delete-bg" style="right:8px;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </div>
-                            <div class="pr-sbd-card stat-swipable" data-exname="${safeExHTML}" onclick="window.togglePRTimeline('${safeExJS}')">
+                            <div class="pr-sbd-card stat-swipable" data-exname="${safeExHTML}" onclick="window.togglePRTimeline(${safeExJS})">
                                 <div class="pr-sbd-lift">${ex === 'Bench Press' ? 'Bench' : ex}</div>
                                 <div class="pr-sbd-weight">${kgDisp(b.weight)}<span class="pr-sbd-unit"> ${unitSuffix()}</span></div>
                                 <div class="pr-sbd-detail">× ${b.reps} rep${b.reps > 1 ? 's' : ''}</div>
@@ -3812,15 +3920,15 @@
                 const nonSBD = otherKeysBest.filter(k => allBestKeys.includes(k));
                 nonSBD.forEach(ex => {
                     const b = actualBests[ex];
-                    const safeExHTML = ex.replace(/"/g, '&quot;');
-                    const safeExJS   = ex.replace(/'/g, "\\'");
+                    const safeExHTML = escapeHtml(ex);
+                    const safeExJS = escapeHtml(JSON.stringify(ex));
                     const tlId = 'prtl-' + encodeURIComponent(ex);
                     html += `
                     <div class="swipe-wrapper stat-swipe">
                         <div class="swipe-delete-bg" style="right:15px;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </div>
-                        <div class="stat-card stat-swipable" style="padding:14px 18px;margin-bottom:0;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;" data-exname="${safeExHTML}" onclick="window.togglePRTimeline('${safeExJS}')">
+                        <div class="stat-card stat-swipable" style="padding:14px 18px;margin-bottom:0;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;" data-exname="${safeExHTML}" onclick="window.togglePRTimeline(${safeExJS})">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <span class="stat-name" style="flex:1;padding-right:10px;word-break:break-word;line-height:1.3;">${ex}</span>
                                 <span class="stat-value" style="color:var(--teal);white-space:nowrap;">${kgDisp(b.weight)} ${unitSuffix()} <span style="font-size:13px;color:var(--text-muted);">× ${b.reps}</span></span>
@@ -4239,7 +4347,7 @@
                     driftHtml = `<span style="margin-left:auto; font-size:11px; font-weight:800; color:${color}; display:inline-flex; align-items:center; gap:3px; letter-spacing:0.5px;">${arrow} ${drift.label} <span style="opacity:0.7; font-weight:600;">(${delta})</span></span>`;
                 }
 
-                const notesHtml = ex.notes ? `<div class="coach-notes">${ex.notes}</div>` : ''; 
+                const notesHtml = ex.notes ? `<div class="coach-notes">${escapeHtml(ex.notes)}</div>` : '';
                 const liftClass = isMain ? 'main-lift' : 'acc-lift';
                 
                 const warmupColor = isMain ? 'var(--accent)' : 'var(--teal)';
@@ -4266,16 +4374,15 @@
                     dataIdx = `data-exindex="${exIndex}"`;
                 }
 
-                // Safely encode the notes so newlines and quotes don't break the HTML!
-                    // Safely encode the notes so newlines and quotes don't break the HTML!
-                    const safeNotes = encodeURIComponent((ex.notes || '').replace(/'/g, "%27"));
+                    // Escape apostrophes after encoding so editing preserves the original text.
+                    const safeNotes = encodeURIComponent(ex.notes || '').replace(/'/g, '%27');
 
                     // NEW: Smart Note Display Logic
                     let displayNotesHtml = '';
                     if (!isNonExercise) {
                         if (ex.notes) {
                             // Note exists: Show it with a pencil icon
-                            displayNotesHtml = `<div class="coach-notes" onclick="openNoteModal(${exIndex}, decodeURIComponent('${safeNotes}'))" style="cursor:pointer;" title="Tap to edit">✎ ${ex.notes}</div>`;
+                            displayNotesHtml = `<div class="coach-notes" onclick="openNoteModal(${exIndex}, decodeURIComponent('${safeNotes}'))" style="cursor:pointer;" title="Tap to edit">✎ ${escapeHtml(ex.notes)}</div>`;
                         } else if (!isCompleted) {
                             // No note yet: Show a subtle "Add Note" button
                             displayNotesHtml = `<div class="coach-notes" onclick="openNoteModal(${exIndex}, '')" style="cursor:pointer; opacity: 0.4; font-size: 13px;">+ Add Note</div>`;
@@ -4291,20 +4398,20 @@
                             <div style="position: absolute; left: 12px; top: 16px;">
                                 <button class="btn-warmup-icon"
                                         style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;"
-                                        onclick="openSwapModal(${exIndex}, '${(ex._originalName || ex.name).replace(/'/g, "\\'")}')" title="Swap Exercise">
+                                        onclick="openSwapModal(${exIndex}, ${escapeHtml(JSON.stringify(ex._originalName || ex.name))})" title="Swap Exercise">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                                 </button>
                             </div>
                             `}
                             
-                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${ex.name.replace(/'/g, "\\'")}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
+                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay(${escapeHtml(JSON.stringify(ex.name))})` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
                                 ${variationTitleHtml(ex, exIndex, isNonExercise)}
                             </h2>
                             
                             ${isNonExercise ? '' : `
                             <button class="btn-warmup-icon" 
                                     style="border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
-                                    onclick="openWarmupGenerator('${exId}', '${ex.name.replace(/'/g, "\\'")}', ${isMain})">
+                                    onclick="openWarmupGenerator('${exId}', ${escapeHtml(JSON.stringify(ex.name))}, ${isMain})" aria-label="Generate warmup">
                                 ${warmupSvg}
                             </button>
                             `}
@@ -4312,11 +4419,11 @@
 
                         ${!isNonExercise ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
-                            const safeExJS = ex.name.replace(/'/g, "\\'");
+                            const safeExJS = escapeHtml(JSON.stringify(ex.name));
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
                             const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
                             const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
-                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode('${safeExJS}')">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
+                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
                         })() : ''}
 
                         ${displayNotesHtml}
@@ -4488,7 +4595,7 @@
                         const isChecked = savedSession[checkId] ? 'checked' : '';
                         const disabledAttr = isChecked ? 'disabled' : '';
 
-                        let e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
+                        let e1rmCell = `<span><button class="e1rm-btn" id="e1rm-btn-${rowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${rowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>`;
 
                         const repsClass = 'input-box saveable calc-trigger';
                         const rpeClass = 'input-box input-rpe saveable calc-trigger';
@@ -4543,7 +4650,7 @@
                                 <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
                                 <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${ex.name}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
@@ -4597,13 +4704,13 @@
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${ex.name}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
                                     </button>`}
                                 </span>
-                                <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${ex.name}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
+                                <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>`;
                         });
@@ -4866,10 +4973,74 @@
             });
         }
 
+        // Keep all row fields (including notes, durations and target sets) attached to
+        // their exercise/block/set when a custom template or a set is spliced.
+        function reindexSessionAfterDelete(session, exIndex, bIndex = null, setNum = null) {
+            const remap = (e, b = null, s = null) => {
+                if (bIndex === null) {
+                    if (e === exIndex) return null;
+                    return [e > exIndex ? e - 1 : e, b, s];
+                }
+                if (e !== exIndex) return [e, b, s];
+                if (setNum === null) {
+                    if (b === bIndex) return null;
+                    return [e, b > bIndex ? b - 1 : b, s];
+                }
+                if (b !== bIndex) return [e, b, s];
+                if (s === setNum) return null;
+                return [e, b, s > setNum ? s - 1 : s];
+            };
+            const result = {};
+            Object.entries(session).forEach(([key, value]) => {
+                const row = key.match(/^ex-(\d+)_b(\d+)_s(\d+)(.*)$/);
+                const extra = key.match(/^extras_(\d+)_(\d+)_s(\d+)$/);
+                const match = row || extra;
+                if (match) {
+                    const mapped = remap(Number(match[1]), Number(match[2]), Number(match[3]));
+                    if (mapped) result[row ? `ex-${mapped[0]}_b${mapped[1]}_s${mapped[2]}${row[4]}` : `extras_${mapped[0]}_${mapped[1]}_s${mapped[2]}`] = value;
+                } else {
+                    result[key] = value;
+                }
+            });
+            if (setNum === null) {
+                if (result.modifiedBlocks) {
+                    result.modifiedBlocks = Object.fromEntries(Object.entries(result.modifiedBlocks).flatMap(([key, value]) => {
+                        const [e, b] = key.split('_').map(Number);
+                        const mapped = remap(e, b);
+                        return mapped ? [[`${mapped[0]}_${mapped[1]}`, value]] : [];
+                    }));
+                }
+                if (result.deletedBlocks) {
+                    result.deletedBlocks = result.deletedBlocks.flatMap(key => {
+                        const [e, b] = key.split('_').map(Number);
+                        const mapped = remap(e, b);
+                        return mapped ? [`${mapped[0]}_${mapped[1]}`] : [];
+                    });
+                }
+                if (bIndex === null) {
+                    ['swappedNames', 'supersets', 'modifiedNotes', 'modifiedExBlocks'].forEach(field => {
+                        if (result[field]) result[field] = Object.fromEntries(Object.entries(result[field]).flatMap(([key, value]) => {
+                            const mapped = remap(Number(key));
+                            return mapped ? [[mapped[0], value]] : [];
+                        }));
+                    });
+                    ['customOrder', 'deletedIndices'].forEach(field => {
+                        if (result[field]) result[field] = result[field].flatMap(e => {
+                            const mapped = remap(Number(e));
+                            return mapped ? [mapped[0]] : [];
+                        });
+                    });
+                }
+            }
+            return result;
+        }
+
         window.deleteCustomExercise = function(exIndex) {
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
             if (isCustomProgram) {
                 db[currentProgram].weeks[selectedWeek][selectedDay].splice(exIndex, 1);
+                const key = getWorkoutKey();
+                localStorage.setItem(key, JSON.stringify(reindexSessionAfterDelete(safeParse(key, {}), exIndex)));
                 const customProgs = safeParse('customPrograms', {});
                 if (customProgs[currentProgram]) {
                     customProgs[currentProgram] = db[currentProgram];
@@ -5119,7 +5290,7 @@
                 if (ex.isDeleted) return;
                 html += `
                 <div class="reorder-item" data-origidx="${ex.origIdx}">
-                    <span style="flex: 1; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${ex.name}</span>
+                    <span style="flex: 1; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${escapeHtml(ex.name)}</span>
                     <div class="drag-handle">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </div>
@@ -5527,7 +5698,10 @@
 
         window.addSetToBlock = function(exIndex, bIndex) {
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
-            if (isCustomProgram) {
+            const key = getWorkoutKey();
+            const exercise = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex];
+            if (!exercise || !exercise.blocks[bIndex]) return;
+            if (isCustomProgram && !exercise._mode) {
                 db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].blocks[bIndex].sets++;
                 const customProgs = safeParse('customPrograms', {});
                 if (customProgs[currentProgram]) {
@@ -5535,16 +5709,11 @@
                     localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                 }
             } else {
-                const key = getWorkoutKey();
                 let savedSession = safeParse(key, {});
                 if (!savedSession.modifiedBlocks) savedSession.modifiedBlocks = {};
                 
                 const bKey = `${exIndex}_${bIndex}`;
-                let currentSets = savedSession.modifiedBlocks[bKey];
-                if (currentSets === undefined) {
-                    const baseEx = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex];
-                    currentSets = baseEx.blocks[bIndex].sets;
-                }
+                const currentSets = exercise.blocks[bIndex].sets;
                 
                 savedSession.modifiedBlocks[bKey] = currentSets + 1;
                 localStorage.setItem(key, JSON.stringify(savedSession));
@@ -5557,39 +5726,32 @@
             const key = getWorkoutKey();
             let savedSession = safeParse(key, {});
             const isCustomProgram = currentProgram && currentProgram.startsWith('Custom_');
-            
-            let currentSets = 0;
-            if (isCustomProgram) {
-                currentSets = db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].blocks[bIndex].sets;
-            } else {
-                if (!savedSession.modifiedBlocks) savedSession.modifiedBlocks = {};
-                const bKey = `${exIndex}_${bIndex}`;
-                currentSets = savedSession.modifiedBlocks[bKey];
-                if (currentSets === undefined) {
-                    const baseEx = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex];
-                    currentSets = baseEx.blocks[bIndex].sets;
-                }
-            }
+            const exercise = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex];
+            if (!exercise || !exercise.blocks[bIndex]) return;
+            const currentSets = exercise.blocks[bIndex].sets;
+            const editTemplate = isCustomProgram && !exercise._mode;
+            if (setNum < 1 || setNum > currentSets) return;
 
             if (currentSets <= 1) {
                 // Deleting the only set of a block removes the whole block. If it is the
                 // exercise's last remaining block, remove the entire exercise instead.
-                const liveBlocks = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex]
-                    .blocks.filter(b => !b._deleted).length;
+                const liveBlocks = exercise.blocks.filter(b => !b._deleted).length;
                 if (liveBlocks <= 1) {
                     deleteCustomExercise(exIndex);
                     return;
                 }
-                // Drop any saved set data for this single-set block so it doesn't linger.
-                ['reps', 'rpe', 'load', 'check'].forEach(suffix => delete savedSession[`ex-${exIndex}_b${bIndex}_s1_${suffix}`]);
-                if (isCustomProgram) {
+                if (editTemplate) {
                     db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].blocks.splice(bIndex, 1);
+                    savedSession = reindexSessionAfterDelete(savedSession, exIndex, bIndex);
                     const customProgs = safeParse('customPrograms', {});
                     if (customProgs[currentProgram]) {
                         customProgs[currentProgram] = db[currentProgram];
                         localStorage.setItem('customPrograms', JSON.stringify(customProgs));
                     }
                 } else {
+                    Object.keys(savedSession).forEach(field => {
+                        if (field.startsWith(`ex-${exIndex}_b${bIndex}_`) || field.startsWith(`extras_${exIndex}_${bIndex}_`)) delete savedSession[field];
+                    });
                     if (!savedSession.deletedBlocks) savedSession.deletedBlocks = [];
                     savedSession.deletedBlocks.push(`${exIndex}_${bIndex}`);
                     if (savedSession.modifiedBlocks) delete savedSession.modifiedBlocks[`${exIndex}_${bIndex}`];
@@ -5599,22 +5761,9 @@
                 return;
             }
 
-            // Shift data up so the specifically deleted set disappears smoothly
-            for (let s = setNum; s < currentSets; s++) {
-                const oldPrefix = `ex-${exIndex}_b${bIndex}_s${s+1}`;
-                const newPrefix = `ex-${exIndex}_b${bIndex}_s${s}`;
-                ['reps', 'rpe', 'load', 'check'].forEach(suffix => {
-                    if (savedSession[`${oldPrefix}_${suffix}`] !== undefined) {
-                        savedSession[`${newPrefix}_${suffix}`] = savedSession[`${oldPrefix}_${suffix}`];
-                    } else {
-                        delete savedSession[`${newPrefix}_${suffix}`];
-                    }
-                });
-            }
-            const lastPrefix = `ex-${exIndex}_b${bIndex}_s${currentSets}`;
-            ['reps', 'rpe', 'load', 'check'].forEach(suffix => delete savedSession[`${lastPrefix}_${suffix}`]);
+            savedSession = reindexSessionAfterDelete(savedSession, exIndex, bIndex, setNum);
 
-            if (isCustomProgram) {
+            if (editTemplate) {
                 db[currentProgram].weeks[selectedWeek][selectedDay][exIndex].blocks[bIndex].sets--;
                 const customProgs = safeParse('customPrograms', {});
                 if (customProgs[currentProgram]) {
@@ -5623,6 +5772,7 @@
                 }
             } else {
                 const bKey = `${exIndex}_${bIndex}`;
+                if (!savedSession.modifiedBlocks) savedSession.modifiedBlocks = {};
                 savedSession.modifiedBlocks[bKey] = currentSets - 1;
             }
             
@@ -5865,7 +6015,14 @@
                 const actionBtn = document.getElementById('timer-action-btn');
                 if (actionBtn) actionBtn.innerText = "Skip";
             }
-            if (timeLeft > 0) scheduleSWAlarm(); // keep the SW alarm in sync with ±15s
+            if (timeLeft > 0) {
+                scheduleSWAlarm(); // keep the SW alarm in sync with ±15s
+                const fab = document.querySelector('.global-timer-fab');
+                if (fab) fab.classList.add('timer-active');
+            } else if (!banner.classList.contains('finished')) {
+                playBeep();
+                completeTimer();
+            }
             updateTimerDisplay();
         }
 
@@ -5938,11 +6095,12 @@
                         const loadEl = document.getElementById(`${baseId}_load`);
                         const repsEl = document.getElementById(`${baseId}_reps`);
                         const exName = loadEl ? (loadEl.dataset.exname || '') : '';
-                        const load = loadEl ? (loadEl.value || loadEl.placeholder || '') : '';
+                        const rawLoad = loadEl ? parseFloat(loadEl.value || loadEl.placeholder) : NaN;
+                        const load = Number.isFinite(rawLoad) ? kgDisp(rawLoad) : '';
                         const reps = repsEl ? (repsEl.value || '') : '';
                         if (exName) {
                             const unit = getUnit();
-                            const loadStr = load ? `${load} ${unit}` : '';
+                            const loadStr = load !== '' ? `${load} ${unit}` : '';
                             const repsStr = reps ? `for ${reps} reps` : '';
                             utterText = `Rest complete. Next up: ${exName}${loadStr ? ', ' + loadStr : ''}${repsStr ? ', ' + repsStr : ''}.`;
                         }
@@ -6028,6 +6186,7 @@
             const loadInput = document.getElementById(baseId + '_load');
             const rpeInput = document.getElementById(baseId + '_rpe');
             const repsInput = document.getElementById(baseId + '_reps'); // NEW: grabs editable reps
+            const exName = loadInput ? normalizeExName(loadInput.dataset.exname) : '';
             
             if (isChecked) {
                 if (loadInput) loadInput.disabled = true;
@@ -6038,7 +6197,6 @@
                     const val = parseFloat(loadInput.value);
                     saveSessionState(loadInput.id, loadInput.value);
                     
-                    const exName = normalizeExName(loadInput.dataset.exname);
                     let lastUsed = safeParse('lastUsedWeights', {});
                     
                     // NEW: Convert old memory to object and save strictly by Set Number
@@ -6126,7 +6284,7 @@
                 const myoType = el.dataset.myotype;
                 const currentLoad = loadInput ? loadInput.value : '';
 
-                if (myoType && myoType !== 'drop' && currentLoad !== '') {
+                if (myoType === 'activation' && currentLoad !== '') {
                     // MYO-REP / DROP-SET CASCADE: Push load to next sets, but STOP if we hit a new Activation block.
                     // Only an Activation set triggers this; Myo back-offs get the same load, drops get the
                     // activation load stripped by their cumulative factor. Checking a drop never cascades.
@@ -6598,18 +6756,7 @@
                 true
             );
             if (confirmed) {
-                // REVERT ENGINE: Restore the snapshot from before the workout started
-                if (activeWorkout && activeWorkout.backupState) {
-                    localStorage.setItem('actualBests', JSON.stringify(activeWorkout.backupState.actualBests));
-                    localStorage.setItem('global1RMs', JSON.stringify(activeWorkout.backupState.global1RMs));
-                    localStorage.setItem('lastUsedWeights', JSON.stringify(activeWorkout.backupState.lastUsedWeights));
-                    if (activeWorkout.backupState.prHistory) localStorage.setItem('prHistory', JSON.stringify(activeWorkout.backupState.prHistory));
-                }
-
-                const key = getWorkoutKey();
-                localStorage.removeItem(key); // Clear the session state
-                activeWorkout = null;
-                localStorage.removeItem('activeWorkout');
+                discardActiveWorkout();
                 renderDayPills();
                 renderWorkout();
                 updateBanners();
@@ -6804,8 +6951,7 @@
                 
                 // NEW: Safely cancel any active session tied to this deleted template
                 if (activeWorkout && activeWorkout.program === pid) {
-                    activeWorkout = null;
-                    localStorage.removeItem('activeWorkout');
+                    discardActiveWorkout();
                     updateBanners();
                 }
                 
@@ -6982,7 +7128,7 @@
                         exHtml += `
                         <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); border-left: 3px solid ${stripeColor};">
                             <div style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); color: ${stripeColor}; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${idx + 1}</div>
-                            <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                            <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ex.name)}</span>
                         </div>`;
                     });
                     exHtml += `</div>`;
@@ -7124,7 +7270,10 @@
         let warmupEditMode = false;
 
         function getWarmupItems() {
-            return safeParse('warmupRoutine', DEFAULT_WARMUP);
+            const items = safeParse('warmupRoutine', DEFAULT_WARMUP);
+            if (!Array.isArray(items)) return [...DEFAULT_WARMUP];
+            // Older backups may store { text } entries instead of strings.
+            return items.map(item => typeof item === 'string' ? item : String(item?.text || ''));
         }
 
         function saveWarmupItems(items) {
@@ -7147,7 +7296,7 @@
                     ${items.map((item, i) => `
                         <div class="warmup-item">
                             <span class="warmup-num">${i + 1}</span>
-                            <span class="warmup-item-text">${item}</span>
+                            <span class="warmup-item-text">${escapeHtml(item)}</span>
                         </div>
                     `).join('')}
                 `;
@@ -7156,7 +7305,7 @@
                     <div style="margin-bottom:12px;">
                         ${items.map((item, i) => `
                             <div class="warmup-edit-row">
-                                <input class="warmup-edit-input" value="${item.replace(/"/g, '&quot;')}"
+                                <input class="warmup-edit-input" value="${escapeHtml(item)}"
                                     onchange="window.updateWarmupItem(${i}, this.value)" />
                                 <button class="warmup-del-btn" onclick="window.deleteWarmupItem(${i})">×</button>
                             </div>
@@ -7241,25 +7390,32 @@
         }
 
         // ── PR Timeline toggle ────────────────────────────────────────────────
+        function safePRVideoURL(value) {
+            try {
+                const url = new URL(String(value).trim());
+                return ['https:', 'http:'].includes(url.protocol) ? url.href : '';
+            } catch (_) { return ''; }
+        }
+
         function renderPRTimelineEl(exName, el) {
             const prHist = safeParse('prHistory', {});
             const entries = (prHist[exName] || []).slice().reverse();
             if (entries.length === 0) {
                 el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0;">No PR progression recorded yet.</div>';
             } else {
-                const safeExJS = exName.replace(/'/g, "\\'");
+                const safeExJS = escapeHtml(JSON.stringify(exName));
                 el.innerHTML = entries.map(e => {
-                    const hasVideo = !!e.videoUrl;
-                    const videoBtn = hasVideo
-                        ? `<button class="pr-video-btn has-video" onclick="event.stopPropagation();window.open('${e.videoUrl}','_blank')" title="Watch form video">▶</button>`
-                        : `<button class="pr-video-btn" onclick="event.stopPropagation();window.addPRVideo('${safeExJS}',${e.date})" title="Add form video">📹</button>`;
+                    const videoUrl = safePRVideoURL(e.videoUrl);
+                    const videoBtn = videoUrl
+                        ? `<a class="pr-video-btn has-video" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="Watch form video">▶</a>`
+                        : `<button class="pr-video-btn" onclick="event.stopPropagation();window.addPRVideo(${safeExJS},${Number(e.date)})" title="Add form video">📹</button>`;
                     return `
                     <div class="pr-tl-entry">
-                        <span class="pr-tl-val">${kgDisp(e.weight)} ${unitSuffix()} × ${e.reps} <span style="color:var(--text-muted);font-size:11px;">(${kgDisp(e.e1rm)} e1RM)</span></span>
+                        <span class="pr-tl-val">${kgDisp(e.weight)} ${unitSuffix()} × ${escapeHtml(e.reps)} <span style="color:var(--text-muted);font-size:11px;">(${kgDisp(e.e1rm)} e1RM)</span></span>
                         <span style="display:flex;align-items:center;gap:6px;">
                             ${videoBtn}
                             <span class="pr-tl-date">${fmtShortDate(e.date)}</span>
-                            <button onclick="event.stopPropagation();window.deletePREntry('${safeExJS}',${e.date})" style="background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0;opacity:0.5;" title="Delete this PR">×</button>
+                            <button onclick="event.stopPropagation();window.deletePREntry(${safeExJS},${Number(e.date)})" style="background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0;opacity:0.5;" title="Delete this PR">×</button>
                         </span>
                     </div>`;
                 }).join('');
@@ -7287,7 +7443,9 @@
             const entry = prHist[exName].find(e => e.date === entryDate);
             if (!entry) { document.getElementById('pr-video-modal').style.display = 'none'; return; }
             if (url.trim()) {
-                entry.videoUrl = url.trim();
+                const videoUrl = safePRVideoURL(url);
+                if (!videoUrl) { alert('Enter a complete http:// or https:// video link.'); return; }
+                entry.videoUrl = videoUrl;
             } else {
                 delete entry.videoUrl;
             }
