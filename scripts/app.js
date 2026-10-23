@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.04.0146";
+        const APP_VERSION = "v2026.10.23.1637";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -925,7 +925,7 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody'];
         const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
@@ -1582,17 +1582,20 @@
         // Renders the exercise title; if the name ends in a parenthetical naming a parent
         // lift that has a known ref 1RM (e.g. "Larsen Press (bench)"), the parenthetical is
         // a tappable link that opens the % -> ref-1RM slider modal.
-        function variationTitleHtml(ex, exIndex, isNonExercise) {
+        function variationTitleHtml(ex, exIndex, isNonExercise, techniqueLift = null) {
+            const title = name => techniqueLift
+                ? `<button type="button" class="exercise-guide-title" onclick="openTechniqueGuide('${techniqueLift}', this)" aria-label="${escapeHtml(name)} technique guide">${escapeHtml(name)}</button>`
+                : escapeHtml(name);
             if (!isNonExercise) {
                 const pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
                 if (pm && getResolved1RM(pm[2]) > 0) {
                     const safeFull = escapeJsAttr(ex.name);
                     const safeParent = escapeJsAttr(pm[2]);
                     const linkIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
-                    return `${escapeHtml(pm[1])} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">${linkIcon}${escapeHtml(pm[2])}</span>`;
+                    return `${title(pm[1])} <span class="variation-parent-link" onclick="event.stopPropagation(); openVariationPctModal(${exIndex}, '${safeFull}', '${safeParent}')">${linkIcon}${escapeHtml(pm[2])}</span>`;
                 }
             }
-            return escapeHtml(ex.name);
+            return title(ex.name);
         }
 
         function startProgram(programId) {
@@ -4476,6 +4479,7 @@
                 const timerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>`;
 
                 const isNonExercise = /rest|information|info|note/i.test(ex.name);
+                const techniqueLift = !isNonExercise && typeof getTechniqueLift === 'function' ? getTechniqueLift(ex.name) : null;
 
                 // NEW: Swipe-to-delete wrapper for Custom Workouts
                 let wrapperStart = '';
@@ -4525,8 +4529,8 @@
                             </div>
                             `}
                             
-                            <h2 class="ex-title" onclick="${!isNonExercise ? `openHistoryOverlay('${escapeJsAttr(ex.name)}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
-                                ${variationTitleHtml(ex, exIndex, isNonExercise)}
+                            <h2 class="ex-title" onclick="${!isNonExercise && !techniqueLift ? `openHistoryOverlay('${escapeJsAttr(ex.name)}')` : ''}" style="${isNonExercise ? 'padding: 0 10px; text-align: center; width: 100%;' : 'cursor:pointer; width: 100%; padding-bottom: 2px;'}">
+                                ${variationTitleHtml(ex, exIndex, isNonExercise, techniqueLift)}
                             </h2>
                             
                             ${isNonExercise ? '' : `
@@ -4537,6 +4541,8 @@
                             </button>
                             `}
                         </div>
+
+                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
 
                         ${!isNonExercise ? (() => {
                             const eqMode = getEquipmentMode(ex.name);

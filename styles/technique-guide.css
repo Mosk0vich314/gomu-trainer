@@ -1,0 +1,92 @@
+/* These rules live in the guide's shadow root. App theme variables inherit. */
+:host {
+    --surface: var(--card); --ink: var(--text-main); --muted: var(--text-muted);
+    --line: var(--border); --soft: var(--input-bg); --path: var(--teal);
+    --arm: #e3b35d; --good: var(--teal);
+    --f-body: 'DM Sans', sans-serif; --f-display: 'Space Grotesk', sans-serif;
+    --f-mono: 'Space Grotesk', sans-serif;
+    display: flex; flex-direction: column; height: 100%; min-height: 0;
+    color: var(--ink); font: 15px/1.65 var(--f-body);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button, a, summary { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h2 { font-size: clamp(27px, 5vw, 36px); letter-spacing: -1px; }
+h3 { font-size: 19px; letter-spacing: -.3px; }
+h4 { font-size: 17px; }
+p { margin: 0; max-width: 72ch; }
+a { color: var(--teal); text-underline-offset: 3px; }
+.guide-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px 12px; }
+.guide-header > div { display: grid; gap: 1px; }
+.guide-label { color: var(--accent); font-size: 12px; font-weight: 700; }
+.guide-header strong { font: 600 20px/1.3 var(--f-display); letter-spacing: -.5px; }
+.guide-close { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--input-bg); color: var(--ink); font-size: 18px; }
+.guide-nav { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 20px 12px; border-bottom: 1px solid var(--border); }
+.guide-nav button { background: none; color: var(--muted); border: 1px solid transparent; border-radius: 9px; padding: 8px 12px; min-height: 44px; font-size: 13px; font-weight: 600; }
+.guide-nav button[aria-pressed="true"] { background: var(--input-bg); color: var(--accent); border-color: var(--border); }
+.reader { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding: 24px; scrollbar-width: thin; }
+.lift { display: grid; gap: 18px; }
+.lift-head { display: grid; gap: 12px; }
+.lift-head > p { color: var(--muted); font-size: 14px; }
+.eyebrow, .phase { font-family: var(--f-body); color: var(--muted); font-size: 12px; text-transform: none; letter-spacing: 0; }
+.mono { font-family: var(--f-display); }
+.quick-cues { padding: 18px 0 6px; }
+.quick-cues h3 { font-size: 14px; color: var(--muted); margin-bottom: 12px !important; }
+.cues { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.cue { border: 0; border-left: 2px solid var(--accent); border-radius: 0; padding: 2px 0 2px 12px; background: none; gap: 6px; transition: none; }
+.cue:hover { transform: none; }
+.cue q { font-size: 17px; line-height: 1.3; }
+.cue span { font-size: 13px; line-height: 1.5; }
+.guide-topic { border-top: 1px solid var(--border); min-width: 0; }
+.guide-topic summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; cursor: pointer; list-style: none; font: 600 16px/1.4 var(--f-display); }
+.guide-topic summary::-webkit-details-marker { display: none; }
+.guide-topic summary::after { content: '+'; color: var(--accent); font-size: 24px; font-weight: 400; }
+.guide-topic[open] summary::after { content: '−'; }
+.guide-topic > :not(summary) { margin: 0 0 18px; }
+.grid2, .grid3 { gap: 24px; }
+.grid2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.panel { border-radius: 12px; padding: 18px; background: var(--bg); }
+.plain { gap: 14px; }
+.fig { margin: 0; }
+.fig svg { border-radius: 8px; }
+.fig figcaption { font-size: 13px; line-height: 1.6; }
+.ctrl { grid-template-columns: minmax(0, 1fr) 4.5rem; gap: 6px 10px; }
+.ctrl label { grid-column: 1 / -1; }
+.ctrl input[type=range] { min-height: 36px; min-width: 0; }
+.seg { border-color: var(--border); border-radius: 8px; flex-wrap: wrap; }
+.seg button { min-height: 44px; padding: 8px 14px; }
+.seg button[aria-pressed=true] { background: var(--input-bg); color: var(--accent); }
+.play { background: var(--input-bg); color: var(--ink); border: 1px solid var(--border); border-radius: 9px; min-height: 44px; }
+.play .pi { color: var(--accent); }
+.readout { border-radius: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.readout div { min-width: 0; }
+.readout span { text-transform: none; letter-spacing: 0; font-size: 12px; }
+.readout b { font-size: 15px; overflow-wrap: anywhere; }
+#segOut { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field input, .field select { border-radius: 8px; min-height: 44px; }
+.mine { border-color: var(--border); border-left-color: var(--accent); border-radius: 8px; }
+.mine b { text-transform: none; letter-spacing: 0; }
+.mine a { padding: 10px 4px; }
+.rxrow { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+.rule { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.rule .cmd { justify-self: start; background: var(--input-bg); color: var(--accent); }
+.tw { border-radius: 10px; }
+table { min-width: 560px; }
+th { text-transform: none; letter-spacing: 0; }
+ol.steps { gap: 16px; }
+ol.steps li { grid-template-columns: 1.5rem minmax(0, 1fr); }
+.guide-credit { padding: 24px 0 max(12px, env(safe-area-inset-bottom)); color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); margin-top: 24px; }
+@media (max-width: 480px) {
+    .guide-header { padding: 14px 18px 10px; }
+    .guide-nav { padding: 0 12px 10px; gap: 0; }
+    .guide-nav button { padding: 7px 10px; font-size: 12px; }
+    .reader { padding: 20px 18px; }
+    .cues { gap: 16px 12px; }
+    .cue q { font-size: 15px; }
+    .panel { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
