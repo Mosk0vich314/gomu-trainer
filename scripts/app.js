@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.23.1637";
+        const APP_VERSION = "v2026.10.23.1641";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -133,6 +133,7 @@
             { name: 'Magma',      accent: '#ff4d00', teal: '#ffcc00', bg: '#070202', card: '#140606', inputBg: '#220E0E', border: '#321818' }, // Deep Orange / Yellow
             { name: 'Ice',        accent: '#22d3ee', teal: '#f43f5e', bg: '#020709', card: '#071318', inputBg: '#0E222A', border: '#17333C' }, // Cyan / Rose Red
             { name: 'Inferno',    accent: '#BB2233', teal: '#F98825', bg: '#05080F', card: '#0F172A', inputBg: '#1A2640', border: '#2D3F5C', textMain: '#F4EAE1', textMuted: '#9A877E' }, // Demonic Red / Atomic Orange on Firmament Blue
+            { name: 'Expedition', accent: '#FFC801', teal: '#FF9932', bg: '#060C0E', card: '#172B36', inputBg: '#114C5A', border: '#32616A', textMain: '#F1F6F4', textMuted: '#D9E8E2' }, // Forsythia / Deep Saffron on Oceanic Noir, with Arctic Powder / Mystic Mint text
         ];
 
         window.themePickerExpanded = false;
