@@ -1,6 +1,13 @@
 # Bench video prototype
 
-Use **Analyze video** on a barbell bench exercise during a workout or its preview.
+Open **Iron Vault → Video analysis**, directly below the Big Three PR cards.
+This entry is available even without PRs, a selected program, or an active workout.
+Choose the bench variation, enter the original filming date, load in kg and actual
+reps, then select a video. Reviewed measurements appear under **Saved analyses**.
+The filming date is required and must be today or earlier; old videos calibrate
+the model under their actual training day. Squat and deadlift are not supported.
+
+You can also use **Analyze video** on a barbell bench exercise during a workout or its preview.
 Pick the set, choose a local video, trim to one complete set, and mark the plate
 centre and rim on the first frame. Enter the actual plate diameter and choose
 paused or touch-and-go. Workout load and actual rep count must already be filled.
@@ -50,6 +57,11 @@ Self-ratings are noisy labels and cannot establish true repetitions in reserve.
 - Optional self-ratings live in `videoRpeCalibration` (up to 100 distinct clips).
   The canonical backup preference path includes them. Session measurements and
   history already use the shared backup/merge paths. Factory reset removes them.
+- Independent Vault results live in `videoAnalysisArchive` (latest 100 distinct
+  clips), included in the same backup/restore preference path. Reanalyzing a clip
+  replaces its archived result and calibration rating; saving without a rating
+  removes its previous calibration observation. Videos are never archived.
+- Standalone analysis never writes workout sessions, checks sets, or creates PRs.
 - Saving does not check off a set, change PRs, change loads, or fill RPE by default.
   The explicit checkbox can fill the user's entered rating in an unchecked set.
 - The service worker precaches all three analysis assets. No new backend, npm

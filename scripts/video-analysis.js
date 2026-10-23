@@ -2,12 +2,27 @@
 (() => {
     let current = null;
     const calibrationKey = 'videoRpeCalibration';
+    const archiveKey = 'videoAnalysisArchive';
+    const readArchive = () => {
+        try {
+            const data = JSON.parse(localStorage.getItem(archiveKey) || '[]');
+            return Array.isArray(data) ? data.filter(s => s && typeof s.id === 'string' && typeof s.exercise === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.day) && Number.isFinite(s.load) && s.load > 0 && (s.ownRpe === null || (Number.isFinite(s.ownRpe) && s.ownRpe >= 6 && s.ownRpe <= 10)) && videoAnalysisCaption(s)).slice(-100) : [];
+        } catch { return []; }
+    };
+    window.renderVideoVault = function() {
+        const saved = readArchive().slice().reverse();
+        return `<section class="video-vault" aria-labelledby="video-vault-title"><p class="video-vault-kicker">Bench · experimental</p><h3 id="video-vault-title">Video analysis</h3><p>Explore an old bench video or a set from today. No active workout needed.</p><button type="button" class="bench-video-button" onclick="openBenchVideoAnalysis(null, this)">Analyze a video <span>RPE lab</span></button>${saved.length ? `<details class="video-vault-saved"><summary>Saved analyses (${saved.length})</summary>${saved.map(s => `<details class="video-vault-result"><summary>${escapeHtml(s.exercise)} · ${escapeHtml(s.day)}<span>${kgDisp(s.load)} ${unitSuffix()} × ${s.reps} · ${s.style === 'paused' ? 'Paused' : 'Touch and go'}</span></summary><p>${videoAnalysisCaption(s)}</p><p>${s.ownRpe === null ? 'No self-rating' : `Your RPE: ${s.ownRpe}`}</p>${Array.isArray(s.estimatedRange) && s.estimatedRange.length === 2 && s.estimatedRange.every(n => Number.isFinite(n) && n >= 6 && n <= 10) ? `<p>Experimental RPE estimate: ${s.estimatedRange[0]}–${s.estimatedRange[1]}</p>` : '<p class="va-hint">No RPE estimate available for this analysis.</p>'}</details>`).join('')}</details>` : '<p class="va-hint">Reviewed results appear here. Videos stay on your device and are not stored in the app.</p>'}</section>`;
+    };
     const markup = `
         <header class="va-header"><div><p>Bench lab · experimental</p><h2>Analyze a bench set</h2></div><button type="button" class="va-close" aria-label="Close video analysis">✕</button></header>
         <div class="va-body">
             <p class="va-intro">Measure your presses, then build a personal RPE profile. Your video stays on this device and is released when you close this window.</p>
             <details class="va-help"><summary>How to film for this prototype</summary><p>Use a stationary side-on camera with a clear view of the plate face. Keep the whole plate visible, use normal-speed video (ideally 60 fps), and press with your normal intent to move quickly. Slow-motion exports, moving cameras, spotter assistance, and deliberate slow-tempo presses are not supported.</p><p>Choose a clip of one set. Trim out the unrack and rerack, starting at lockout before the first lowering. Leave a short hold after the last press. Plate-based distance is an approximation; angled footage can distort it.</p></details>
             <fieldset class="va-settings">
+                <div id="va-standalone" hidden>
+                    <div class="va-fields"><label>Bench variation<select id="va-exercise"><option value="Bench Press">Bench / Barbell Bench</option><option value="Close Grip (bench)">Close-grip bench</option><option value="Larsen Press (bench)">Larsen press</option><option value="Spoto Press (bench)">Spoto press</option></select></label><label>Date filmed<input id="va-day" type="date" required></label><label>Load (kg)<input id="va-load" type="number" min="0.1" max="999" step="any" inputmode="decimal" placeholder="100"></label><label>Reps<input id="va-standalone-reps" type="number" min="1" max="20" step="1" inputmode="numeric" placeholder="5"></label></div>
+                    <p class="va-hint">Use the date you performed this set, so older videos count toward the correct training day. Bench press only for now.</p>
+                </div>
                 <div class="va-fields"><label>Set<select id="va-set"></select></label><label>Bench style<select id="va-style"><option value="">Choose style</option><option value="paused">Paused</option><option value="touch-go">Touch and go</option></select></label></div>
                 <label class="va-file">Choose set video<input id="va-file" type="file" accept="video/*"></label>
                 <div id="va-editor" hidden>
@@ -57,25 +72,35 @@
 
     window.openBenchVideoAnalysis = async function(exId, trigger) {
         if (current) { current.dialog.focus(); return; }
-        const exercise = document.getElementById(exId);
-        if (!exercise) return;
-        const inputs = [...exercise.querySelectorAll('input[data-exname][id$="_load"]')];
-        if (!inputs.length) return;
+        const standalone = exId == null;
+        const exercise = standalone ? null : document.getElementById(exId);
+        if (!standalone && !exercise) return;
+        const inputs = standalone ? [] : [...exercise.querySelectorAll('input[data-exname][id$="_load"]')];
+        if (!standalone && !inputs.length) return;
         const dialog = document.createElement('dialog');
         dialog.id = 'bench-video-lab'; dialog.setAttribute('aria-label', 'Bench video analysis'); dialog.setAttribute('data-no-tab-swipe', '');
         dialog.innerHTML = markup; document.body.append(dialog);
         const $ = id => dialog.querySelector('#va-' + id);
-        const state = { dialog, key: getWorkoutKey(), controller: new AbortController(), url: null, points: [], result: null, center: null, radius: null, mark: 0, raf: 0, closed: false, busy: false, cursor: null, core: null };
+        const state = { dialog, key: standalone ? null : getWorkoutKey(), controller: new AbortController(), url: null, points: [], result: null, center: null, radius: null, mark: 0, raf: 0, closed: false, busy: false, cursor: null, core: null };
         current = state;
         const video = $('video'), canvas = $('canvas'), ctx = canvas.getContext('2d', { willReadFrequently: true });
         const priorOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
+        if (standalone) {
+            $('standalone').hidden = false;
+            $('day').max = localDateKey(new Date());
+            $('set').parentElement.hidden = true;
+            $('reps').parentElement.hidden = true;
+            $('apply').parentElement.hidden = true;
+            $('save').textContent = 'Save to Iron Vault';
+        }
         inputs.forEach((input, i) => {
             const rowId = input.dataset.rowid, option = document.createElement('option'); option.value = rowId;
             option.textContent = `Set ${i + 1} · ${input.value || '—'} × ${document.getElementById(rowId + '_reps')?.value || '—'}${input.disabled ? ' · logged' : ''}`;
             $('set').append(option);
         });
         const selected = () => {
+            if (standalone) return { load: $('load'), reps: $('standalone-reps'), rpe: null };
             const rowId = $('set').value;
             return { rowId, load: document.getElementById(rowId + '_load'), reps: document.getElementById(rowId + '_reps'), rpe: document.getElementById(rowId + '_rpe') };
         };
@@ -133,6 +158,7 @@
         };
         const updateSet = () => { $('reps').value = selected().reps?.value || ''; invalidate(); };
         $('set').onchange = updateSet; updateSet();
+        for (const id of ['exercise', 'day', 'load', 'standalone-reps']) $(id).oninput = invalidate;
         $('file').onchange = async () => {
             const file = $('file').files[0];
             if (!file) return;
@@ -213,15 +239,18 @@
         $('analyze').onclick = async () => {
             stopPlayback(); freshController(); invalidate();
             try {
-                const start = +$('start').value, end = +$('end').value, diameter = +$('diameter').value, expected = +$('reps').value;
+                const start = +$('start').value, end = +$('end').value, diameter = +$('diameter').value, expected = +(standalone ? $('standalone-reps') : $('reps')).value;
                 const row = selected(), load = Number(row.load?.value), style = $('style').value;
+                const day = standalone ? $('day').value : localDateKey(new Date());
+                const dayDate = new Date(day + 'T12:00:00');
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(dayDate.getTime()) || localDateKey(dayDate) !== day || day > localDateKey(new Date())) throw new Error('Enter the date this set was filmed, today or earlier.');
                 if (!state.core) throw new Error('Analysis tools are still loading. Try again shortly.');
                 if (!style) throw new Error('Choose paused or touch-and-go bench.');
                 if (!state.center || !state.radius) throw new Error('Mark the plate centre and rim first.');
                 if (!Number.isFinite(start + end) || start < 0 || end > video.duration || end - start < 1 || end - start > 45) throw new Error('Trim a complete set between 1 and 45 seconds long.');
                 if (!Number.isFinite(diameter) || diameter < 10 || diameter > 60) throw new Error('Enter the actual plate diameter, between 10 and 60 cm.');
-                if (!Number.isInteger(expected) || expected < 1 || expected > 20 || expected !== Number(row.reps?.value)) throw new Error('The clip must match this set’s logged rep count (1–20). Enter actual reps in the workout first.');
-                if (!load || load <= 0 || load >= 1000) throw new Error('Enter this set’s load in the workout first.');
+                if (!Number.isInteger(expected) || expected < 1 || expected > 20 || expected !== Number(row.reps?.value)) throw new Error(standalone ? 'Enter the actual rep count for this video (1–20).' : 'The clip must match this set’s logged rep count (1–20). Enter actual reps in the workout first.');
+                if (!Number.isFinite(load) || load <= 0 || load >= 1000) throw new Error(standalone ? 'Enter this set’s load in kg (greater than 0 and less than 1000).' : 'Enter this set’s load in the workout first.');
                 state.row = row; state.load = load; state.expected = expected; state.style = style;
                 setBusy(true); status('Tracking the plate on this device…');
                 await seek(start); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -244,14 +273,14 @@
                 const distances = result.reps.map(r => r.distance);
                 if (Math.max(...distances) / Math.min(...distances) > 1.35 || result.reps.some(r => r.velocity < .03 || r.velocity > 2)) throw new Error('Rep motion was inconsistent. Check for partial reps, camera movement, or a tracking error. No result was saved.');
                 state.result = result;
-                state.sample = { version: 1, id: state.clipId, day: localDateKey(new Date()), exercise: normalizeExName(row.load.dataset.exname), style, load, reps: expected, lastVelocity: result.lastVelocity };
+                state.sample = { version: 1, id: state.clipId, day, exercise: normalizeExName(standalone ? $('exercise').value : row.load.dataset.exname), style, load, reps: expected, lastVelocity: result.lastVelocity };
                 const estimate = state.core.estimateRpe(state.sample, readProfile()); state.estimate = estimate;
                 $('metrics').innerHTML = `<div><strong>${result.reps.length}</strong><span>Presses</span></div><div><strong>≈ ${result.lastVelocity.toFixed(2)} <small>m/s</small></strong><span>Last press, vertical</span></div><div><strong>${Math.round(result.velocityLoss)}%</strong><span>Slower than fastest</span></div>`;
                 $('rep-rows').innerHTML = result.reps.map((r, i) => `<tr><td>${i + 1}</td><td>${r.duration.toFixed(2)} s</td><td>≈ ${Math.round(r.distance * 100)} cm</td><td>≈ ${r.velocity.toFixed(2)} m/s</td></tr>`).join('');
                 const max = Math.max(...result.reps.map(r => r.velocity));
                 $('chart').innerHTML = `<svg viewBox="0 0 320 100" role="img" aria-label="Mean press speed by repetition">${result.reps.map((r, i) => { const width = 280 / expected, height = r.velocity / max * 65; return `<rect x="${20 + i * width}" y="${75 - height}" width="${Math.max(2, width - 6)}" height="${height}" rx="3"/><text x="${20 + i * width + (width - 6) / 2}" y="94" text-anchor="middle">${i + 1}</text>`; }).join('')}</svg>`;
                 $('estimate').textContent = estimate.available ? `RPE ${estimate.low}–${estimate.high}. Based on ${estimate.count} comparable self-rated sets.` : `${estimate.reason} (${estimate.count} comparable sets saved.)`;
-                $('apply').disabled = row.rpe.disabled; $('apply').checked = false; $('rating').value = '';
+                $('apply').disabled = standalone || row.rpe.disabled; $('apply').checked = false; $('rating').value = '';
                 $('results').hidden = false; $('review').textContent = 'Play tracking';
                 await seek(start); draw(); status('Analysis ready for review. Check the full tracking overlay before saving.');
                 $('results').scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -263,7 +292,7 @@
             try {
                 if (!state.result || !$('verified').checked) return;
                 const row = selected();
-                if (getWorkoutKey() !== state.key || completedDays[state.key] || row.load !== state.row.load || !row.load?.isConnected || Number(row.load.value) !== state.load || Number(row.reps.value) !== state.expected) throw new Error('The workout set changed. Close this window and analyze the correct set again.');
+                if (!standalone && (getWorkoutKey() !== state.key || completedDays[state.key] || row.load !== state.row.load || !row.load?.isConnected || Number(row.load.value) !== state.load || Number(row.reps.value) !== state.expected)) throw new Error('The workout set changed. Close this window and analyze the correct set again.');
                 const rawRating = $('rating').value, rating = rawRating === '' ? null : Number(rawRating);
                 if (rating !== null && (!Number.isFinite(rating) || rating < 6 || rating > 10 || rating * 2 % 1)) throw new Error('Enter your own RPE from 6 to 10 in half-point steps, or leave it blank.');
                 if ($('apply').checked && (rating === null || row.rpe.disabled)) throw new Error('Enter your own rating first. Logged sets must be unchecked before their RPE can be changed.');
@@ -272,18 +301,28 @@
                 // Commit the whole session in one write. The app's normal batched
                 // flush logs quota errors instead of throwing, so it is unsuitable
                 // as an acknowledgement of this explicit Save action.
-                flushSessionState();
-                const session = safeParse(state.key, {});
-                session[row.rowId + '_video'] = summary;
-                if ($('apply').checked) session[row.rpe.id] = String(rating);
-                const previousProfile = localStorage.getItem(calibrationKey);
-                if (rating !== null) {
-                    const profile = readProfile().filter(s => s.id !== state.sample.id);
-                    profile.push({ ...state.sample, rpe: rating }); localStorage.setItem(calibrationKey, JSON.stringify(profile.slice(-100)));
+                let destination, payload;
+                if (standalone) {
+                    destination = archiveKey;
+                    const archive = readArchive().filter(s => s.id !== state.sample.id);
+                    archive.push({ ...state.sample, ...summary });
+                    payload = archive.slice(-100);
+                } else {
+                    flushSessionState();
+                    destination = state.key;
+                    payload = safeParse(state.key, {});
+                    payload[row.rowId + '_video'] = summary;
+                    if ($('apply').checked) payload[row.rpe.id] = String(rating);
                 }
-                try { localStorage.setItem(state.key, JSON.stringify(session)); }
+                const previousProfile = localStorage.getItem(calibrationKey);
+                if (rating !== null || standalone) {
+                    const profile = readProfile().filter(s => s.id !== state.sample.id);
+                    if (rating !== null) profile.push({ ...state.sample, rpe: rating });
+                    localStorage.setItem(calibrationKey, JSON.stringify(profile.slice(-100)));
+                }
+                try { localStorage.setItem(destination, JSON.stringify(payload)); }
                 catch (error) {
-                    if (rating !== null) {
+                    if (rating !== null || standalone) {
                         try { if (previousProfile === null) localStorage.removeItem(calibrationKey); else localStorage.setItem(calibrationKey, previousProfile); } catch { /* Report the storage failure below. */ }
                     }
                     throw new Error('Could not save to device storage. Free some space and try again; keep this window open.');
@@ -291,8 +330,12 @@
                 if ($('apply').checked) {
                     row.rpe.value = String(rating); row.rpe.dispatchEvent(new Event('input', { bubbles: true })); row.rpe.dispatchEvent(new Event('change', { bubbles: true }));
                 }
-                flushSessionState();
-                dialog.close(); renderWorkout();
+                if (!standalone) flushSessionState();
+                dialog.close();
+                if (standalone) {
+                    renderStats();
+                    document.querySelector('.video-vault .bench-video-button')?.focus({ preventScroll: true });
+                } else renderWorkout();
             } catch (error) { handleError(error); }
         };
         dialog.showModal();

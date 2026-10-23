@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.23.2031";
+        const APP_VERSION = "v2026.10.24.0008";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -932,7 +932,7 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'videoRpeCalibration'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'videoRpeCalibration', 'videoAnalysisArchive'];
         const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
@@ -4047,6 +4047,9 @@
                     });
                 }
 
+                // Standalone video analysis sits directly below the Big Three.
+                if (typeof renderVideoVault === 'function') html += renderVideoVault();
+
                 // Non-SBD rows with date
                 const nonSBD = otherKeysBest.filter(k => allBestKeys.includes(k));
                 nonSBD.forEach(ex => {
@@ -4069,6 +4072,8 @@
                     </div>`;
                 });
             }
+
+            if (bestKeys.length === 0 && typeof renderVideoVault === 'function') html += renderVideoVault();
 
             // Reset privacy lock every time the vault is opened
             window.physiquePrivacy = true;

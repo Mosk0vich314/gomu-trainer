@@ -166,6 +166,74 @@ const { chromium } = require('playwright');
         assert.equal(await page.evaluate(() => document.body.style.overflow), '');
         await page.locator('#ex-0_b0_s1_load').fill('105');
         assert.equal(await page.evaluate(() => safeParse(getWorkoutKey(), {})['ex-0_b0_s1_video']), undefined);
+
+        // The Vault works with no program, workout, PRs, or workout DOM.
+        const sessionBeforeVault = await page.evaluate(() => { flushSessionState(); return localStorage.getItem('VideoTest_w1_d1'); });
+        await page.evaluate(() => {
+            activeWorkout = null; currentProgram = null;
+            document.getElementById('workout-screen').innerHTML = '';
+            actualBests = {}; localStorage.setItem('actualBests', '{}');
+            switchTab('stats-screen'); renderStats();
+        });
+        assert.equal(await page.locator('.video-vault').count(), 1, 'Vault entry exists without PRs');
+        await page.locator('.video-vault .bench-video-button').click();
+        assert.equal(await page.locator('#va-set').isVisible(), false);
+        assert.equal(await page.locator('#va-standalone').isVisible(), true);
+        for (const width of [320,390,768]) {
+            await page.setViewportSize({ width, height: 844 });
+            assert.equal(await page.locator('.va-body').evaluate(e => e.scrollWidth > e.clientWidth + 1), false);
+        }
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.locator('#va-file').setInputFiles(file);
+        await page.locator('#va-editor').waitFor({ state: 'visible', timeout: 25000 });
+        await page.locator('#va-style').selectOption('paused');
+        await page.locator('#va-analyze').click();
+        assert.match(await page.locator('#va-status').innerText(), /date this set was filmed/);
+        await page.locator('#va-day').fill('2025-06-15');
+        await page.locator('#va-load').fill('100');
+        await page.locator('#va-standalone-reps').fill('3');
+        await page.locator('#va-mark').click();
+        await page.locator('#va-canvas').click({ position: { x: 174, y: 72.5 } });
+        await page.locator('#va-canvas').click({ position: { x: 206.625, y: 72.5 } });
+        await page.locator('#va-analyze').click();
+        await page.waitForFunction(() => document.querySelector('.va-progress').hidden);
+        assert.equal(await page.locator('#va-results').isVisible(), true, await page.locator('#va-status').innerText());
+        assert.equal(await page.locator('#va-apply').isVisible(), false);
+        await page.locator('#va-verified').check();
+        await page.locator('#va-rating').fill('8');
+        // A failed archive save retains the result and restores prior calibration.
+        const profileBeforeVault = await page.evaluate(() => localStorage.getItem('videoRpeCalibration'));
+        await page.evaluate(() => {
+            Storage.prototype.setItem = function(key, value) {
+                if (key === 'videoAnalysisArchive') throw new DOMException('Full', 'QuotaExceededError');
+                return testSetItem.call(this, key, value);
+            };
+        });
+        await page.locator('#va-save').click();
+        assert.match(await page.locator('#va-status').innerText(), /Could not save/);
+        assert.equal(await page.evaluate(() => localStorage.getItem('videoRpeCalibration')), profileBeforeVault);
+        await page.evaluate(() => { Storage.prototype.setItem = testSetItem; });
+        await page.locator('#va-save').click();
+        await page.locator('#bench-video-lab').waitFor({ state: 'detached' });
+        const archive = await page.evaluate(() => JSON.parse(localStorage.getItem('videoAnalysisArchive')));
+        assert.equal(archive.length, 1); assert.equal(archive[0].day, '2025-06-15'); assert.equal(archive[0].ownRpe, 8);
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('videoRpeCalibration'))[0].day), '2025-06-15');
+        assert.equal(await page.evaluate(() => localStorage.getItem('VideoTest_w1_d1')), sessionBeforeVault);
+        assert.equal(await page.evaluate(() => activeWorkout), null);
+        assert.equal(await page.evaluate(() => testUrls.size), 0);
+        const vaultBackup = await page.evaluate(async () => collectBackup(false));
+        assert.equal(JSON.parse(vaultBackup.preferences.videoAnalysisArchive)[0].day, '2025-06-15');
+        await page.evaluate(async backup => {
+            localStorage.removeItem('videoAnalysisArchive'); await applyBackup(backup);
+            actualBests = { 'Bench Press': { weight: 100, reps: 3, e1rm: 110, date: Date.now() } };
+            localStorage.setItem('actualBests', JSON.stringify(actualBests)); renderStats();
+        }, vaultBackup);
+        assert.equal(await page.locator('.video-vault').count(), 1);
+        assert.equal(await page.evaluate(() => !!(document.querySelector('.pr-sbd-row').compareDocumentPosition(document.querySelector('.video-vault')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
+        await page.locator('.video-vault-saved > summary').click();
+        await page.locator('.video-vault-result > summary').click();
+        assert.match(await page.locator('.video-vault-result').innerText(), /2025-06-15/);
+        await page.locator('.video-vault').screenshot({ path: path.join(os.tmpdir(), 'gomu-video-vault.png') });
         assert.deepEqual(errors, []); assert.deepEqual(posts, []);
         console.log('PASS: real video decoding/tracking, mobile layout, guarded save, no automatic RPE changes, calibration backup, URL cleanup, and stale-analysis removal. Synthetic footage only.');
     } finally { if (browser) await browser.close(); server.close(); }

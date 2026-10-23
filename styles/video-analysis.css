@@ -63,3 +63,11 @@
 .bench-video-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .bench-video-button:disabled { border-color: var(--border); color: var(--text-muted); cursor: default; }
 .bench-video-entry p { margin: 6px 0 0; color: var(--text-muted); font: 12px/1.5 'DM Sans', sans-serif; text-align: center; }
+.video-vault { margin: 18px 0 24px; padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+.video-vault h3 { margin: 4px 0 8px; color: var(--text-main); font: 600 22px 'Space Grotesk', sans-serif; }
+.video-vault p { color: var(--text-muted); font: 13px/1.6 'DM Sans', sans-serif; }
+.video-vault .video-vault-kicker { margin: 0; color: var(--accent); font-size: 11px; }
+.video-vault-saved { margin-top: 18px; }
+.video-vault summary { padding: 10px 0; cursor: pointer; font: 500 13px/1.5 'DM Sans', sans-serif; color: var(--text-main); overflow-wrap: anywhere; }
+.video-vault-result { border-top: 1px solid var(--border); }
+.video-vault-result summary span { display: block; color: var(--text-muted); font-size: 12px; }
