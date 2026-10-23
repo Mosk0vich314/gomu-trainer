@@ -24,6 +24,21 @@ const { chromium } = require('playwright');
         const page = await context.newPage(), errors = [], posts = [];
         page.on('pageerror', e => errors.push(e.message)); page.on('request', r => { if (r.method() === 'POST') posts.push(r.url()); });
         await page.goto('http://127.0.0.1:8767');
+        // Simulate an existing installation that already ran the old alias migration.
+        await page.evaluate(() => {
+            localStorage.setItem('exerciseDB_v1', '1');
+            localStorage.removeItem('exerciseDB_v2');
+            localStorage.setItem('global1RMs', JSON.stringify({ 'Barbell Bench': 110, 'Bench Press': 100 }));
+            localStorage.setItem('lastUsedWeights', JSON.stringify({ 'Barbell Bench': 80 }));
+            localStorage.setItem('equipmentModes', JSON.stringify({ 'Barbell Bench': 'bb' }));
+        });
+        await page.reload();
+        assert.deepEqual(await page.evaluate(() => ({
+            rms: JSON.parse(localStorage.getItem('global1RMs')),
+            weights: JSON.parse(localStorage.getItem('lastUsedWeights')),
+            equipment: JSON.parse(localStorage.getItem('equipmentModes')),
+            migrated: localStorage.getItem('exerciseDB_v2')
+        })), { rms: { 'Bench Press': 110 }, weights: { 'Bench Press': 80 }, equipment: { 'Bench Press': 'bb' }, migrated: '1' });
         await page.evaluate(() => {
             window.db = { VideoTest: { name: 'Video test', weeks: { 1: { 1: [
                 { name: 'Bench Press', type: 'main', blocks: [{ sets: 3, reps: 3, targetRpe: 8 }] },
@@ -38,6 +53,29 @@ const { chromium } = require('playwright');
             URL.revokeObjectURL = url => { testUrls.delete(url); revoke(url); };
         });
         assert.equal(await page.getByRole('button', { name: 'Analyze video', exact: true }).count(), 1);
+        for (const name of ['Bench', 'Barbell Bench', 'Barbell Bench Press', 'Bench (Barbell)', 'Bench Press']) {
+            await page.evaluate(name => { db.VideoTest.weeks[1][1][0].name = name; renderWorkout(); }, name);
+            const entry = page.getByRole('button', { name: 'Analyze video', exact: true });
+            assert.equal(await entry.isVisible(), true, name);
+            assert.equal(await entry.isEnabled(), true, name);
+            assert.equal(await page.evaluate(name => normalizeExName(name), name), 'Bench Press');
+            await entry.click();
+            await page.locator('#va-file').waitFor();
+            await page.getByRole('button', { name: 'Close video analysis' }).click();
+        }
+        await page.evaluate(() => { completedDays[getWorkoutKey()] = true; renderWorkout(); });
+        assert.equal(await page.locator('.bench-video-button').isVisible(), true);
+        assert.equal(await page.locator('.bench-video-button').isDisabled(), true);
+        assert.match(await page.locator('.bench-video-entry').innerText(), /unfinished workout/);
+        await page.evaluate(() => { delete completedDays[getWorkoutKey()]; setEquipmentMode('Bench', '1db'); });
+        assert.equal(await page.locator('.bench-video-button').isVisible(), true);
+        assert.equal(await page.locator('.bench-video-button').isDisabled(), true);
+        assert.match(await page.locator('.bench-video-entry').innerText(), /select BB/);
+        await page.evaluate(() => {
+            setEquipmentMode('Barbell Bench', 'bb');
+            const load = document.getElementById('ex-0_b0_s1_load'); load.value = '100'; load.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        await page.locator('#ex-0').screenshot({ path: path.join(os.tmpdir(), 'gomu-video-entry.png') });
         // Generate three known presses, including slower later reps, into a real VP8 file.
         const bytes = await page.evaluate(async () => {
             const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 360;

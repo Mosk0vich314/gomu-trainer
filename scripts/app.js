@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.23.1836";
+        const APP_VERSION = "v2026.10.23.2031";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -933,7 +933,7 @@
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
         const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'videoRpeCalibration'];
-        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
+        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
             flushSessionState();
@@ -1450,6 +1450,7 @@
         const EXERCISE_ALIASES = {
             // Big 3
             'bench': 'Bench Press', 'bench press': 'Bench Press', 'bench press (barbell)': 'Bench Press', 'bench (backoffs)': 'Bench Press',
+            'barbell bench': 'Bench Press', 'barbell bench press': 'Bench Press', 'bench (barbell)': 'Bench Press',
             'squat': 'Squat', 'squat (barbell)': 'Squat',
             'deadlift': 'Deadlift', 'deadlift (barbell)': 'Deadlift',
             // Pause bench variants
@@ -1506,7 +1507,7 @@
         // (Dumbbell)") merges into one record. IndexedDB history stays raw — it is
         // canonicalized at read time (charts, PR rebuild).
         function migrateExerciseDB() {
-            if (localStorage.getItem('exerciseDB_v1')) return;
+            if (localStorage.getItem('exerciseDB_v2')) return;
 
             // actualBests: highest e1RM wins per canonical name
             const bests = safeParse('actualBests', {});
@@ -1555,7 +1556,12 @@
                 localStorage.setItem(storeKey, JSON.stringify(out));
             });
 
-            localStorage.setItem('exerciseDB_v1', '1');
+            const calibration = safeParse('videoRpeCalibration', []);
+            if (Array.isArray(calibration) && calibration.length) {
+                localStorage.setItem('videoRpeCalibration', JSON.stringify(calibration.map(sample =>
+                    sample && typeof sample.exercise === 'string' ? { ...sample, exercise: normalizeExName(sample.exercise) } : sample)));
+            }
+            localStorage.setItem('exerciseDB_v2', '1');
         }
         migrateExerciseDB();
 
@@ -4491,6 +4497,9 @@
 
                 const isNonExercise = /rest|information|info|note/i.test(ex.name);
                 const techniqueLift = !isNonExercise && typeof getTechniqueLift === 'function' ? getTechniqueLift(ex.name) : null;
+                const videoUnavailable = isCompleted ? 'Open an unfinished workout to analyze and save a set video.'
+                    : isMyo || isDrop ? 'Video analysis supports standard sets. Turn off MYO or DROP to use it.'
+                    : getEquipmentMode(ex.name) !== 'bb' ? 'For barbell bench, select BB in the equipment chip above.' : '';
 
                 // NEW: Swipe-to-delete wrapper for Custom Workouts
                 let wrapperStart = '';
@@ -4553,7 +4562,7 @@
                             `}
                         </div>
 
-                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button>${techniqueLift === 'bench' && !isCompleted && !isMyo && !isDrop && getEquipmentMode(ex.name) === 'bb' ? `<button type="button" onclick="openBenchVideoAnalysis('${exId}', this)">Analyze video</button>` : ''}</div>` : ''}
+                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
 
                         ${!isNonExercise ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
@@ -4563,6 +4572,8 @@
                             const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
                             return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
                         })() : ''}
+
+                        ${techniqueLift === 'bench' ? `<div class="bench-video-entry"><button type="button" class="bench-video-button" aria-label="Analyze video" onclick="openBenchVideoAnalysis('${exId}', this)" ${videoUnavailable ? `disabled aria-describedby="${exId}-video-help"` : ''}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Analyze video<span>RPE lab</span></button>${videoUnavailable ? `<p id="${exId}-video-help">${videoUnavailable}</p>` : ''}</div>` : ''}
 
                         ${displayNotesHtml}
 
