@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.23.1641";
+        const APP_VERSION = "v2026.10.23.1836";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -100,6 +100,12 @@
             // Backslash-escape for the JS string literal first, then HTML-escape:
             // the attribute parser decodes entities before the JS parser runs.
             return escapeHtml(String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
+        }
+
+        function videoAnalysisCaption(data) {
+            if (!data || data.version !== 1 || data.reviewed !== true || !Number.isInteger(data.reps) || data.reps < 1 || data.reps > 20
+                || !Number.isFinite(data.lastVelocity) || data.lastVelocity <= 0 || !Number.isFinite(data.velocityLoss)) return '';
+            return `Video: ${data.reps} reps · last press ≈ ${data.lastVelocity.toFixed(2)} m/s vertically · ${Math.round(data.velocityLoss)}% slower than fastest`;
         }
 
         // --- GLOBAL ERROR SURFACE ---
@@ -926,7 +932,7 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'videoRpeCalibration'];
         const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
@@ -2088,6 +2094,7 @@
                             const setEntry = { reps: actualReps, load: load, rpe: rpe };
                             const setNote = savedSession[`${rowId}_note`];
                             if (setNote) setEntry.note = setNote;
+                            if (savedSession[`${rowId}_video`]) setEntry.videoAnalysis = savedSession[`${rowId}_video`];
                             exerciseLog.sets.push(setEntry);
                         }
                         
@@ -2115,7 +2122,9 @@
                                 totalVolume += (effectiveLoad * actualReps);
                                 if (effectiveLoad > maxLoad) maxLoad = effectiveLoad;
                                 
-                                exerciseLog.sets.push({ reps: actualReps, load: load, rpe: rpe, isTargetSet: true });
+                                const extraEntry = { reps: actualReps, load: load, rpe: rpe, isTargetSet: true };
+                                if (savedSession[`${extraRowId}_video`]) extraEntry.videoAnalysis = savedSession[`${extraRowId}_video`];
+                                exerciseLog.sets.push(extraEntry);
                             }
                         });
                     }
@@ -2706,6 +2715,7 @@
                                 <span>${rpeText}</span>
                             </div>`;
                             if (set.note) detailsHtml += `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 0 6px 12px;">↳ ${escapeHtml(set.note)}</div>`;
+                            if (videoAnalysisCaption(set.videoAnalysis)) detailsHtml += `<div class="video-set-summary">${videoAnalysisCaption(set.videoAnalysis)}</div>`;
                         });
                     });
                     detailsHtml += `</div>`;
@@ -4543,7 +4553,7 @@
                             `}
                         </div>
 
-                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
+                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button>${techniqueLift === 'bench' && !isCompleted && !isMyo && !isDrop && getEquipmentMode(ex.name) === 'bb' ? `<button type="button" onclick="openBenchVideoAnalysis('${exId}', this)">Analyze video</button>` : ''}</div>` : ''}
 
                         ${!isNonExercise ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
@@ -4780,6 +4790,9 @@
                             </div>${setNote ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 16px 6px;text-align:left;">↳ ${escapeHtml(setNote)}</div>` : ''}`;
                         }
 
+                        const videoCaption = videoAnalysisCaption(savedSession[`${rowId}_video`]);
+                        if (videoCaption) setHtml += `<div class="video-set-summary" data-video-row="${rowId}">${videoCaption}</div>`;
+
                         // Wrap it in the Swipe-to-delete wrapper if the workout is active
                         if (!isCompleted) {
                             html += `
@@ -4831,7 +4844,7 @@
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
-                            </div>`;
+                            </div>${videoAnalysisCaption(savedSession[`${extraRowId}_video`]) ? `<div class="video-set-summary" data-video-row="${extraRowId}">${videoAnalysisCaption(savedSession[`${extraRowId}_video`])}</div>` : ''}`;
                         });
                     }
                     
@@ -6580,6 +6593,15 @@
             }
             if (value === undefined) delete _sessionCache[key];
             else _sessionCache[key] = value;
+            // A filmed set no longer describes the log after its load or reps change.
+            const videoField = key.match(/^(ex-\d+_b\d+_s\d+(?:_extra_\d+)?)_(load|reps)$/);
+            if (videoField) {
+                const videoKey = videoField[1] + '_video', analysis = _sessionCache[videoKey];
+                if (analysis && Number(value) !== analysis[videoField[2]]) {
+                    delete _sessionCache[videoKey];
+                    document.querySelector(`[data-video-row="${videoField[1]}"]`)?.remove();
+                }
+            }
             if (!_sessionFlushTimer) _sessionFlushTimer = setTimeout(flushSessionState, 150);
         }
 

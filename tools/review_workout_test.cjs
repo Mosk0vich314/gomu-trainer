@@ -145,6 +145,20 @@ test('summary preserves zero reps and includes bodyweight in target-set volume',
     assert.equal(c.workoutHistoryCache[0].volume, 450);
 });
 
+test('video measurements follow set reindexing, reach history, and expire on edited load', () => {
+    const c = context(), key = c.getWorkoutKey();
+    const video = { version: 1, reviewed: true, reps: 5, load: 100, lastVelocity: .3, velocityLoss: 20 };
+    const reindexed = c.reindexSessionAfterDelete({ 'ex-0_b0_s2_video': video }, 0, 0, 1);
+    assert.equal(reindexed['ex-0_b0_s1_video'].lastVelocity, .3);
+    c.localStorage.setItem(key, JSON.stringify({ 'ex-0_b0_s1_check': true, 'ex-0_b0_s1_video': video }));
+    vm.runInContext(section('function amrapSetIndex(', 'const TAB_ORDER'), c);
+    vm.runInContext(section('function generateSummary(', 'window.saveSessionNote ='), c);
+    c.generateSummary(key);
+    assert.equal(c.workoutHistoryCache[0].details[0].sets[0].videoAnalysis.lastVelocity, .3);
+    c.saveSessionState('ex-0_b0_s1_load', '105'); c.flushSessionState();
+    assert.equal(c.safeParse(key, {})['ex-0_b0_s1_video'], undefined);
+});
+
 test('checking an activation cascades without a ReferenceError, backoff checks do not cascade', () => {
     const c = context();
     let checked = false, cascades = 0;

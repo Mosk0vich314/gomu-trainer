@@ -10,7 +10,7 @@ const http = require('node:http');
 (async () => {
     const server = http.createServer((req, res) => {
         const pathname = new URL(req.url, 'http://localhost').pathname.replace(/^\/$/, '/index.html');
-        if (!/^\/(?:index\.html|sw\.js|scripts\/(?:(?:app|technique-guide|technique-models)\.js|database\.enc)|styles\/[\w.-]+\.css|assets\/[\w/.-]+)$/.test(pathname) || pathname.includes('..')) { res.writeHead(404).end(); return; }
+        if (!/^\/(?:index\.html|sw\.js|scripts\/(?:(?:app|technique-guide|technique-models|video-analysis|video-analysis-core)\.js|database\.enc)|styles\/[\w.-]+\.css|assets\/[\w/.-]+)$/.test(pathname) || pathname.includes('..')) { res.writeHead(404).end(); return; }
         const file = path.join(__dirname, '..', pathname);
         if (!fs.existsSync(file)) { res.writeHead(404).end(); return; }
         const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
@@ -117,6 +117,8 @@ const http = require('node:http');
         await offlinePage.reload();
         await offlinePage.evaluate(() => openTechniqueGuide('bench'));
         await offlinePage.locator('#technique-guide #bench h2').waitFor({ state: 'visible' });
+        assert.equal(await offlinePage.evaluate(async () => typeof (await import('./scripts/video-analysis-core.js')).summarizeTrack), 'function');
+        assert.equal(await offlinePage.evaluate(() => typeof openBenchVideoAnalysis), 'function');
         await offlineContext.close();
         console.log('PASS: exercise routing, interactive models, saved measurements/backup, history, focus, workout preservation, responsive themes, and first-open offline guide.');
     } finally { await browser.close(); server.close(); }
