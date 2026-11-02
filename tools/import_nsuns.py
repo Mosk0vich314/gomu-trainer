@@ -7,7 +7,8 @@ https://keylifts.com/templates/nsuns/nsuns-lp-4-day
 Boostcamp's public preview groups identical prescriptions even when they are
 nonconsecutive. Preserve the original ascending/descending set order here.
 The weekly template repeats; progression is performance-based, not a fixed
-increase baked into week numbers. Optional accessories are user-selected.
+increase baked into week numbers. The accessories below are a custom Gomu
+Trainer selection, not prescriptions from the original nSuns template.
 """
 import copy
 import json
@@ -30,6 +31,15 @@ def exercise(name, reference, prescription, notes):
                 trainingMaxFactor=0.9, notes=notes, blocks=prescription)
 
 
+def accessory(name, sets, reps):
+    return dict(name=name, type='accessory',
+                notes=('Custom accessory added to nSuns. Keep about 2 reps in reserve (RPE 8). '
+                       'Rest 60-90 seconds, longer if needed. Once every set reaches the '
+                       'prescribed reps at RPE 8 or below, increase by the smallest available '
+                       'weight next time. Reduce accessory sets if main-lift recovery suffers.'),
+                blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None)])
+
+
 SETUP = ('Training max (TM) = 90% of the reference 1RM entered in Stats. '
          'Percentages shown are of TM. Warm up before working sets. ')
 PROGRESSION = ('Weekly progression is manual: use the 95% TM 1+ set. '
@@ -48,7 +58,7 @@ def build_program():
             exercise('Bench Press', 'Bench Press',
                      blocks([8, 6, 4, 4, 4, 5, 6, 7, 8], [65, 75, 85, 85, 85, 80, 75, 70, 65], (9,)),
                      SETUP + 'Volume day; final set is 8+ AMRAP. Progress bench from Day 3, not this set. '
-                     'Suggested schedule: Mon/Tue/Thu/Fri. Add optional chest, back and arm accessories after the main work.'),
+                     'Suggested schedule: Mon/Tue/Thu/Fri. Complete the accessories after the main work.'),
             exercise('Overhead Press', 'Overhead Press',
                      blocks([6, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Uses your own Overhead Press 1RM in Stats (listed as Overhead Press (bench)); '
@@ -56,20 +66,28 @@ def build_program():
                      'No OHP 1+ test in the 4-day version: adjust its TM manually when all sets are manageable.')],
         '2': [
             exercise('Squat', 'Squat', blocks([5, 3, 1, 3, 3, 3, 5, 5, 5], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Optional legs and abs after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.'),
             exercise('Sumo Deadlift', 'Deadlift', blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Percentages use 90% of your conventional Deadlift reference 1RM, not a separate sumo max.')],
         '3': [
             exercise('Bench Press', 'Bench Press', blocks([5, 3, 1, 3, 5, 3, 5, 3, 5], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Optional back, shoulders and arms after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.'),
             exercise('Close Grip (bench)', 'Bench Press', blocks([6, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
                      'Percentages use 90% of your standard Bench Press reference 1RM, not a close-grip max.')],
         '4': [
             exercise('Deadlift', 'Deadlift', blocks([5, 3, 1, 3, 3, 3, 3, 3, 3], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Optional legs and abs after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Complete the accessories after the main work.'),
             exercise('Front Squat', 'Squat', blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
                      'Percentages use 90% of your back Squat reference 1RM, not a front-squat max.')]
     }
+    accessories = {
+        '1': [accessory('Chest Supported Row', 3, 10), accessory('Lat Pulldown', 3, 12), accessory('Hammer Curl', 2, 12)],
+        '2': [accessory('Leg Curl', 2, 12), accessory('Standing Calf Raise', 3, 15), accessory('Cable Crunch', 2, 15)],
+        '3': [accessory('Chest Supported Row', 3, 10), accessory('Dumbbell Lateral Raises', 3, 15), accessory('Triceps Pushdown', 2, 12)],
+        '4': [accessory('Leg Curl', 2, 12), accessory('Face Pulls', 3, 15), accessory('Cable Crunch', 2, 15)]
+    }
+    for day, additions in accessories.items():
+        week[day].extend(additions)
     return {str(w): copy.deepcopy(week) for w in range(1, 9)}
 
 
@@ -93,7 +111,7 @@ def main():
         content = (prefix + separator + f'\n\n"{KEY}": {{ name: "{NAME}", weeks: {start}\n'
                    + program + f'\n{end} }}\n\n}};\n')
     db_path.write_text(content, encoding='utf-8')
-    print(f'Injected {NAME}: 8 weeks, 4 days/week, 68 working sets/week.')
+    print(f'Injected {NAME}: 8 weeks, 4 days/week, 68 main/supplemental + 30 accessory sets/week.')
 
 
 if __name__ == '__main__':

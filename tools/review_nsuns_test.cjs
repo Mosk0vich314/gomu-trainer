@@ -14,21 +14,32 @@ const context = vm.createContext({ safeParse: () => refs,
     normalizeExName: name => name === 'Overhead Press' ? 'Overhead Press (bench)' : name });
 vm.runInContext(app.slice(app.indexOf('function getPercentageTrainingMax('), app.indexOf('// Renders the exercise title')), context);
 
-test('32 sessions preserve ordered waves, 17 sets per day and seven weekly AMRAPs', () => {
+test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and seven weekly AMRAPs', () => {
     assert.equal(Object.keys(program.weeks).length, 8);
     const reps = [[8,6,4,4,4,5,6,7,8], [5,3,1,3,3,3,5,5,5], [5,3,1,3,5,3,5,3,5], [5,3,1,3,3,3,3,3,3]];
     for (const week of Object.values(program.weeks)) {
         assert.equal(Object.keys(week).length, 4);
         let amraps = 0;
         Object.values(week).forEach((day, d) => {
-            assert.equal(day.length, 2);
-            assert.equal(day.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), 17);
+            assert.equal(day.length, 5);
+            assert.equal(day.slice(0, 2).flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), 17);
             assert.deepEqual(Array.from(day[0].blocks, b => b.reps), reps[d]);
             assert.deepEqual(Array.from(day[0].blocks, b => b.pct), d === 0
                 ? [.65,.75,.85,.85,.85,.80,.75,.70,.65] : [.75,.85,.95,.90,.85,.80,.75,.70,.65]);
             assert.deepEqual(Array.from(day[0].blocks, (b,i) => b.amrap ? i+1 : 0).filter(Boolean), d === 0 ? [9] : [3,9]);
             amraps += day.flatMap(ex => ex.blocks).filter(b => b.amrap).length;
-            day.forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
+            day.slice(0, 2).forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
+            const accessories = day.slice(2);
+            assert.equal(accessories.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), d % 2 === 0 ? 8 : 7);
+            accessories.forEach(ex => {
+                assert.equal(ex.type, 'accessory');
+                assert.equal(ex.percentageReference, undefined);
+                ex.blocks.forEach(b => {
+                    assert.equal(b.targetRpe, 8);
+                    assert.equal(b.pct, null);
+                    assert.equal(b.amrap, undefined);
+                });
+            });
         });
         assert.equal(amraps, 7);
     }
