@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.10.24.0008";
+        const APP_VERSION = "v2026.11.02.2358";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -1590,6 +1590,17 @@
             }
 
             return 0;
+        }
+
+        // Percentage programs may prescribe a training max of a different lift.
+        // Read that exact lift: OHP must never inherit the bench 1RM, and front
+        // squats prescribed from back squat must ignore a front-squat override.
+        function getPercentageTrainingMax(ex) {
+            if (!ex.percentageReference || !ex.trainingMaxFactor) return null;
+            if (ex._originalName && ex.name !== ex._originalName) return null;
+            const refs = safeParse('global1RMs', {});
+            const ref = Number(refs[normalizeExName(ex.percentageReference)]);
+            return Number.isFinite(ref) && ref > 0 ? ref * ex.trainingMaxFactor : 0;
         }
 
         // Renders the exercise title; if the name ends in a parenthetical naming a parent
@@ -4482,7 +4493,10 @@
                 }
 
                 const resolved1RM = getResolved1RM(ex.name);
-                const historical1RM = resolved1RM > 0 ? `Ref 1RM: ${kgDisp(resolved1RM)} ${unitSuffix()}` : '1RM --';
+                const percentageTrainingMax = getPercentageTrainingMax(ex);
+                const historical1RM = percentageTrainingMax !== null
+                    ? (percentageTrainingMax > 0 ? `Training max: ${kgDisp(percentageTrainingMax)} ${unitSuffix()}` : 'Training max -- (set reference 1RM in Stats)')
+                    : (resolved1RM > 0 ? `Ref 1RM: ${kgDisp(resolved1RM)} ${unitSuffix()}` : '1RM --');
 
                 // RPE Drift indicator
                 let driftHtml = '';
@@ -4598,7 +4612,7 @@
                     const amrapIdx = amrapSetIndex(block);
                     const blockAllAmrap = amrapIdx !== null && block.sets === 1;
                     let details = [];
-                    if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%`);
+                    if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%${percentageTrainingMax !== null ? ' TM' : ''}`);
                     if (block.targetRpe) {
                         const _rpe = block.targetRpe;
                         const _rpeCls = _rpe >= 9 ? 'rpe-pill-max' : _rpe >= 8 ? 'rpe-pill-hard' : _rpe >= 7 ? 'rpe-pill-mod' : 'rpe-pill-easy';
@@ -4688,7 +4702,10 @@
                     for(let s = 1; s <= block.sets; s++) {
                         const isAmrap = amrapIdx === s;
                         let smartDefaultLoad = '';
-                        if (block.targetRpe && resolved1RM > 0 && !isAmrap) {
+                        if (block.pct && percentageTrainingMax !== null) {
+                            // Missing exact reference stays blank instead of using another lift's max.
+                            if (percentageTrainingMax > 0) smartDefaultLoad = roundForEquipment(percentageTrainingMax * block.pct, ex.name);
+                        } else if (block.targetRpe && resolved1RM > 0 && !isAmrap) {
                             // SMART RPE PRE-LOAD: Calculates exact starting weight based on Target RPE
                             const targetPct = rtsPct(block.targetRpe, block.reps) || 0;
 
@@ -4795,7 +4812,7 @@
                                 <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
                                 <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
                                         <div class="plate-indicator"></div>
@@ -6833,6 +6850,8 @@
                         const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
 
                         document.querySelectorAll(`input[id$="_load"][data-exid="${exId}"]`).forEach(loadInput => {
+                            // Training-max prescriptions are adjusted between weeks, not from a set e1RM.
+                            if (loadInput.dataset.trainingMax === 'true') return;
                             const targetRowId = loadInput.dataset.rowid;
                             const checkCircle = document.getElementById(`${targetRowId}_check`);
                             

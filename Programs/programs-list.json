@@ -5,6 +5,16 @@
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
+  "programs": [
+    {
+      "id": "nsuns_531_4day",
+      "name": "nSuns 5/3/1 - 4 Day LP",
+      "folder": "Boostcamp",
+      "file": "nSuns_531_4Day_database.json",
+      "weeks": 8,
+      "daysPerWeek": 4
+    }
+  ],
   "icons": [
     {
       "src": "logo.png",
