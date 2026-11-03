@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.03.1122";
+        const APP_VERSION = "v2026.11.03.2006";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -4770,6 +4770,9 @@
                             restSeconds = 90;
                         }
                     }
+                    // A program-prescribed rest wins over both this default and the RPE scaling at check time.
+                    const restFixed = block.restSec > 0;
+                    if (restFixed) restSeconds = block.restSec;
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
@@ -4892,7 +4895,7 @@
                                     </button>`}
                                 </span>
                                 ${e1rmCell}
-                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${restFixed ? 'data-restfixed="true"' : ''} data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>${setNote ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 16px 6px;text-align:left;">↳ ${escapeHtml(setNote)}</div>` : ''}`;
                         }
 
@@ -4949,7 +4952,7 @@
                                     </button>`}
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
-                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
+                                <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${restFixed ? 'data-restfixed="true"' : ''} data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>${videoAnalysisCaption(savedSession[`${extraRowId}_video`]) ? `<div class="video-set-summary" data-video-row="${extraRowId}">${videoAnalysisCaption(savedSession[`${extraRowId}_video`])}</div>` : ''}`;
                         });
                     }
@@ -6584,7 +6587,7 @@
                 let restSeconds = parseInt(el.dataset.rest) || 90; 
 
                 // UPGRADED: Dynamic RPE-Based Rest Timer for ALL Lifts
-                if (loadInput && rpeInput && rpeInput.value !== '') {
+                if (!el.dataset.restfixed && loadInput && rpeInput && rpeInput.value !== '') {
                     const rpeVal = parseFloat(rpeInput.value);
                     if (!isNaN(rpeVal)) {
                         if (loadInput.classList.contains('main-load')) {

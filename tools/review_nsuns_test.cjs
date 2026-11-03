@@ -26,10 +26,16 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
         Object.values(week).forEach((day, d) => {
             assert.equal(day.length, 5);
             assert.equal(day.slice(0, 2).flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), 17);
-            assert.deepEqual(Array.from(day[0].blocks, b => b.reps), reps[d]);
-            assert.deepEqual(Array.from(day[0].blocks, b => b.pct), d === 0
+            // Expand grouped blocks back into the per-set wave.
+            const perSet = Array.from(day[0].blocks.flatMap(b => Array.from({ length: b.sets }, () => b)));
+            assert.deepEqual(perSet.map(b => b.reps), reps[d]);
+            assert.deepEqual(perSet.map(b => b.pct), d === 0
                 ? [.65,.75,.85,.85,.85,.80,.75,.70,.65] : [.75,.85,.95,.90,.85,.80,.75,.70,.65]);
-            assert.deepEqual(Array.from(day[0].blocks, (b,i) => b.amrap ? i+1 : 0).filter(Boolean), d === 0 ? [9] : [3,9]);
+            assert.deepEqual(perSet.map((b,i) => b.amrap ? i+1 : 0).filter(Boolean), d === 0 ? [9] : [3,9]);
+            day[0].blocks.forEach((b, i) => assert(i === 0 || b.amrap || day[0].blocks[i-1].amrap
+                || b.reps !== day[0].blocks[i-1].reps || b.pct !== day[0].blocks[i-1].pct, 'identical neighbours are grouped'));
+            day.flatMap(ex => ex.blocks).forEach(b => assert(b.restSec > 0, 'every set has a rest time'));
+            if (d > 0) assert.equal(day[0].tmProgression.block, 3);
             amraps += day.flatMap(ex => ex.blocks).filter(b => b.amrap).length;
             day.slice(0, 2).forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
             const accessories = day.slice(2);

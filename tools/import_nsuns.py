@@ -20,34 +20,55 @@ KEY = 'nsuns_531_4day'
 NAME = 'nSuns 5/3/1 - 4 Day LP'
 
 
-def blocks(reps, percentages, amrap=()):
-    return [dict(type='top' if i < 3 else 'backoff', sets=1, reps=r,
-                 pct=p / 100, **({'amrap': True} if i + 1 in amrap else {}))
-            for i, (r, p) in enumerate(zip(reps, percentages, strict=True))]
+# Rest after each set (nSuns itself prescribes none): main lifts 2 min, 3 min once
+# the load reaches 85% TM, 4 min after the 1+ set; supplemental lifts 90 s.
+def main_rest(pct, amrap):
+    return 240 if amrap else 180 if pct >= 85 else 120
+
+
+def blocks(reps, percentages, amrap=(), rest=main_rest):
+    # Consecutive identical sets share one block (3 x 4 @ 85%), like every other program.
+    # AMRAP sets always stay their own block.
+    out = []
+    for i, (r, p) in enumerate(zip(reps, percentages, strict=True)):
+        is_amrap = i + 1 in amrap
+        prev = out[-1] if out else None
+        if prev and not is_amrap and not prev.get('amrap') and (prev['reps'], prev['pct']) == (r, p / 100):
+            prev['sets'] += 1
+            continue
+        out.append(dict(type='top' if i < 3 else 'backoff', sets=1, reps=r, pct=p / 100,
+                        restSec=rest(p, is_amrap), **({'amrap': True} if is_amrap else {})))
+    return out
+
+
+def supplemental_blocks(reps, percentages):
+    return blocks(reps, percentages, rest=lambda pct, amrap: 90)
 
 
 def exercise(name, reference, prescription, notes, progression=None):
     ex = dict(name=name, type='main', percentageReference=reference,
               trainingMaxFactor=0.9, notes=notes, blocks=prescription)
     if progression:
-        ex['tmProgression'] = progression
+        block = next(i for i, b in enumerate(prescription, 1) if b.get('amrap') and b['pct'] == 0.95)
+        ex['tmProgression'] = dict(block=block, **progression)
     return ex
 
 
 def accessory(name, sets, reps):
     return dict(name=name, type='accessory',
                 notes=('Custom accessory added to nSuns. Keep about 2 reps in reserve (RPE 8). '
-                       'Rest 60-90 seconds, longer if needed. Once every set reaches the '
+                       'Rest about 90 seconds, longer if needed. Once every set reaches the '
                        'prescribed reps at RPE 8 or below, increase by the smallest available '
                        'weight next time. Reduce accessory sets if main-lift recovery suffers.'),
-                blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None)])
+                blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None, restSec=90)])
 
 
 # Set 3 (95% TM, 1+) drives the TM; the app applies it when the workout is finished.
 # Lower body: 2-3 reps +2.5 kg, 4-5 +5 kg, 6+ +7.5 kg. Bench: 2-5 +2.5 kg, 6+ +5 kg,
 # and OHP follows at half the bench increase (the 4-day version has no OHP 1+ set).
-LOWER_PROGRESSION = dict(block=3, steps=[[2, 2.5], [4, 5], [6, 7.5]])
-BENCH_PROGRESSION = dict(block=3, steps=[[2, 2.5], [6, 5]], also={'Overhead Press': 0.5})
+# `block` (the 1-based block holding the 95% 1+ set) is filled in by exercise().
+LOWER_PROGRESSION = dict(steps=[[2, 2.5], [4, 5], [6, 7.5]])
+BENCH_PROGRESSION = dict(steps=[[2, 2.5], [6, 5]], also={'Overhead Press': 0.5})
 
 SETUP = ('Training max (TM) = 90% of the reference 1RM entered in Stats, then progressed '
          'automatically inside this program (other programs keep reading your Stats 1RM). '
@@ -69,7 +90,7 @@ def build_program():
                      SETUP + 'Volume day; final set is 8+ AMRAP. Bench TM progresses from the Day 3 1+ set, not this one. '
                      'Suggested schedule: Mon/Tue/Thu/Fri. Complete the accessories after the main work.'),
             exercise('Overhead Press', 'Overhead Press',
-                     blocks([6, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
+                     supplemental_blocks([6, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Uses your own Overhead Press 1RM in Stats (listed as Overhead Press (bench)); '
                      'set it explicitly, not your bench max. TM starts at 90% of that value and rises by half '
                      'of each bench TM increase (no OHP 1+ set in the 4-day version).')],
@@ -77,19 +98,19 @@ def build_program():
             exercise('Squat', 'Squat', blocks([5, 3, 1, 3, 3, 3, 5, 5, 5], heavy_pct, (3, 9)),
                      SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
-            exercise('Sumo Deadlift', 'Deadlift', blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
+            exercise('Sumo Deadlift', 'Deadlift', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Percentages use 90% of your conventional Deadlift reference 1RM, not a separate sumo max.')],
         '3': [
             exercise('Bench Press', 'Bench Press', blocks([5, 3, 1, 3, 5, 3, 5, 3, 5], heavy_pct, (3, 9)),
                      SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
                      BENCH_PROGRESSION),
-            exercise('Close Grip (bench)', 'Bench Press', blocks([6, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
+            exercise('Close Grip (bench)', 'Bench Press', supplemental_blocks([6, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
                      'Percentages use 90% of your standard Bench Press reference 1RM, not a close-grip max.')],
         '4': [
             exercise('Deadlift', 'Deadlift', blocks([5, 3, 1, 3, 3, 3, 3, 3, 3], heavy_pct, (3, 9)),
                      SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
-            exercise('Front Squat', 'Squat', blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
+            exercise('Front Squat', 'Squat', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
                      'Percentages use 90% of your back Squat reference 1RM, not a front-squat max.')]
     }
     accessories = {
