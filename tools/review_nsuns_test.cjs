@@ -10,7 +10,10 @@ const db = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(root, 'scripts/database.js'), 'utf8'), db);
 const program = db.window.db.nsuns_531_4day;
 const refs = { 'Bench Press': 100, Squat: 200, Deadlift: 250, 'Overhead Press (bench)': 60, 'Front Squat': 100, 'Close Grip (bench)': 80 };
-const context = vm.createContext({ safeParse: () => refs,
+const storage = {};
+const context = vm.createContext({ currentProgram: 'nsuns_531_4day',
+    safeParse: (key, fallback) => key === 'global1RMs' ? refs : (key in storage ? JSON.parse(storage[key]) : fallback),
+    localStorage: { setItem: (key, value) => { storage[key] = value; } },
     normalizeExName: name => name === 'Overhead Press' ? 'Overhead Press (bench)' : name });
 vm.runInContext(app.slice(app.indexOf('function getPercentageTrainingMax('), app.indexOf('// Renders the exercise title')), context);
 
@@ -66,4 +69,26 @@ test('library card and registry resolve to the injected program', () => {
     const registry = JSON.parse(fs.readFileSync(path.join(root, 'Programs/programs-list.json')));
     assert(registry.programs.some(p => p.id === 'nsuns_531_4day'));
     assert.deepEqual(JSON.parse(JSON.stringify(program.weeks)), JSON.parse(fs.readFileSync(path.join(root, 'Programs/nSuns_531_4Day_database.json'))));
+});
+
+test('finishing a 1+ set progresses that TM per program, follows bench with OHP and never stacks a redo', () => {
+    const week = program.weeks[1];
+    const finish = (key, day, reps) => context.applyTrainingMaxProgression('nsuns_531_4day', key, day,
+        { 'ex-0_b2_s1_check': true, 'ex-0_b2_s1_reps': String(reps) });
+    refs['Overhead Press (bench)'] = 60;
+    const tm = ex => context.getPercentageTrainingMax(ex);
+    assert.deepEqual({ ...finish('w1_d2', week[2], 4) }, { Squat: 5 });
+    assert.equal(tm(week[2][0]), 185);
+    assert.equal(tm(week[4][1]), 185, 'front squat reads the progressed squat TM');
+    assert.deepEqual({ ...finish('w1_d2', week[2], 1) }, {}, 'redoing the day reverts, then applies the new result');
+    assert.equal(tm(week[2][0]), 180);
+    assert.deepEqual({ ...finish('w1_d3', week[3], 6) }, { 'Bench Press': 5, 'Overhead Press (bench)': 2.5 });
+    assert.equal(tm(week[3][1]), 95, 'close grip reads the progressed bench TM');
+    assert.equal(tm(week[1][1]), 56.5);
+    assert.deepEqual({ ...finish('w1_d4', week[4], 2) }, { Deadlift: 2.5 });
+    assert.deepEqual({ ...context.applyTrainingMaxProgression('nsuns_531_4day', 'w2_d4', week[4], {}) }, {}, 'unchecked 1+ set changes nothing');
+    assert.equal(tm(week[2][1]), 227.5);
+    refs.Squat = 210;
+    assert.equal(tm(week[2][0]), 189, 'a new Stats 1RM restarts the TM from it');
+    assert.equal(refs.Squat, 210, 'progression never writes the global 1RM');
 });

@@ -127,6 +127,7 @@ The entire app lives in two files:
 - `activeProgram` — currently active program ID
 - `programSwaps_${programId}` — `{ [originalExName]: newName }` — program-level exercise swaps (see Program-level propagation)
 - `programModes_${programId}` — `{ [originalExName]: modeObj }` — program-level Myo-rep / Drop Set conversions (see Program-level propagation)
+- `programTMs_${programId}` — `{ tms: { [refName]: { tm, seed } }, log: { [workoutKey]: { [refName]: kg } } }` — auto-progressed training maxes for percentage programs (see Training-max progression). In backups; **not** cleared on program reset or completion (it is strength progress, not block state)
 
 ### Security model
 - `scripts/database.js` (plaintext) is gitignored — never commit it.
@@ -164,6 +165,11 @@ Block types: `"top"` (working/peak sets), `"backoff"` (lighter volume after peak
 
 ### Parent-lift 1RM resolution
 `getResolved1RM(exName)` resolves in this order: an exact entry in `global1RMs` → an exact SBD name → a **trailing parenthetical** naming an SBD parent (`"Larsen Press (bench)"` → Bench Press). It deliberately does **not** substring-match: that used to give "Dumbbell Bench" the full barbell bench 1RM and "Single Leg RDL (deadlift)" the full deadlift, and the app then preloaded those numbers into the load field. Variations that inherit a parent still default to 100% of it — use the variation-% modal (tap the parenthetical) to scale.
+
+### Training-max progression (percentage programs)
+Exercises with `percentageReference` + `trainingMaxFactor` read their TM via `getProgramTrainingMax(programId, ref, factor)`: the stored `programTMs_` entry if its `seed` still equals the global 1RM, else `global1RM * factor`. Changing the reference 1RM in Stats (only ever user-initiated) is therefore a manual override that restarts the TM. Progression **never writes `global1RMs`**, so other programs are unaffected.
+
+An exercise carrying `tmProgression: { block, steps: [[minReps, kg], ...], also: { otherRef: share } }` moves its reference TM when the workout is finished (`applyTrainingMaxProgression`, called in the `finish` branch before `generateSummary`), from the reps logged on set 1 of that 1-based block; changes are listed in `#sum-tm` on the summary. `also` moves another reference by a share of the increase, rounded to 1.25 kg (nSuns OHP follows bench at 0.5). Each day's deltas are logged by workout key and reverted before re-applying, so re-finishing a day never stacks. Rules live in `tools/import_nsuns.py`; tests in `tools/review_nsuns_test.cjs` (`node --test`).
 
 ### Weight suggestion priority (buildSetRow)
 Order: **RPE-first → pct fallback → last-used weight memory**

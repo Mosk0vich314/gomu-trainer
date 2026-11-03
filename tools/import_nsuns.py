@@ -26,9 +26,12 @@ def blocks(reps, percentages, amrap=()):
             for i, (r, p) in enumerate(zip(reps, percentages, strict=True))]
 
 
-def exercise(name, reference, prescription, notes):
-    return dict(name=name, type='main', percentageReference=reference,
-                trainingMaxFactor=0.9, notes=notes, blocks=prescription)
+def exercise(name, reference, prescription, notes, progression=None):
+    ex = dict(name=name, type='main', percentageReference=reference,
+              trainingMaxFactor=0.9, notes=notes, blocks=prescription)
+    if progression:
+        ex['tmProgression'] = progression
+    return ex
 
 
 def accessory(name, sets, reps):
@@ -40,15 +43,21 @@ def accessory(name, sets, reps):
                 blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None)])
 
 
-SETUP = ('Training max (TM) = 90% of the reference 1RM entered in Stats. '
+# Set 3 (95% TM, 1+) drives the TM; the app applies it when the workout is finished.
+# Lower body: 2-3 reps +2.5 kg, 4-5 +5 kg, 6+ +7.5 kg. Bench: 2-5 +2.5 kg, 6+ +5 kg,
+# and OHP follows at half the bench increase (the 4-day version has no OHP 1+ set).
+LOWER_PROGRESSION = dict(block=3, steps=[[2, 2.5], [4, 5], [6, 7.5]])
+BENCH_PROGRESSION = dict(block=3, steps=[[2, 2.5], [6, 5]], also={'Overhead Press': 0.5})
+
+SETUP = ('Training max (TM) = 90% of the reference 1RM entered in Stats, then progressed '
+         'automatically inside this program (other programs keep reading your Stats 1RM). '
+         'Entering a new reference 1RM in Stats restarts the TM from it. '
          'Percentages shown are of TM. Warm up before working sets. ')
-PROGRESSION = ('Weekly progression is manual: use the 95% TM 1+ set. '
-               '0-1 reps: keep TM; 2-3: add 5 lb (about 2.5 kg); '
-               '4-5: add 5-10 lb (about 2.5-5 kg); '
-               '6+: add 10-15 lb (about 5-7.5 kg). '
-               'Before next week, set the reference 1RM in Stats to new TM / 0.9. '
-               'This also changes the reference used by other programs. '
-               'Log achieved reps on AMRAP sets; stop when technique breaks down. ')
+PROGRESSION = ('Log the reps on the 95% 1+ set: finishing the workout raises the TM for next week. '
+               '0-1 reps: TM stays; 2-3: +2.5 kg; 4-5: +5 kg (bench +2.5); 6+: +7.5 kg (bench +5). '
+               'Supplemental lifts using this TM move with it. '
+               'AMRAP sets: stop when technique breaks down. Only the 1+ set drives progression; '
+               'if recovery or next session\'s 1+ set suffers, leave 1-2 reps in reserve on the final + set. ')
 
 
 def build_program():
@@ -57,26 +66,29 @@ def build_program():
         '1': [
             exercise('Bench Press', 'Bench Press',
                      blocks([8, 6, 4, 4, 4, 5, 6, 7, 8], [65, 75, 85, 85, 85, 80, 75, 70, 65], (9,)),
-                     SETUP + 'Volume day; final set is 8+ AMRAP. Progress bench from Day 3, not this set. '
+                     SETUP + 'Volume day; final set is 8+ AMRAP. Bench TM progresses from the Day 3 1+ set, not this one. '
                      'Suggested schedule: Mon/Tue/Thu/Fri. Complete the accessories after the main work.'),
             exercise('Overhead Press', 'Overhead Press',
                      blocks([6, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Uses your own Overhead Press 1RM in Stats (listed as Overhead Press (bench)); '
-                     'set it explicitly, not your bench max. TM = 90% of that value. '
-                     'No OHP 1+ test in the 4-day version: adjust its TM manually when all sets are manageable.')],
+                     'set it explicitly, not your bench max. TM starts at 90% of that value and rises by half '
+                     'of each bench TM increase (no OHP 1+ set in the 4-day version).')],
         '2': [
             exercise('Squat', 'Squat', blocks([5, 3, 1, 3, 3, 3, 5, 5, 5], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
+                     LOWER_PROGRESSION),
             exercise('Sumo Deadlift', 'Deadlift', blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
                      'Percentages use 90% of your conventional Deadlift reference 1RM, not a separate sumo max.')],
         '3': [
             exercise('Bench Press', 'Bench Press', blocks([5, 3, 1, 3, 5, 3, 5, 3, 5], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
+                     BENCH_PROGRESSION),
             exercise('Close Grip (bench)', 'Bench Press', blocks([6, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
                      'Percentages use 90% of your standard Bench Press reference 1RM, not a close-grip max.')],
         '4': [
             exercise('Deadlift', 'Deadlift', blocks([5, 3, 1, 3, 3, 3, 3, 3, 3], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Complete the accessories after the main work.'),
+                     SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Complete the accessories after the main work.',
+                     LOWER_PROGRESSION),
             exercise('Front Squat', 'Squat', blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
                      'Percentages use 90% of your back Squat reference 1RM, not a front-squat max.')]
     }

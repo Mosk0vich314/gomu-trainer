@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.03.0005";
+        const APP_VERSION = "v2026.11.03.1122";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -958,6 +958,7 @@
                 gymPlateInventory: safeParse('gymPlateInventory', null),
                 programSwaps: {},
                 programModes: {},
+                programTMs: {},
                 workoutSessions: {},
                 preferences: {},
                 migrations: {},
@@ -969,6 +970,7 @@
                 const k = localStorage.key(i);
                 if (k && k.startsWith('programSwaps_')) backup.programSwaps[k] = safeParse(k, {});
                 if (k && k.startsWith('programModes_')) backup.programModes[k] = safeParse(k, {});
+                if (k && k.startsWith('programTMs_')) backup.programTMs[k] = safeParse(k, {});
                 if (k && isWorkoutStorageKey(k)) backup.workoutSessions[k] = safeParse(k, {});
             }
             if (includePictures) backup.progressPictures = await getDB('progressPictures', []);
@@ -989,7 +991,7 @@
             const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
             const fail = () => { throw new Error('Invalid backup structure. No data was restored.'); };
             if (!isObject(data) || !['workoutHistory', 'actualBests', 'completedDays', 'customPrograms'].some(k => Object.hasOwn(data, k))) fail();
-            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'programSwaps', 'programModes', 'workoutSessions', 'preferences', 'migrations'];
+            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'programSwaps', 'programModes', 'programTMs', 'workoutSessions', 'preferences', 'migrations'];
             maps.forEach(k => { if (data[k] != null && !isObject(data[k])) fail(); });
             ['workoutHistory', 'progressPictures', 'bwHistory', 'warmupRoutine', 'gymPlateInventory'].forEach(k => {
                 if (data[k] != null && !Array.isArray(data[k])) fail();
@@ -998,7 +1000,7 @@
                 if (data[k] != null && !['string', 'number'].includes(typeof data[k])) fail();
             });
             if (data.activeWorkout != null && (!isObject(data.activeWorkout) || !isWorkoutStorageKey(data.activeWorkout.key || ''))) fail();
-            for (const [field, validKey] of [['programSwaps', k => k.startsWith('programSwaps_')], ['programModes', k => k.startsWith('programModes_')], ['workoutSessions', isWorkoutStorageKey]]) {
+            for (const [field, validKey] of [['programSwaps', k => k.startsWith('programSwaps_')], ['programModes', k => k.startsWith('programModes_')], ['programTMs', k => k.startsWith('programTMs_')], ['workoutSessions', isWorkoutStorageKey]]) {
                 Object.entries(data[field] || {}).forEach(([k, value]) => { if (!validKey(k) || !isObject(value)) fail(); });
             }
             for (const [field, keys] of [['preferences', BACKUP_PREFERENCES], ['migrations', BACKUP_MIGRATIONS]]) {
@@ -1037,6 +1039,7 @@
             setStr('gymBarbellWeight', data.gymBarbellWeight);
             if (data.programSwaps) Object.keys(data.programSwaps).forEach(k => setJSON(k, data.programSwaps[k]));
             if (data.programModes) Object.keys(data.programModes).forEach(k => setJSON(k, data.programModes[k]));
+            if (data.programTMs) Object.keys(data.programTMs).forEach(k => setJSON(k, data.programTMs[k]));
             if (data.workoutSessions) Object.keys(data.workoutSessions).forEach(k => setJSON(k, data.workoutSessions[k]));
             if (data.preferences) Object.keys(data.preferences).forEach(k => setStr(k, data.preferences[k]));
             if (data.migrations) Object.keys(data.migrations).forEach(k => setStr(k, data.migrations[k]));
@@ -1595,12 +1598,72 @@
         // Percentage programs may prescribe a training max of a different lift.
         // Read that exact lift: OHP must never inherit the bench 1RM, and front
         // squats prescribed from back squat must ignore a front-squat override.
-        function getPercentageTrainingMax(ex) {
+        function getPercentageTrainingMax(ex, programId = currentProgram) {
             if (!ex.percentageReference || !ex.trainingMaxFactor) return null;
             if (ex._originalName && ex.name !== ex._originalName) return null;
-            const refs = safeParse('global1RMs', {});
-            const ref = Number(refs[normalizeExName(ex.percentageReference)]);
-            return Number.isFinite(ref) && ref > 0 ? ref * ex.trainingMaxFactor : 0;
+            return getProgramTrainingMax(programId, ex.percentageReference, ex.trainingMaxFactor);
+        }
+
+        // programTMs_${programId} = { tms: { [ref]: { tm, seed } }, log: { [workoutKey]: { [ref]: kg } } }.
+        // A progressed TM is kept per program so it never rewrites the global 1RM other
+        // programs read. `seed` is the reference 1RM it grew from: entering a different
+        // 1RM in Stats is a manual override and restarts the TM from that value.
+        function getProgramTrainingMax(programId, reference, factor) {
+            const refName = normalizeExName(reference);
+            const seed = Number(safeParse('global1RMs', {})[refName]);
+            const hasSeed = Number.isFinite(seed) && seed > 0;
+            const saved = safeParse(`programTMs_${programId}`, {}).tms?.[refName];
+            if (saved && saved.tm > 0 && (!hasSeed || saved.seed === seed)) return saved.tm;
+            return hasSeed ? seed * factor : 0;
+        }
+
+        // Exercises carrying `tmProgression: { block, steps, also }` move their reference
+        // TM from the reps logged on that 1-based block's set: the largest step whose
+        // rep threshold was met wins (steps = [[minReps, kg], ...]). `also` moves other
+        // references by a fraction of that increase (nSuns OHP follows bench).
+        // Re-finishing a day reverts what that day applied before, so a redo never stacks.
+        function applyTrainingMaxProgression(programId, key, exercises, savedSession) {
+            const storeKey = `programTMs_${programId}`;
+            const store = safeParse(storeKey, {});
+            store.tms = store.tms || {};
+            store.log = store.log || {};
+            const global1RMs = safeParse('global1RMs', {});
+            const factors = {};
+            exercises.forEach(ex => {
+                if (ex.percentageReference && ex.trainingMaxFactor) factors[normalizeExName(ex.percentageReference)] = ex.trainingMaxFactor;
+            });
+            const shift = (refName, delta) => {
+                const factor = factors[refName] || 0.9;
+                const current = getProgramTrainingMax(programId, refName, factor);
+                if (!(current > 0)) return 0;
+                store.tms[refName] = { tm: Math.round((current + delta) * 100) / 100, seed: Number(global1RMs[refName]) || 0 };
+                return delta;
+            };
+            // Write as we go: getProgramTrainingMax reads the store back.
+            const save = () => localStorage.setItem(storeKey, JSON.stringify(store));
+            Object.entries(store.log[key] || {}).forEach(([refName, delta]) => { shift(refName, -delta); save(); });
+            delete store.log[key];
+
+            const applied = {};
+            exercises.forEach((ex, exIndex) => {
+                const rule = ex.tmProgression;
+                if (!rule || ex.isDeleted || getPercentageTrainingMax(ex, programId) === null) return;
+                const rowId = `ex-${exIndex}_b${rule.block - 1}_s1`;
+                if (!savedSession[`${rowId}_check`]) return;
+                const reps = parseFloat(savedSession[`${rowId}_reps`]) || 0;
+                const step = rule.steps.filter(([minReps]) => reps >= minReps).pop();
+                if (!step) return;
+                const refName = normalizeExName(ex.percentageReference);
+                if (shift(refName, step[1])) { applied[refName] = step[1]; save(); }
+                Object.entries(rule.also || {}).forEach(([other, share]) => {
+                    const otherName = normalizeExName(other);
+                    const delta = Math.round(step[1] * share / 1.25) * 1.25;
+                    if (delta && shift(otherName, delta)) { applied[otherName] = delta; save(); }
+                });
+            });
+            if (Object.keys(applied).length) store.log[key] = applied;
+            save();
+            return applied;
         }
 
         // Renders the exercise title; if the name ends in a parenthetical naming a parent
@@ -2035,7 +2098,17 @@
                 const timerEl = document.getElementById('workout-duration');
                 if (timerEl) timerEl.style.display = 'none';
                 
+                flushSessionState();
+                const tmChanges = applyTrainingMaxProgression(currentProgram, keyForSummary,
+                    getActiveExercises(currentProgram, selectedWeek, selectedDay, keyForSummary), safeParse(keyForSummary, {}));
                 generateSummary(keyForSummary, durationMs);
+                const tmEl = document.getElementById('sum-tm');
+                if (tmEl) {
+                    const lines = Object.entries(tmChanges).map(([ref, kg]) =>
+                        `${escapeHtml(ref)} TM +${kgDisp(kg, 2)} ${unitSuffix()} → ${kgDisp(getProgramTrainingMax(currentProgram, ref, 0.9), 1)} ${unitSuffix()}`);
+                    tmEl.innerHTML = lines.join('<br>');
+                    tmEl.style.display = lines.length ? 'block' : 'none';
+                }
                 // The summary must read the same swapped names and converted blocks
                 // that were shown while logging the final workout.
                 if (allDone) {
