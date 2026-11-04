@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v2026.11.04.1439'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.11.04.1502'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -156,8 +156,8 @@ self.addEventListener('message', (event) => {
                     const clientList = await self.clients.matchAll({ type: 'window' });
                     const appVisible = clientList.some(c => c.visibilityState === 'visible');
                     if (generation !== timerGeneration || appVisible) return;
-                    await self.registration.showNotification("⏱️ Rest Complete!", {
-                        body: "Time for your next set. Tap to resume.",
+                    await self.registration.showNotification("Bar is loaded", {
+                        body: "Rest is over. Tap to resume.",
                         icon: "./assets/logo-192.png",
                         vibrate: [200, 100, 200, 100, 400],
                         tag: "gomu-timer",

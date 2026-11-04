@@ -310,6 +310,14 @@ The title is **left-aligned** in the display face; both tools sit on the right �
 
 Block headers render the prescription as `<span class="block-count">3 × 5</span><span class="block-meta">@ 77%</span>` + the RPE pill.
 
+### Home hero
+`#hero-resume` is not a card: `renderHeroLift(programId, w, d, context)` writes the **top set of the day's first main lift** (first `type:'main'` exercise, else the first exercise; among its `top` blocks — or all blocks if none are tagged — the heaviest computed load) with its prescription and load (`heroPrescription`, same priority as the render-time preload: TM % → RPE via RTS → % of 1RM) and an "Also today: …" list of the rest into `#hero-lift`, over the dashboard photo. The photo's fade uses `var(--bg)` so it follows the theme. Program progress dots are grouped per week (`.p-week`, 8 weeks a row).
+
+**Loaded bar:** for a barbell lift (`getEquipmentMode === 'bb'`) the hero also draws `loadedBarSvg(load)` in a right-hand column beside the name and prescription (`.hero-top.has-bar` grid) — the END of the bar side-on: a short fade of shaft, inner collar flange, then a sleeve only as long as the load needs (plates from `platesPerSide`; 25–5 kg all full diameter as in a powerlifting gym, only 2.5/1.25 smaller; no weight labels, the colour is the code; thickness exaggerated, a lock collar, a short bare stub and the end cap). Keep the sleeve short past the collar: an equal length either side of the plates reads as a pipe, not a bar. Plates slide on (`.loaded-bar.loading`) only when the lift/load changes, keyed by `#hero-lift[data-bar-key]`, so routine `updateDashboard()` calls don't replay it.
+
+### Meet vernacular (judges' lights + calls)
+Three white lights (`.judge-lights`) mark a good lift: the PR toast ("Good lift, new best") and the workout summary (`.judge-lights-lg`, lit one at a time each time `#summary-screen` becomes active). Three red lights (`.judge-lights.red`) are the below-reference-1RM toast ("No lift"). The rest timer shows "Bar is loaded" when finished (`.timer-call`, also the notification title in `app.js` and `sw.js`), and the finish slider reads "Slide to rack it". Keep this vocabulary consistent when adding copy.
+
 ### Plate strip
 Barbell load cells carry `<button class="plate-btn"><span class="plate-strip" data-load="…"></span></button>` — the strip is a band along the bottom of the load field and **is** the plate-calculator button (the balloon is the only way into the gym-inventory settings, so it must stay reachable). It is painted by `paintPlateStrips()` with the per-side plates (`platesPerSide`, same greedy breakdown and inventory colours as the plate balloon) on a fixed 120 kg/side scale. Loads written by code fire no `input` event, so a delegated document `click` listener repaints on the next tick, plus once at the end of `renderWorkout`.
 

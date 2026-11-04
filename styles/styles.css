@@ -1572,6 +1572,121 @@ button, input, textarea, select { font-family: inherit; }
 .plate-strip i { display: block; min-width: 3px; height: 100%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16); }
 .input-box:disabled ~ .plate-btn .plate-strip { opacity: 0.45; }
 
+/* ── Home ─────────────────────────────────────────────────────────── */
+/* The photo fades into the THEME background (the old fade hardcoded Ember's #09090b). */
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+    #home-screen {
+        background-image:
+            linear-gradient(to bottom,
+                transparent 0%,
+                color-mix(in srgb, var(--bg) 30%, transparent) 100px,
+                color-mix(in srgb, var(--bg) 85%, transparent) 200px,
+                var(--bg) 280px),
+            url('../assets/images/dashboard.jpg');
+    }
+}
+#home-screen::before { display: none; }          /* grid overlay: noise on the photo */
+.dashboard-wordmark { margin-bottom: 104px; }
+.dashboard-wordmark span { animation: none; }    /* no idle pulsing */
+
+/* Hero: no card. The day's first lift sits on the photo's fade. */
+#home-screen .hero-card {
+    background: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+    border: none; border-radius: 0; box-shadow: none; overflow: visible;
+    padding: 0 2px; margin-top: 0; margin-bottom: 22px; cursor: pointer;
+}
+#home-screen .hero-card:active { transform: none; }
+.hero-card .hero-context {
+    margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-card.in-progress .hero-context { color: var(--accent); }
+.hero-card .hero-lift-name {
+    font-family: var(--font-display); font-size: 68px; font-weight: 800;
+    line-height: 0.88; letter-spacing: 0; margin: 0; color: var(--text-main);
+    overflow-wrap: anywhere; text-shadow: 0 2px 18px rgba(0,0,0,0.45);
+}
+.hero-rx {
+    font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1;
+    margin-top: 8px; color: var(--text-main); font-variant-numeric: tabular-nums;
+}
+.hero-card .hero-at { color: var(--text-muted); font-size: inherit; font-weight: 700; letter-spacing: 0; }
+.hero-card .hero-load { color: var(--accent); font-size: inherit; font-weight: inherit; letter-spacing: 0; text-transform: none; }
+/* The loaded bar: today's top set, one sleeve, plates to scale. */
+/* Name + prescription on the left, the bar end on the right to balance them. */
+.hero-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; }
+.hero-card .hero-lift-name.long { font-size: 50px; }
+.hero-top.has-bar .hero-lift-name { font-size: 60px; }
+.hero-top.has-bar .hero-lift-name.long { font-size: 46px; }
+.hero-top.has-bar .hero-rx { font-size: 32px; white-space: nowrap; }
+.loaded-bar { margin-right: -6px; }
+.loaded-bar svg { display: block; overflow: visible; }
+.loaded-bar .lb-metal { fill: #c4c4cc; }
+.loaded-bar .lb-ring { fill: #8e8e96; }
+.loaded-bar .lb-sleeve { fill: #b3b3bb; }
+.loaded-bar .lb-cap { fill: #7d7d85; }
+.loaded-bar .lb-collar { fill: #d4d4d8; stroke: rgba(0,0,0,0.35); stroke-width: 1; }
+.loaded-bar .lb-plate rect { stroke: rgba(0,0,0,0.45); stroke-width: 1; }
+.loaded-bar .lb-plate.dark rect { stroke: rgba(255,255,255,0.35); }
+/* One orchestrated moment: plates slide onto the sleeve, innermost first. */
+.loaded-bar.loading .lb-plate { animation: plateOn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--i) * 70ms + 150ms); }
+@keyframes plateOn { from { transform: translateX(70px); opacity: 0; } to { transform: none; opacity: 1; } }
+.hero-card .hero-then { margin: 12px 0 0; font-size: 14px; line-height: 1.45; font-weight: 500; color: var(--text-muted); max-width: 46ch; }
+#home-screen .hero-btn {
+    margin-top: 18px; background: var(--accent); color: #000;
+    padding: 15px 16px; border-radius: 12px; font-size: 15px; font-weight: 800; letter-spacing: 0;
+}
+
+/* Program progress: one segment per session, grouped by week (8 weeks a row). */
+.progress-container { background: var(--card); border-color: var(--line-soft); border-radius: 14px; padding: 14px 16px; }
+.progress-header { text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--text-main); margin-bottom: 12px; align-items: baseline; }
+.progress-header span:last-child { font-family: var(--font-display); font-size: 22px; line-height: 1; font-weight: 800; color: var(--accent); }
+.progress-track { gap: 8px 6px; padding-top: 0; }
+.p-week { display: flex; gap: 2px; flex: 0 0 calc((100% - 42px) / 8); }
+.p-week .p-dot { flex: 1; width: auto; height: 8px; border-radius: 2px; }
+.p-dot.done:last-of-type { box-shadow: none; }
+
+/* Lifetime + vault: same surface as everything else, no drop shadows. */
+.analytics-card { border-color: var(--line-soft); border-radius: 14px; box-shadow: none; padding: 14px 16px; }
+.analytics-header { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+.analytics-grid { text-align: left; gap: 10px; }
+.a-lbl { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; margin-top: 4px; }
+.stats-launch-btn { border-color: var(--line-soft); border-radius: 14px; box-shadow: none; padding: 14px 16px; text-align: left; }
+.stats-launch-btn .slb-text { display: flex; flex-direction: column; gap: 2px; }
+.stats-launch-btn .slb-title { color: var(--text-main); font-size: 15px; font-weight: 800; }
+.stats-launch-btn .slb-sub { color: var(--text-muted); font-size: 13px; font-weight: 500; }
+
+/* ── Judges' lights: three white = good lift, three red = no lift ──── */
+.judge-lights { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.judge-lights i {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #f4f4f5; box-shadow: 0 0 10px rgba(255,255,255,0.55);
+}
+.judge-lights.red i { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.6); }
+/* Toasts: lights come on left to right as the toast drops in. */
+.pr-toast.show .judge-lights i,
+.insult-toast.show .judge-lights i { animation: lightOn 0.25s ease-out backwards; }
+.judge-lights i:nth-child(2) { animation-delay: 0.12s; }
+.judge-lights i:nth-child(3) { animation-delay: 0.24s; }
+/* Summary: big lights, one at a time, the way the referees press them. */
+.judge-lights-lg { gap: 14px; margin: 0 auto 18px; justify-content: center; display: flex; }
+.judge-lights-lg i { width: 34px; height: 34px; box-shadow: 0 0 18px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25); }
+#summary-screen.active .judge-lights-lg i { animation: lightOn 0.3s ease-out backwards; animation-delay: calc(0.25s + var(--n, 0) * 0.3s); }
+.judge-lights-lg i:nth-child(2) { --n: 1; }
+.judge-lights-lg i:nth-child(3) { --n: 2; }
+@keyframes lightOn {
+    from { background: var(--surface-row); box-shadow: none; }
+}
+.s-stat span { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; }
+.pr-title, .insult-title { text-transform: none; letter-spacing: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.summary-card h2 { font-family: var(--font-display); font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: 0; margin-bottom: 8px; }
+
+/* ── Meet calls ───────────────────────────────────────────────────── */
+.timer-left { display: flex; flex-direction: column; min-width: 0; }
+.timer-call { display: none; font-size: 13px; font-weight: 800; color: #000; margin-top: 2px; }
+.rest-timer-banner.finished .timer-call { display: block; }
+.slider-text { text-transform: none; letter-spacing: 0; font-size: 15px; }
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;

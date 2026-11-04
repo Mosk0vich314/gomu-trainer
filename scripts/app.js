@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.04.1439";
+        const APP_VERSION = "v2026.11.04.1502";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -1266,10 +1266,12 @@
                 
                 if (totalDays > 0) {
                     progContainer.style.display = 'block';
-                    progText.innerText = `${doneDays}/${totalDays} Workouts`;
+                    progText.innerText = `${doneDays} of ${totalDays}`;
+                    // One group per week, so the dots read as the block's actual structure.
                     const track = progFill ? progFill.parentElement : progContainer.querySelector('.progress-track');
-                    if (track) track.innerHTML = Array.from({length: totalDays}, (_, i) =>
-                        `<div class="p-dot${i < doneDays ? ' done' : ''}"></div>`).join('');
+                    if (track) track.innerHTML = Object.keys(db[mainProgram].weeks).sort((x, y) => x - y).map(w =>
+                        `<div class="p-week" title="Week ${w}">${Object.keys(db[mainProgram].weeks[w]).sort((x, y) => x - y).map(d =>
+                            `<div class="p-dot${completedDays[`${mainProgram}_w${w}_d${d}`] ? ' done' : ''}"></div>`).join('')}</div>`).join('');
                     
                     // --- NEW: INTERACTIVE QUICK OVERVIEW ---
                     progContainer.style.cursor = 'pointer';
@@ -1309,20 +1311,14 @@
                 
                 heroEmpty.style.display = 'none';
                 heroResume.style.display = 'block';
-                heroResume.classList.add('active-state'); 
-                heroResume.style.borderColor = 'var(--teal)';
-                heroResume.querySelector('span').innerText = 'UP NEXT';
-                heroResume.querySelector('span').style.color = 'var(--teal)';
-                document.getElementById('hero-program-name').innerText = db[mainProgram].name;
-                
+                heroResume.classList.remove('in-progress');
+
                 const btn = heroResume.querySelector('.hero-btn');
-                
+
                 if (nextW && nextD) {
-                    document.getElementById('hero-program-detail').innerText = `Week ${nextW} • Day ${nextD}`;
-                    btn.innerText = 'Go to Next Workout';
-                    btn.style.background = 'var(--teal)';
-                    btn.style.color = '#000';
-                    
+                    renderHeroLift(mainProgram, nextW, nextD, `Week ${nextW}, day ${nextD} of ${db[mainProgram].name}`);
+                    btn.innerText = `Go to week ${nextW}, day ${nextD}`;
+
                     heroResume.onclick = () => {
                         currentProgram = mainProgram; // Sync viewed program
                         selectedWeek = nextW;
@@ -1340,10 +1336,9 @@
                         }, 150);
                     };
                 } else {
-                    document.getElementById('hero-program-detail').innerText = `Program Completed 🏆`;
-                    btn.innerText = 'Restart Program';
-                    btn.style.background = 'var(--teal)';
-                    btn.style.color = '#000';
+                    document.getElementById('hero-program-detail').innerText = db[mainProgram].name;
+                    document.getElementById('hero-lift').innerHTML = `<h2 class="hero-lift-name">Program complete</h2><p class="hero-then">Every session in this block is logged.</p>`;
+                    btn.innerText = 'Restart program';
                     
                     heroResume.onclick = () => {
                         currentProgram = mainProgram;
@@ -1354,16 +1349,11 @@
             } else if (activeWorkout && db[activeWorkout.program]) {
                 heroEmpty.style.display = 'none';
                 heroResume.style.display = 'block';
-                heroResume.classList.add('active-state');
-                heroResume.style.borderColor = 'var(--accent)';
-                heroResume.querySelector('span').innerText = 'IN PROGRESS';
-                heroResume.querySelector('span').style.color = 'var(--accent)';
-                document.getElementById('hero-program-name').innerText = db[activeWorkout.program].name;
-                document.getElementById('hero-program-detail').innerText = `Week ${activeWorkout.week} • Day ${activeWorkout.day}`;
+                heroResume.classList.add('in-progress');
+                renderHeroLift(activeWorkout.program, activeWorkout.week, activeWorkout.day,
+                    `In progress: week ${activeWorkout.week}, day ${activeWorkout.day} of ${db[activeWorkout.program].name}`);
                 const btn = heroResume.querySelector('.hero-btn');
-                btn.innerText = 'Resume Workout';
-                btn.style.background = 'var(--accent)';
-                btn.style.color = '#000';
+                btn.innerText = 'Resume workout';
                 
                 heroResume.onclick = () => resumeWorkout();
             } else {
@@ -1374,6 +1364,109 @@
 
             renderDeloadHint();
             updateAnalytics();
+        }
+
+        // Home hero: the day's first lift and its first prescribed set, loaded with the
+        // same priority as renderWorkout's preload (TM % -> RPE via RTS -> % of 1RM).
+        function heroPrescription(programId, ex, block) {
+            const amrapAll = amrapSetIndex(block) !== null && block.sets === 1;
+            const count = block.durationMin ? `${block.sets} × ${block.durationMin} min`
+                : `${block.sets} × ${amrapAll ? 'AMRAP' : block.reps}`;
+            let load = 0;
+            const tm = getPercentageTrainingMax(ex, programId);
+            const r1 = getResolved1RM(ex.name);
+            if (block.pct && tm !== null) {
+                if (tm > 0) load = roundForEquipment(tm * block.pct, ex.name);
+            } else if (block.targetRpe && r1 > 0 && !amrapAll && !block.durationMin) {
+                const pct = rtsPct(block.targetRpe, block.reps) || 0;
+                if (pct > 0) load = roundForEquipment(r1 * pct, ex.name);
+            } else if (block.pct && r1 > 0) {
+                load = roundForEquipment(r1 * block.pct, ex.name);
+            }
+            return { count, load };
+        }
+
+        function renderHeroLift(programId, w, d, context) {
+            document.getElementById('hero-program-detail').innerText = context;
+            const el = document.getElementById('hero-lift');
+            const key = `${programId}_w${w}_d${d}`;
+            const exs = getActiveExercises(programId, w, d, key)
+                .filter(ex => !ex.isDeleted && Array.isArray(ex.blocks) && ex.blocks.some(b => !b._deleted));
+            if (!exs.length) { el.innerHTML = `<h2 class="hero-lift-name">Rest day</h2>`; return; }
+            // The day's headline is the TOP SET of its first main lift: among that lift's
+            // `top` blocks (or all its blocks if none are tagged), the heaviest prescription.
+            const lift = exs.find(ex => ex.type === 'main') || exs[0];
+            const blocks = lift.blocks.filter(b => !b._deleted);
+            const tops = blocks.filter(b => b.type === 'top');
+            let rx = null;
+            (tops.length ? tops : blocks).forEach(b => {
+                const cand = heroPrescription(programId, lift, b);
+                if (!rx || cand.load > rx.load) rx = cand;
+            });
+            const loadHtml = rx.load > 0 ? ` <span class="hero-at">@</span> <span class="hero-load">${kgDisp(rx.load)} ${unitSuffix()}</span>` : '';
+            const rest = exs.filter(ex => ex !== lift).map(ex => escapeHtml(ex.name));
+            const barHtml = rx.load > 0 && getEquipmentMode(lift.name) === 'bb' ? loadedBarSvg(rx.load) : '';
+            // Plates slide on only when the bar actually changes, not on every dashboard refresh.
+            const barKey = barHtml ? `${lift.name}|${rx.load}` : '';
+            const animate = barKey && el.dataset.barKey !== barKey;
+            el.dataset.barKey = barKey;
+            // Long names drop a size so the bar keeps its column on the right.
+            const nameCls = lift.name.length > 12 ? 'hero-lift-name long' : 'hero-lift-name';
+            el.innerHTML = `
+                <div class="hero-top${barHtml ? ' has-bar' : ''}">
+                    <div class="hero-text">
+                        <h2 class="${nameCls}">${escapeHtml(lift.name)}</h2>
+                        <div class="hero-rx">${rx.count}${loadHtml}</div>
+                    </div>
+                    ${barHtml ? `<div class="loaded-bar${animate ? ' loading' : ''}">${barHtml}</div>` : ''}
+                </div>
+                ${rest.length ? `<p class="hero-then">Also today: ${rest.join(', ')}</p>` : ''}`;
+        }
+
+        // Side-on view of the END of the bar, loaded for `weight`: a short stretch of
+        // shaft fading in, the inner collar flange, then the (thicker) sleeve carrying the
+        // per-side plates (same breakdown and colours as the plate strip), a lock collar,
+        // a short stub of bare sleeve and the end cap. The sleeve is only as long as the
+        // load needs, so it always reads as a bar end, not a pipe through plates.
+        // Plate heights match a powerlifting gym: 25 down to 5 kg are all full diameter,
+        // only the 2.5 and 1.25 change size. No numbers on the plates: the colour is the code.
+        // Thickness is exaggerated so small plates read.
+        function loadedBarSvg(weight) {
+            const DIAM = { 25: 450, 20: 450, 15: 450, 10: 450, 5: 450, 2.5: 190, 1.25: 160 };
+            const THICK = { 25: 17, 20: 15, 15: 13, 10: 11, 5: 9, 2.5: 8, 1.25: 6 };
+            const H = 108, CY = 54, PX_PER_MM = 104 / 450, gap = 1.5;
+            const SHAFT = 26, FLANGE = 7, RING = 3, COLLAR = 8, STUB = 12, CAP = 3, MAX_PLATES_W = 112;
+            const plates = platesPerSide(weight);
+            const raw = plates.reduce((t, p) => t + (THICK[p.w] || 8) + gap, 0);
+            const squeeze = raw > MAX_PLATES_W ? MAX_PLATES_W / raw : 1; // very heavy bars: thinner plates
+            const sleeveX = SHAFT + FLANGE + RING;
+            let x = sleeveX + 2;
+            const plateSvg = plates.map((p, i) => {
+                const t = (THICK[p.w] || 8) * squeeze;
+                const h = (DIAM[p.w] || 150) * PX_PER_MM;
+                // Near-black plates (2.5 / 1.25 kg by default) get a light rim so they read on a dark page.
+                const hex = String(p.c).replace('#', '');
+                const lum = hex.length === 6 ? (0.2126 * parseInt(hex.slice(0, 2), 16) + 0.7152 * parseInt(hex.slice(2, 4), 16) + 0.0722 * parseInt(hex.slice(4, 6), 16)) / 255 : 1;
+                const g = `<g class="lb-plate${lum < 0.3 ? ' dark' : ''}" style="--i:${i}"><rect x="${x.toFixed(1)}" y="${(CY - h / 2).toFixed(1)}" width="${t.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${p.c}"/></g>`;
+                x += t + gap;
+                return g;
+            }).join('');
+            const collarX = x + 0.5;
+            const collar = plates.length
+                ? `<g class="lb-plate" style="--i:${plates.length}"><rect x="${collarX.toFixed(1)}" y="${CY - 15}" width="${COLLAR}" height="30" rx="2" class="lb-collar"/></g>`
+                : '';
+            const sleeveEnd = (plates.length ? collarX + COLLAR : sleeveX + 40) + STUB;
+            const W = Math.ceil(sleeveEnd + CAP + 1);
+            const SCALE = 0.82; // drawn at 104 px plates, shown a touch smaller so heavy bars leave room for the text
+            return `<svg viewBox="0 0 ${W} ${H}" width="${(W * SCALE).toFixed(1)}" height="${(H * SCALE).toFixed(1)}" role="img" aria-label="${plates.length ? `Bar loaded with ${plates.map(p => p.w).join(', ')} kg per side` : 'Empty bar'}">
+                <defs><linearGradient id="lb-fade" x1="0" x2="1"><stop offset="0" stop-color="#8b8b93" stop-opacity="0"/><stop offset="1" stop-color="#8b8b93"/></linearGradient></defs>
+                <rect x="0" y="${CY - 2.5}" width="${SHAFT + 1}" height="5" fill="url(#lb-fade)"/>
+                <rect x="${SHAFT}" y="${CY - 20}" width="${FLANGE}" height="40" rx="1.5" class="lb-metal"/>
+                <rect x="${SHAFT + FLANGE}" y="${CY - 12}" width="${RING}" height="24" class="lb-ring"/>
+                <rect x="${sleeveX}" y="${CY - 8}" width="${(sleeveEnd - sleeveX).toFixed(1)}" height="16" rx="1" class="lb-sleeve"/>
+                <rect x="${sleeveEnd.toFixed(1)}" y="${CY - 9}" width="${CAP}" height="18" rx="1.5" class="lb-cap"/>
+                ${plateSvg}${collar}
+            </svg>`;
         }
 
         // Deload nudge: the drift indicator already computes per-lift fatigue —
@@ -4505,7 +4598,7 @@
             } else if (isActive) {
             bottomActionUI = `
             <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
-                <span style="color: var(--danger);">◀ SWIPE TO CANCEL</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">SLIDE TO FINISH ▶</span>
+                <span style="color: var(--danger);">◀ Swipe to cancel</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">Slide to rack it ▶</span>
             </div>
             <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
                 <div class="swipe-delete-bg" style="right: 25px; opacity: 1; flex-direction: row; gap: 6px;">
@@ -4517,7 +4610,7 @@
                     <div class="slider-thumb" id="slider-thumb">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                     </div>
-                    <div class="slider-text" style="width: calc(100% - 64px); left: 64px; font-size: 14px;">Slide to Finish</div>
+                    <div class="slider-text" style="width: calc(100% - 64px); left: 64px; font-size: 14px;">Slide to rack it</div>
                 </div>
             </div>`;
             } else {
@@ -6358,8 +6451,8 @@
             if (document.hidden && "Notification" in window && Notification.permission === "granted") {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.ready.then(function(reg) {
-                        reg.showNotification("⏱️ Rest Complete!", {
-                            body: "Time for your next set. Tap to resume.",
+                        reg.showNotification("Bar is loaded", {
+                            body: "Rest is over. Tap to resume.",
                             icon: "./assets/logo-192.png",
                             vibrate: [200, 100, 200, 100, 400],
                             tag: "gomu-timer",
