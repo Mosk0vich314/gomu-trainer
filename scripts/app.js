@@ -2433,8 +2433,8 @@
                 const showVal = !many || i === maxIdx || i === data.length - 1;
                 const showDate = !many || i % dateStep === 0 || i === data.length - 1;
                 let svg = `<circle cx="${x}" cy="${y}" r="${many ? 3 : 5}" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>`;
-                if (showVal) svg += `<text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Space Grotesk, DM Sans, sans-serif">${d.value}kg</text>`;
-                if (showDate) svg += `<text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Space Grotesk, DM Sans, sans-serif">${fmtDate(d.ts)}</text>`;
+                if (showVal) svg += `<text x="${x}" y="${y - 12}" fill="var(--text-main)" font-size="11" font-weight="800" text-anchor="middle" font-family="Sofia Sans Extra Condensed, Sofia Sans, sans-serif">${d.value}kg</text>`;
+                if (showDate) svg += `<text x="${x}" y="${h + 14}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="Sofia Sans Extra Condensed, Sofia Sans, sans-serif">${fmtDate(d.ts)}</text>`;
                 return svg;
             }).join('');
             
@@ -3908,7 +3908,7 @@
                 const ly = cy + Math.sin(angle) * (R + labelOffset);
                 const anchor = Math.abs(lx - cx) < 5 ? 'middle' : lx < cx ? 'end' : 'start';
                 const hasSome = vals[i] > 0;
-                return `<text x="${lx.toFixed(1)}" y="${(ly + 4).toFixed(1)}" text-anchor="${anchor}" font-size="9" font-weight="800" font-family="DM Sans,sans-serif" fill="${hasSome ? 'var(--text-main)' : 'var(--text-muted)'}">${g.label}</text>`;
+                return `<text x="${lx.toFixed(1)}" y="${(ly + 4).toFixed(1)}" text-anchor="${anchor}" font-size="9" font-weight="800" font-family="Sofia Sans,sans-serif" fill="${hasSome ? 'var(--text-main)' : 'var(--text-muted)'}">${g.label}</text>`;
             }).join('');
 
             const hasData = vals.some(v => v > 0);
@@ -4632,9 +4632,9 @@
                         <div class="ex-title-container">
                             
                             ${isNonExercise ? '' : `
-                            <div style="position: absolute; left: 12px; top: 16px;">
+                            <div class="ex-swap-slot">
                                 <button class="btn-warmup-icon"
-                                        style="position: static; border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;"
+                                        style="position: static; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 4px 6px;"
                                         onclick="openSwapModal(${exIndex}, '${escapeJsAttr(ex._originalName || ex.name)}')" title="Swap Exercise">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
                                 </button>
@@ -4647,7 +4647,7 @@
                             
                             ${isNonExercise ? '' : `
                             <button class="btn-warmup-icon" 
-                                    style="border-color: ${warmupColor}; color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
+                                    style="color: ${warmupColor}; display: flex; align-items: center; justify-content: center; padding: 5px 8px;" 
                                     onclick="openWarmupGenerator('${exId}', ${escapeHtml(JSON.stringify(ex.name))}, ${isMain})" aria-label="Generate warmup">
                                 ${warmupSvg}
                             </button>
@@ -4662,14 +4662,14 @@
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
                             const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
                             const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
-                            return `<div style="text-align:center;padding:2px 0;display:flex;justify-content:center;gap:6px;"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
+                            return `<div class="ex-chip-row"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
                         })() : ''}
 
                         ${techniqueLift === 'bench' ? `<div class="bench-video-entry"><button type="button" class="bench-video-button" aria-label="Analyze video" onclick="openBenchVideoAnalysis('${exId}', this)" ${videoUnavailable ? `disabled aria-describedby="${exId}-video-help"` : ''}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Analyze video<span>RPE lab</span></button>${videoUnavailable ? `<p id="${exId}-video-help">${videoUnavailable}</p>` : ''}</div>` : ''}
 
                         ${displayNotesHtml}
 
-                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}" style="display:flex; align-items:center; justify-content:center; gap:8px;"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
+                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
                     `;
 
                 const numBlocks = ex.blocks.length;
@@ -4693,7 +4693,10 @@
                     } else if (blockAllAmrap) {
                         details.push(`<span class="rpe-pill rpe-pill-max">RPE 10.0</span>`);
                     }
-                    const detailsStr = details.length > 0 ? ` @ ${details.join(' | ')}` : '';
+                    // Rendered after the scoreboard-style count: "3 × 5" then "@ 77%  RPE 7.0".
+                    const pctDetail = details.filter(d => !d.startsWith('<'));
+                    const pillDetail = details.filter(d => d.startsWith('<'));
+                    const detailsStr = `${pctDetail.length ? `<span class="block-meta">@ ${pctDetail.join(' ')}</span>` : ''}${pillDetail.join('')}`;
                     const dotColor = isMain ? 'var(--accent)' : 'var(--teal)';
                     
                     // SMART DETECTION: Activations are always the first block, OR any single set with 8+ reps
@@ -4727,10 +4730,10 @@
                         const isTimeBased = !!block.durationMin;
                         const rpeInfoIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
                         const blockCountLabel = isTimeBased
-                            ? `${block.sets} x ${block.durationMin} min${detailsStr}`
+                            ? `<span class="block-count">${block.sets} × ${block.durationMin} min</span>${detailsStr}`
                             : blockAllAmrap
-                                ? `${block.sets} x AMRAP${detailsStr}`
-                                : `${block.sets} x ${block.reps} Reps${detailsStr}${amrapIdx !== null ? ` · set ${amrapIdx} AMRAP` : ''}`;
+                                ? `<span class="block-count">${block.sets} × AMRAP</span>${detailsStr}`
+                                : `<span class="block-count">${block.sets} × ${block.reps}</span>${detailsStr}${amrapIdx !== null ? `<span class="block-meta">set ${amrapIdx} AMRAP</span>` : ''}`;
                         const colHeaders = isTimeBased
                             ? `<div class="set-row header" style="grid-template-columns: 0.5fr 2.2fr ${block.targetRpe ? '1.2fr ' : ''}0.8fr;">
                                 <span>Set</span><span style="text-align:left; padding-left: 4px;">Timer</span>${block.targetRpe ? `<span onclick="openRpeHub()" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>` : ''}<span></span>
@@ -4746,7 +4749,7 @@
                         html += `
                         <div class="block-container">
                             <div class="block-header">
-                                <span><span style="color: ${dotColor}; margin-right: 8px; font-size: 18px; line-height: 0;">●</span> ${blockCountLabel}</span>
+                                <span class="block-label">${blockCountLabel}</span>
                             </div>
                             ${colHeaders}
                         `;
@@ -4890,9 +4893,7 @@
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
-                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" title="Calculate Plates">
-                                        <div class="plate-indicator"></div>
-                                    </button>`}
+                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" aria-label="Show plates per side"><span class="plate-strip" data-load="${loadInputId}"></span></button>`}
                                 </span>
                                 ${e1rmCell}
                                 <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${restFixed ? 'data-restfixed="true"' : ''} data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
@@ -4947,9 +4948,7 @@
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
-                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" title="Calculate Plates">
-                                        <div class="plate-indicator"></div>
-                                    </button>`}
+                                    <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" aria-label="Show plates per side"><span class="plate-strip" data-load="${extraRowId}_load"></span></button>`}
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
                                 <span class="check-circle ${eIsChecked}" id="${extraRowId}_check" data-rest="${restSeconds}" ${restFixed ? 'data-restfixed="true"' : ''} data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
@@ -5000,6 +4999,7 @@
             
             container.innerHTML = html;
             attachListeners();
+            paintPlateStrips();
             
             // Initialize swipe logic for ANY uncompleted workout
             if (!isCompleted) {
@@ -5840,6 +5840,36 @@
             const balloon = document.getElementById('plate-balloon');
             if (balloon) { balloon.style.display = 'none'; balloon.dataset.activeInput = ''; }
         };
+        // --- PLATE STRIP: per-side loading shown as a colour bar under each barbell load ---
+        // Same greedy breakdown as the balloon below. Load values are also written by code
+        // (e1RM cascade, toggleCheck), which fires no input event, so a delegated click
+        // listener repaints on the next tick as well.
+        function platesPerSide(weight) {
+            const bar = getBarbellWeight();
+            if (!(weight > bar)) return [];
+            let perSide = Math.round(((weight - bar) / 2) * 100) / 100;
+            const out = [];
+            for (const p of getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w)) {
+                while (perSide >= p.w) { out.push(p); perSide = Math.round((perSide - p.w) * 100) / 100; }
+            }
+            return out;
+        }
+        function paintPlateStrips(root) {
+            (root || document).querySelectorAll('.plate-strip').forEach(strip => {
+                const input = document.getElementById(strip.dataset.load);
+                const w = input ? parseFloat(input.value) : NaN;
+                const key = isNaN(w) ? '' : String(w);
+                if (strip.dataset.painted === key) return;
+                strip.dataset.painted = key;
+                strip.innerHTML = platesPerSide(w).map(p =>
+                    `<i style="flex:0 0 ${(p.w / 1.2).toFixed(2)}%;background:${p.c}"></i>`).join('');
+            });
+        }
+        document.addEventListener('input', e => {
+            if (e.target.matches && e.target.matches('.main-load, .acc-load')) paintPlateStrips();
+        });
+        document.addEventListener('click', () => setTimeout(paintPlateStrips, 0));
+
         // --- NEW: PLATE CALCULATOR ENGINE ---
         window.togglePlateBalloon = function(e, loadInputId) {
             e.stopPropagation();

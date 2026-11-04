@@ -163,7 +163,7 @@ Block types: `"top"` (working/peak sets), `"backoff"` (lighter volume after peak
 
 Optional `"restSec"` on a block is the program's prescribed rest after each of its sets. It overrides both the render-time default and the RPE-scaled rest applied when a set is checked (`data-restfixed`); superset/Myo/drop hijacks still apply. Without it, rest is derived from `targetRpe` as before (a pct-only block falls back to 120 s).
 
-**AMRAP is a per-SET property, not per-block.** Add `"amrap": true` to a block to mark its **last set** as AMRAP, or `"amrap": <n>` to mark a specific 1-based set index within the block (e.g. a `sets:2` block where only set 2 is AMRAP — see Compact Force W5 D4 Bench). The flagged set is always rendered at **RPE 10** with its reps input **empty** (placeholder `AMRAP`) for the lifter to log achieved reps. The RTS rep-based weight preload is skipped for that set (no known rep count) so its load falls back to `pct` → last-used. An AMRAP set logged without reps counts as 0 reps in the summary. If the whole block is a single AMRAP set (`sets:1`), the block header reads `1 x AMRAP @ … | RPE 10.0`; otherwise the header keeps its normal rep count and appends `· set N AMRAP`. Resolved via `amrapSetIndex(block)` (returns the 1-based AMRAP set index or null), used in both `renderWorkout` and the summary tally.
+**AMRAP is a per-SET property, not per-block.** Add `"amrap": true` to a block to mark its **last set** as AMRAP, or `"amrap": <n>` to mark a specific 1-based set index within the block (e.g. a `sets:2` block where only set 2 is AMRAP — see Compact Force W5 D4 Bench). The flagged set is always rendered at **RPE 10** with its reps input **empty** (placeholder `AMRAP`) for the lifter to log achieved reps. The RTS rep-based weight preload is skipped for that set (no known rep count) so its load falls back to `pct` → last-used. An AMRAP set logged without reps counts as 0 reps in the summary. If the whole block is a single AMRAP set (`sets:1`), the block header reads `1 × AMRAP @ … RPE 10.0`; otherwise the header keeps its normal rep count and appends `set N AMRAP`. Resolved via `amrapSetIndex(block)` (returns the 1-based AMRAP set index or null), used in both `renderWorkout` and the summary tally.
 
 ### Parent-lift 1RM resolution
 `getResolved1RM(exName)` resolves in this order: an exact entry in `global1RMs` → an exact SBD name → a **trailing parenthetical** naming an SBD parent (`"Larsen Press (bench)"` → Bench Press). It deliberately does **not** substring-match: that used to give "Dumbbell Bench" the full barbell bench 1RM and "Single Leg RDL (deadlift)" the full deadlift, and the app then preloaded those numbers into the load field. Variations that inherit a parent still default to 100% of it — use the variation-% modal (tap the parenthetical) to scale.
@@ -306,7 +306,12 @@ Single unified `window.fireConfetti()` function. Always fires a body-burst (work
 `ex.type === 'main'` → orange (`--accent`). `ex.type === 'accessory'` or anything else → teal (`--teal`). **Always check `ex.type` first.** Do not infer type from the exercise name (e.g. "Single Leg RDL (deadlift)" is accessory despite containing the word "deadlift"). The name-based fallback is only a last resort when `ex.type` is absent, and should only match exact SBD names.
 
 ### Exercise card header layout
-`.ex-title-container` has **symmetric** `padding: 16px 60px 10px 60px`. Left side has one absolutely-positioned button (swap icon). Right side has one absolutely-positioned button (warmup/fire icon). 60px clears both comfortably.
+The title is **left-aligned** in the display face; both tools sit on the right — swap (`.ex-swap-slot`, `right: 60px`) then warm-up (`.btn-warmup-icon`, `right: 16px`) — so `.ex-title-container` pads `104px` on the right only. The type colour is the 3px left rule on `.exercise-container`, not a top border or gradient wash.
+
+Block headers render the prescription as `<span class="block-count">3 × 5</span><span class="block-meta">@ 77%</span>` + the RPE pill.
+
+### Plate strip
+Barbell load cells carry `<button class="plate-btn"><span class="plate-strip" data-load="…"></span></button>` — the strip is a band along the bottom of the load field and **is** the plate-calculator button (the balloon is the only way into the gym-inventory settings, so it must stay reachable). It is painted by `paintPlateStrips()` with the per-side plates (`platesPerSide`, same greedy breakdown and inventory colours as the plate balloon) on a fixed 120 kg/side scale. Loads written by code fire no `input` event, so a delegated document `click` listener repaints on the next tick, plus once at the end of `renderWorkout`.
 
 The MYO and DROP toggles are **not** in the header — they live below the title in the same row as the equipment mode chip (`.eq-cycle-chip`), accessory-only. This keeps the title centered regardless of accessory vs main lift. See Program-level propagation for how they work.
 
@@ -340,5 +345,5 @@ Rest timer counts down to 0, beeps, then continues counting up (overtime). The d
 - All programs live in `Programs/` and are listed in `Programs/programs-list.json`.
 - `scripts/app.js` is not minified or bundled — edit it directly.
 - There are no tests and no linter configured.
-- Fonts: **DM Sans** (body), **Space Grotesk** (display numbers, headings). Both loaded from Google Fonts.
+- Fonts: **Sofia Sans** (body, `--font-body`) and **Sofia Sans Extra Condensed** (display numbers, exercise titles, timer — `--font-display`). One superfamily, two widths, loaded from Google Fonts. Use the vars in CSS; small chips/pills stay in the body face because the condensed cut is hard to read under ~14px.
 - Z-index layers: nav bar `1500`, data sheet overlay `1600`, data sheet `1601`, modals above that, undo toast `1601`.

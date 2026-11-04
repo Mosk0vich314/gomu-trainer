@@ -3,8 +3,8 @@
     --surface: var(--card); --ink: var(--text-main); --muted: var(--text-muted);
     --line: var(--border); --soft: var(--input-bg); --path: var(--teal);
     --arm: #e3b35d; --good: var(--teal);
-    --f-body: 'DM Sans', sans-serif; --f-display: 'Space Grotesk', sans-serif;
-    --f-mono: 'Space Grotesk', sans-serif;
+    --f-body: 'Sofia Sans', sans-serif; --f-display: 'Sofia Sans Extra Condensed', sans-serif;
+    --f-mono: 'Sofia Sans Extra Condensed', sans-serif;
     display: flex; flex-direction: column; height: 100%; min-height: 0;
     color: var(--ink); font: 15px/1.65 var(--f-body);
 }

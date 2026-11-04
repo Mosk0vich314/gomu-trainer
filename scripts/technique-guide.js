@@ -37,7 +37,7 @@
     }
 
     function showStatus(message, retry = false) {
-        root.innerHTML = '<style>:host{display:block;padding:24px;font:16px "DM Sans",sans-serif;color:var(--text-main)}button{font:inherit;color:var(--text-main);background:var(--input-bg);border:1px solid var(--border);border-radius:10px;min-height:44px;padding:8px 16px;margin-right:8px}p{line-height:1.6}</style><p role="status"></p><button type="button" data-close>Back to workout</button>' + (retry ? '<button type="button" data-retry>Try again</button>' : '');
+        root.innerHTML = '<style>:host{display:block;padding:24px;font:16px "Sofia Sans",sans-serif;color:var(--text-main)}button{font:inherit;color:var(--text-main);background:var(--input-bg);border:1px solid var(--border);border-radius:10px;min-height:44px;padding:8px 16px;margin-right:8px}p{line-height:1.6}</style><p role="status"></p><button type="button" data-close>Back to workout</button>' + (retry ? '<button type="button" data-retry>Try again</button>' : '');
         root.querySelector('p').textContent = message;
         root.querySelector('[data-close]').onclick = () => dialog.close();
         if (retry) root.querySelector('[data-retry]').onclick = () => loadGuide();
