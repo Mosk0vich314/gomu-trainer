@@ -122,8 +122,11 @@ def progression_note(lift, rule, followers):
 
 
 def follows_note(parent, day):
-    return (f'No separate max: percentages are of your {parent} TM (90% of your {parent} reference 1RM '
-            f'in Stats). It rises automatically whenever your {parent} TM does, from the Day {day} 1+ set.')
+    # This lift reads the parent's progressed program TM, not the Stats 1RM: Stats is only the seed.
+    return (f'No separate max: percentages are of the same {parent} TM the {parent} itself uses '
+            f'(the Training max line on this card shows it). That TM starts at 90% of your {parent} 1RM in Stats, '
+            f'then goes up inside this program every time the Day {day} 1+ set raises it, so this lift goes '
+            f'up with it. Stats is only the starting point; it is not changed.')
 
 
 def build_program():
