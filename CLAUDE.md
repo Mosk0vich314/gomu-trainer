@@ -298,11 +298,24 @@ Single unified `window.fireConfetti()` function. Always fires a body-burst (work
 ### Charts
 `drawChart(exName)` in `history-screen`: groups e1RM data by day (`localDateKey`), takes last 7 data points, renders SVG with gradient fill + animated draw (`stroke-dashoffset`). Empty state shows an SVG icon + italic message.
 
-### Stats screen sections (in order)
-1. Lifter Profile — DOTS trophy card (score + level), bodyweight trend mini-chart, BW input
-2. Manual 1RM overrides — swipable rows
-3. All-Time Heaviest Lifts — SBD 3-card row (swipable + clickable, expands PR timeline) + non-SBD swipable rows (clickable, expand PR timeline)
-4. Physique Tracking — privacy-gated photo gallery
+### Iron Vault (`stats-screen`) sections (in order)
+1. Scoreboard (`.vault-board`) — the SBD total from reference 1RMs as the big number, GL points + level, S/B/D under it; then the bodyweight/category row and the bodyweight trend mini-chart
+2. Best lifts — SBD 3-card row (swipable + clickable, expands PR timeline) + non-SBD swipable rows (clickable, expand PR timeline); bodyweight bests (weight 0) read "Bodyweight"
+3. Video analysis (`renderVideoVault`)
+4. Reference 1RMs — swipable rows (they are inputs, so they come after the results they drive)
+5. Muscle volume radar
+6. Progress photos — privacy-gated gallery
+
+Section heads are `h2.vault-section` (+ `.vault-section-sub`), not the old all-caps `.stats-divider`. The "Lock total" button was removed: `officialSBDTotal` is written by `updateOfficialSBD` but nothing reads it.
+
+### Library screen
+Cards stay hardcoded in `index.html`, but `updateLibraryUI()` decorates them on every render: `.program-meta` (weeks and days a week, from the program data), a `Running`/`Done` `.program-tag`, the `.is-running` class, the per-folder `.folder-count`, and the `#library-running` card (active program, next session, per-week progress dots like Home). Folder summaries are `folder-logo` / `folder-name` / `folder-count` / `.folder-chevron`; Path of Powerlifting is a nested `details.folder-sub`. A new program card needs only `program-title` and `program-desc` — don't hand-type week/day counts into the description.
+
+### History cards
+`renderHistory()` summaries are a date block (`.hs-day`/`.hs-mon`, from the log id timestamp) beside the program + week/day line, the session's heaviest loaded set as the title (`topSetOf`), and sets/duration/volume. `drawChart` also fills `#chart-headline` with the latest e1RM and the change over the selected range.
+
+### Settings sheet
+The History gear opens `#data-sheet` ("Settings and data"). Theme, units and the OLED background live there (`renderAppearance()`, re-run by `openDataSheet`, `toggleThemePicker`, `toggleBackgroundMode`) — not in the vault.
 
 ### Exercise type / color logic
 `ex.type === 'main'` → orange (`--accent`). `ex.type === 'accessory'` or anything else → teal (`--teal`). **Always check `ex.type` first.** Do not infer type from the exercise name (e.g. "Single Leg RDL (deadlift)" is accessory despite containing the word "deadlift"). The name-based fallback is only a last resort when `ex.type` is absent, and should only match exact SBD names.

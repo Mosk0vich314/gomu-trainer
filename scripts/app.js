@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.06.1901";
+        const APP_VERSION = "v2026.11.06.1907";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -145,7 +145,31 @@
         window.themePickerExpanded = false;
         window.toggleThemePicker = function() {
             window.themePickerExpanded = !window.themePickerExpanded;
-            renderStats();
+            renderAppearance();
+        };
+
+        // Appearance controls, shown in the settings sheet (History > gear).
+        window.renderAppearance = function() {
+            const slot = document.getElementById('appearance-settings');
+            if (!slot) return;
+            const activeTheme = localStorage.getItem('appTheme') || 'Ember';
+            const oled = (localStorage.getItem('bgMode') || 'Matte') === 'OLED';
+            slot.innerHTML = `
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Theme</div><div class="settings-row-sub">${escapeHtml(activeTheme)}</div></div>
+                    <button type="button" class="settings-chip" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Close' : 'Change'}</button>
+                </div>
+                <div class="theme-swatches" ${window.themePickerExpanded ? '' : 'hidden'}>
+                    ${THEMES.map(t => `<button type="button" class="theme-swatch${t.name === activeTheme ? ' active' : ''}" onclick="applyTheme('${t.name}');renderAppearance()" aria-label="${t.name} theme" title="${t.name}" style="background:linear-gradient(135deg,${t.accent} 50%,${t.teal} 50%);"></button>`).join('')}
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Units</div><div class="settings-row-sub">Changes readouts only. Loads are still logged in kg.</div></div>
+                    <button type="button" class="settings-chip" onclick="window.toggleUnit(); renderAppearance()">${getUnit() === 'kg' ? 'kg' : 'lbs'}</button>
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Pure black background</div><div class="settings-row-sub">Saves battery on OLED screens.</div></div>
+                    <button type="button" class="settings-chip${oled ? ' on' : ''}" aria-pressed="${oled}" onclick="toggleBackgroundMode()">${oled ? 'On' : 'Off'}</button>
+                </div>`;
         };
 
         window.toggleBackgroundMode = function() {
@@ -154,7 +178,7 @@
             localStorage.setItem('bgMode', next);
             const savedTheme = localStorage.getItem('appTheme') || 'Ember';
             window.applyTheme(savedTheme);
-            renderStats();
+            renderAppearance();
         };
 
         const hexToRgbTriple = (hex) => {
@@ -697,6 +721,7 @@
             sheet.style.display = 'block';
             requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
             updateGDriveUI(); // Refresh Drive status and TTS toggle when sheet opens
+            renderAppearance();
         };
         window.closeDataSheet = function() {
             const sheet = document.getElementById('data-sheet');
@@ -754,7 +779,7 @@
             const customFolderContent = document.getElementById('custom-folder-content');
             if (customFolderContent) {
                 const customProgs = safeParse('customPrograms', {});
-                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 10px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">+ Start Empty Workout</button>`;
+                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 10px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">Start an empty workout</button>`;
                 html += `<div style="display:flex;gap:8px;margin-bottom:15px;">
                     <button class="reset-btn" style="flex:1;padding:10px;font-size:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="exportCustomWorkout()">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -771,88 +796,76 @@
                     <div class="program-card" role="button" tabindex="0" data-program-id="${escapeHtml(pid)}" onclick="startProgram(this.dataset.programId)" style="cursor: pointer;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <h3 class="program-title" style="margin: 0;">${escapeHtml(customProgs[pid].name)}</h3>
-                            <button aria-label="Delete custom workout" onclick="event.stopPropagation(); deleteCustomProgram(this.closest('.program-card').dataset.programId)" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">🗑️</button>
+                            <button class="program-delete" aria-label="Delete custom workout" onclick="event.stopPropagation(); deleteCustomProgram(this.closest('.program-card').dataset.programId)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                         </div>
-                        <p class="program-desc" style="margin: 0;">Custom Template</p>
+                        <p class="program-desc" style="margin: 0;">Custom workout</p>
                     </div>`;
                 });
                 customFolderContent.innerHTML = html;
             }
 
-            const isProgramFinished = (pid) => {
-                if (!db[pid] || !db[pid].weeks) return false;
-                let total = 0, completed = 0;
-                Object.keys(db[pid].weeks).forEach(w => {
-                    Object.keys(db[pid].weeks[w]).forEach(d => {
-                        total++;
-                        if (completedDays[`${pid}_w${w}_d${d}`]) completed++;
-                    });
-                });
-                return total > 0 && total === completed;
+            // Sessions of a program in order, with whether each one is done.
+            const programSessions = (pid) => {
+                if (!db[pid] || !db[pid].weeks) return [];
+                return Object.keys(db[pid].weeks).sort((a, b) => a - b).flatMap(w =>
+                    Object.keys(db[pid].weeks[w]).sort((a, b) => a - b).map(d =>
+                        ({ w, d, done: !!completedDays[`${pid}_w${w}_d${d}`] })));
             };
 
+            // "Running now": the active program, set like the home progress block.
+            const runningSlot = document.getElementById('library-running');
+            const runningSessions = programSessions(mainProgram);
+            const runningNext = runningSessions.find(x => !x.done);
+            if (runningSlot) {
+                if (mainProgram && runningSessions.length && runningNext) {
+                    const card = document.querySelector(`#library-screen .program-card[data-program-id="${CSS.escape(mainProgram)}"]`);
+                    // The title's own text, without a Running/Done tag left by an earlier render.
+                    const title = card ? [...card.querySelector('.program-title').childNodes].filter(n => n.nodeType === Node.TEXT_NODE).map(n => n.textContent).join('').trim()
+                        : (db[mainProgram].name || mainProgram);
+                    const doneCount = runningSessions.filter(x => x.done).length;
+                    const weeks = Object.keys(db[mainProgram].weeks).sort((a, b) => a - b);
+                    const track = weeks.map(w => `<span class="p-week">${runningSessions.filter(x => x.w === w)
+                        .map(x => `<span class="p-dot${x.done ? ' done' : ''}"></span>`).join('')}</span>`).join('');
+                    runningSlot.innerHTML = `
+                    <button type="button" class="running-card" onclick="startProgram(${escapeHtml(JSON.stringify(mainProgram))})">
+                        <span class="running-context">Running now. Next up: week ${escapeHtml(runningNext.w)}, day ${escapeHtml(runningNext.d)}</span>
+                        <span class="running-name">${escapeHtml(title)}</span>
+                        <span class="progress-track">${track}</span>
+                        <span class="running-foot">${doneCount} of ${runningSessions.length} sessions done</span>
+                    </button>`;
+                } else {
+                    runningSlot.innerHTML = '';
+                }
+            }
+
+            // Every program row: length from the data itself, plus a running / done tag.
             document.querySelectorAll('#library-screen .program-card').forEach(card => {
                 const pid = card.dataset.programId;
-                if (!pid) return; // Safety check
-                
+                if (!pid) return;
                 const title = card.querySelector('.program-title');
                 if (!title) return;
-                
-                // Cleanup old dynamic elements so they don't duplicate on re-renders
-                const existingBadge = title.querySelector('.active-badge');
-                if (existingBadge) existingBadge.remove();
+                card.querySelectorAll('.program-tag, .program-meta, .active-badge, .program-overview-ui').forEach(el => el.remove());
+                card.style.borderColor = '';
 
-                const existingOverview = card.querySelector('.program-overview-ui');
-                if (existingOverview) existingOverview.remove();
-
-                if (pid === mainProgram && !isProgramFinished(pid)) {
-                    card.style.borderColor = 'var(--accent)';
-                    title.innerHTML += ' <span class="active-badge" style="color: var(--accent); font-size: 11px; font-weight: 800; vertical-align: top; margin-left: 6px; padding: 2px 6px; background: rgba(var(--accent-rgb), 0.1); border-radius: 4px;">ACTIVE</span>';
-                    
-                    // --- NEW: INJECT QUICK OVERVIEW UI ---
-                    if (db[pid] && db[pid].weeks) {
-                        let totalDays = 0;
-                        let doneDays = 0;
-                        let nextW = null, nextD = null;
-                        
-                        const weeks = Object.keys(db[pid].weeks).sort((a,b) => a - b);
-                        for (let w of weeks) {
-                            const days = Object.keys(db[pid].weeks[w]).sort((a,b) => a - b);
-                            for (let d of days) {
-                                totalDays++;
-                                if (completedDays[`${pid}_w${w}_d${d}`]) {
-                                    doneDays++;
-                                } else if (!nextW) {
-                                    nextW = w;
-                                    nextD = d;
-                                }
-                            }
-                        }
-                        
-                        const pct = totalDays > 0 ? Math.round((doneDays / totalDays) * 100) : 0;
-                        
-                        const overviewHtml = `
-                        <div class="program-overview-ui" style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <span>Program Progress</span>
-                                <span style="color: var(--accent);">${pct}%</span>
-                            </div>
-                            <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
-                                <div style="width: ${pct}%; height: 100%; background: var(--accent); border-radius: 3px;"></div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                                <div><span style="color: var(--text-muted);">Up Next:</span> <span style="font-weight: 800; color: #fff;">W${nextW || '-'} D${nextD || '-'}</span></div>
-                                <div><span style="color: var(--text-muted);">Completed:</span> <span style="font-weight: 800; color: #fff;">${doneDays} / ${totalDays}</span></div>
-                            </div>
-                        </div>`;
-                        
-                        // Drop it directly into the bottom of the active card
-                        card.insertAdjacentHTML('beforeend', overviewHtml);
-                    }
-                    
-                } else {
-                    card.style.borderColor = 'var(--border)';
+                const sessions = programSessions(pid);
+                if (sessions.length) {
+                    const weekCount = Object.keys(db[pid].weeks).length;
+                    const perWeek = Math.max(...Object.values(db[pid].weeks).map(days => Object.keys(days).length));
+                    card.insertAdjacentHTML('beforeend', `<span class="program-meta"><strong>${weekCount}</strong> wk<small>${perWeek} days a week</small></span>`);
                 }
+                const finished = sessions.length > 0 && sessions.every(x => x.done);
+                const running = pid === mainProgram && !finished;
+                card.classList.toggle('is-running', running);
+                if (running) title.insertAdjacentHTML('beforeend', ' <span class="program-tag">Running</span>');
+                else if (finished) title.insertAdjacentHTML('beforeend', ' <span class="program-tag done">Done</span>');
+            });
+
+            // Folder headers count what is inside them.
+            document.querySelectorAll('#library-screen details').forEach(folder => {
+                const count = folder.querySelector(':scope > summary .folder-count');
+                if (!count) return;
+                const n = folder.querySelectorAll('.program-card').length;
+                count.textContent = n === 1 ? '1 program' : `${n} programs`;
             });
         }
 
@@ -2430,6 +2443,8 @@
         window.drawChart = function() {
             const container = document.getElementById('chart-container');
             if(!container) return;
+            const headline = document.getElementById('chart-headline');
+            if (headline) headline.innerHTML = '';
             if(!currentChartEx) {
                 container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 0;color:var(--text-muted);">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -2481,6 +2496,13 @@
                 return;
             }
             
+            if (headline) {
+                const last = data[data.length - 1].value, first = data[0].value;
+                const delta = Math.round((last - first) * 10) / 10;
+                headline.innerHTML = `<span class="chart-headline-val">${kgDisp(last)}<small> ${unitSuffix()}</small></span>`
+                    + `<span class="chart-headline-sub">Estimated 1RM${delta !== 0 ? `, ${delta > 0 ? '+' : '−'}${kgDisp(Math.abs(delta))} ${unitSuffix()} over this range` : ''}</span>`;
+            }
+
             let w = container.clientWidth; 
             let h = 140; 
             let padding = 20; 
@@ -2501,7 +2523,7 @@
             // Vertical lines marking each workout
             data.forEach((d, i) => {
                 let x = (i / (data.length - 1)) * (w - 40) + 20;
-                gridHtml += `<line x1="${x}" y1="${padding}" x2="${x}" y2="${h - padding}" stroke="rgba(255,255,255,0.05)" stroke-width="1" />`;
+                gridHtml += `<line x1="${x}" y1="${padding}" x2="${x}" y2="${h - padding}" stroke="var(--line-soft)" stroke-width="1" />`;
             });
             
             let points = data.map((d, i) => {
@@ -2667,7 +2689,7 @@
         const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
         const cellColor = (vol) => {
-            if (vol <= 0) return '#27272a';
+            if (vol <= 0) return 'var(--surface-row)';
             const t = vol / maxVol;
             if (t < 0.25) return 'rgba(var(--teal-rgb), 0.30)';
             if (t < 0.6)  return 'rgba(var(--teal-rgb), 0.60)';
@@ -2682,10 +2704,7 @@
 
         let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-weight:800; font-size:14px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#14b8a6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Volume Heatmap
-            </span>
+            <span class="heatmap-title">Training days</span>
             <span style="font-size:11px; color:var(--text-muted);">last ${WEEKS} weeks</span>
         </div>
         <div style="display:flex; gap:3px;">
@@ -2875,13 +2894,28 @@
             let history = safeParse('workoutHistory', []);
 
             if (history.length === 0) {
-                historyContainer.innerHTML = '<div class="empty-history">No workouts logged yet. Your history will appear here.</div>';
+                historyContainer.innerHTML = '<div class="empty-history">No sessions yet. Finish a workout and it shows up here.</div>';
                 return;
             }
 
             // Slice the array based on the current limit (defaults to 3)
             const limit = window.historyDisplayLimit || 3;
             const visibleHistory = history.slice(0, limit);
+
+            // The heaviest loaded set of a session is its headline (bodyweight-only sets carry no load).
+            const topSetOf = log => {
+                let top = null;
+                (log.details || []).forEach(ex => (ex.sets || []).forEach(set => {
+                    const load = parseFloat(set.load) || 0;
+                    if (load > 0 && (!top || load > top.load)) top = { name: ex.name, load, reps: set.reps };
+                }));
+                return top;
+            };
+            const dateOf = log => {
+                const ts = parseInt(log.id);
+                const d = ts > 1e11 ? new Date(ts) : new Date(log.date);
+                return isNaN(d) ? null : d;
+            };
 
             let html = visibleHistory.map(log => {
                 let detailsHtml = '';
@@ -2890,12 +2924,12 @@
                     log.details.forEach(ex => {
                         detailsHtml += `<div class="hd-ex-name">${escapeHtml(ex.name)}</div>`;
                         ex.sets.forEach((set, i) => {
-                            let rpeText = set.rpe ? `RPE ${escapeHtml(set.rpe)}` : '';
+                            const load = parseFloat(set.load) || 0;
                             detailsHtml += `
                             <div class="hd-set-row">
-                                <span>Set ${i+1}</span>
-                                <span>${kgDisp(set.load)} ${unitSuffix()} × ${escapeHtml(set.reps)}</span>
-                                <span>${rpeText}</span>
+                                <span class="hd-n">${i+1}</span>
+                                <span class="hd-load">${load > 0 ? `${kgDisp(load)}<small> ${unitSuffix()}</small> × ` : ''}${escapeHtml(set.reps)}${load > 0 ? '' : '<small> reps</small>'}</span>
+                                <span class="hd-rpe">${set.rpe ? `RPE ${escapeHtml(set.rpe)}` : ''}</span>
                             </div>`;
                             if (set.note) detailsHtml += `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 0 6px 12px;">↳ ${escapeHtml(set.note)}</div>`;
                             if (videoAnalysisCaption(set.videoAnalysis)) detailsHtml += `<div class="video-set-summary">${videoAnalysisCaption(set.videoAnalysis)}</div>`;
@@ -2903,11 +2937,15 @@
                     });
                     detailsHtml += `</div>`;
                 } else {
-                    detailsHtml = `<div class="history-details"><div class="hd-set-row"><span>No detailed set data available for this legacy log.</span></div></div>`;
+                    detailsHtml = `<div class="history-details"><p class="hd-empty">This older log has no set-by-set details.</p></div>`;
                 }
 
                 const dur = fmtDuration(log.duration);
                 const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
+                const when = dateOf(log);
+                const top = topSetOf(log);
+                const where = `${escapeHtml(log.programName)}, week ${escapeHtml(log.week)} day ${escapeHtml(log.day)}`;
+                const facts = [`${escapeHtml(log.sets)} sets`, dur, log.volume > 0 ? volDisplay : ''].filter(Boolean).join(', ');
                 return `
                 <div class="swipe-wrapper hist-swipe">
                     <div class="swipe-delete-bg" style="right:15px;">
@@ -2915,11 +2953,18 @@
                     </div>
                     <details class="history-card hist-swipable" data-id="${escapeHtml(log.id || '')}" data-key="${escapeHtml(log.key || '')}">
                         <summary class="history-summary">
-                            <span class="history-date">${escapeHtml(log.date)}${dur ? `<span class="duration-badge">${dur}</span>` : ''}</span>
-                            <h3 class="history-title">${escapeHtml(log.programName)} (W${escapeHtml(log.week)} D${escapeHtml(log.day)})</h3>
-                            <div class="history-stats">${escapeHtml(log.sets)} Sets • ${volDisplay} Volume</div>
-                            ${log.note ? `<div class="history-note">"${escapeHtml(log.note)}"</div>` : ''}
-                            <div class="history-expand-indicator">▼ Expand</div>
+                            <span class="history-date" aria-label="${escapeHtml(log.date)}">${when
+                                ? `<span class="hs-day">${when.getDate()}</span><span class="hs-mon">${when.toLocaleDateString('en-US', { month: 'short' })}</span>`
+                                : `<span class="hs-mon">${escapeHtml(log.date)}</span>`}</span>
+                            <span class="history-body">
+                                <span class="history-where">${where}</span>
+                                <span class="history-title">${top
+                                    ? `${escapeHtml(top.name)} <span class="history-top">${kgDisp(top.load)} × ${escapeHtml(top.reps)}</span>`
+                                    : escapeHtml(log.programName)}</span>
+                                <span class="history-stats">${facts}</span>
+                                ${log.note ? `<span class="history-note">${escapeHtml(log.note)}</span>` : ''}
+                            </span>
+                            <svg class="history-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                         </summary>
                         ${detailsHtml}
                     </details>
@@ -2928,18 +2973,18 @@
             }).join('');
 
             // Render Clean Pagination Buttons
-            let buttonsHtml = '<div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; margin-bottom: 25px;">';
+            let buttonsHtml = '<div class="history-more">';
             let showButtons = false;
 
             // Show "Show Less" if expanded
             if (limit > 3) {
-                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick="collapseHistory()">▲ Show Less</button>`;
+                buttonsHtml += `<button class="history-more-btn" onclick="collapseHistory()">Show fewer</button>`;
                 showButtons = true;
             }
 
             // Show "See More" if there's more history
             if (history.length > limit) {
-                buttonsHtml += `<button class="reset-btn" style="padding: 10px 18px; font-size: 13px; border: none; background: rgba(255,255,255,0.08); color: var(--text-main);" onclick="loadMoreHistory()">▼ See More</button>`;
+                buttonsHtml += `<button class="history-more-btn" onclick="loadMoreHistory()">Show ${Math.min(history.length - limit, 10)} more</button>`;
                 showButtons = true;
             }
 
@@ -3528,9 +3573,8 @@
                 const gallery = document.getElementById('physique-gallery');
                 const btn = document.getElementById('privacy-toggle-btn');
                 gallery.classList.add('privacy-hidden');
-                btn.innerText = '🙈 Hidden';
-                btn.style.color = 'var(--text-muted)';
-                btn.style.borderColor = 'var(--border)';
+                btn.innerText = 'Show';
+                btn.classList.remove('on');
             }
         };
 
@@ -3746,9 +3790,8 @@
             const btn = document.getElementById('privacy-toggle-btn');
             if (gallery) gallery.classList.remove('privacy-hidden');
             if (btn) {
-                btn.innerText = '👁️ Revealed';
-                btn.style.color = 'var(--accent)';
-                btn.style.borderColor = 'var(--accent)';
+                btn.innerText = 'Hide';
+                btn.classList.add('on');
             }
         };
 
@@ -4007,10 +4050,7 @@
             const hasData = vals.some(v => v > 0);
 
             return `<div class="radar-card">
-                <div class="radar-card-title">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Muscle Volume — Last 28 Days
-                </div>
+                <div class="radar-card-title">Last 28 days</div>
                 ${hasData
                     ? `<div style="display:flex;justify-content:center;"><svg viewBox="0 0 220 220" width="220" height="220" style="overflow:visible;">${gridSvg}${axesSvg}${dataFill}${labelsSvg}</svg></div>`
                     : `<div style="color:var(--text-muted);font-size:13px;font-style:italic;text-align:center;padding:20px 0;">Complete some workouts to see your muscle volume distribution.</div>`}
@@ -4073,48 +4113,32 @@
             const dead1RM   = global1RMs['Deadlift']    || 0;
             const currentUnit = getUnit();
 
+            const lift = (label, v) => `<div class="vault-lift"><span>${label}</span><strong>${v > 0 ? kgDisp(v) : '--'}</strong></div>`;
             let html = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                <h3 style="color:var(--text-main);font-size:18px;margin:0;">Lifter Profile</h3>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <button class="unit-toggle-btn" onclick="window.toggleUnit()" title="${currentUnit === 'kg' ? 'Show readouts in lbs (you still log loads in kg)' : 'Show readouts in kg'}">${currentUnit === 'kg' ? 'kg → lbs' : 'lbs → kg'}</button>
-                    <button style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;" onclick="updateOfficialSBD()">↻ Lock Total</button>
+            <section class="vault-board" aria-label="Your total">
+                <div class="vault-total-row">
+                    <div class="vault-total">
+                        <span class="vault-total-label">Total</span>
+                        <span class="vault-total-val">${sbdTotal > 0 ? kgDisp(sbdTotal) : '--'}<small> ${unitSuffix()}</small></span>
+                    </div>
+                    <div class="vault-points">
+                        <strong>${ipfScore > 0 ? ipfScore : '--'}</strong>
+                        <span>GL points</span>
+                        <span class="vault-level" style="color:${level.color};">${level.label}</span>
+                    </div>
                 </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-                <input type="number" class="input-box" style="width:70px;padding:8px;font-size:16px;" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal">
-                <span style="color:var(--text-muted);font-size:13px;font-weight:700;">kg BW</span>
-                <select class="input-box" style="width:50px;padding:8px;font-size:14px;appearance:none;text-align:center;" onchange="updateGender(this.value)">
-                    <option value="M" ${savedGender === 'M' ? 'selected' : ''}>M</option>
-                    <option value="F" ${savedGender === 'F' ? 'selected' : ''}>F</option>
+                <div class="vault-lifts">${lift('Squat', squat1RM)}${lift('Bench', bench1RM)}${lift('Deadlift', dead1RM)}</div>
+                <p class="vault-board-note">From your reference 1RMs below.${savedBw ? '' : ' Add your bodyweight to get GL points.'}</p>
+            </section>
+            <div class="vault-bw-row">
+                <label class="vault-bw">Bodyweight
+                    <input type="number" class="input-box" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal" aria-label="Bodyweight in kg">
+                    <span>kg</span>
+                </label>
+                <select class="input-box vault-sex" onchange="updateGender(this.value)" aria-label="Category for GL points">
+                    <option value="M" ${savedGender === 'M' ? 'selected' : ''}>Men</option>
+                    <option value="F" ${savedGender === 'F' ? 'selected' : ''}>Women</option>
                 </select>
-            </div>
-            <div class="dots-trophy-card" style="background:var(--card); border:1px solid var(--border); box-shadow:none;">
-                <div class="dots-level-tag" style="background:var(--input-bg); color:${level.color}; border:1px solid var(--border);">${level.label}</div>
-                <div class="dots-score-val" style="color:var(--text-main);">${ipfScore > 0 ? ipfScore : '--'}</div>
-                <div class="dots-score-lbl" style="color:var(--text-muted);">IPF GL Points</div>
-                <div class="dots-sbd-row" style="border-top-color:var(--border);">
-                    <div class="dots-sbd-col"><span>Squat</span><strong style="color:var(--text-main);">${squat1RM > 0 ? kgDisp(squat1RM) : '--'}</strong></div>
-                    <div class="dots-sbd-col"><span>Bench</span><strong style="color:var(--text-main);">${bench1RM > 0 ? kgDisp(bench1RM) : '--'}</strong></div>
-                    <div class="dots-sbd-col"><span>Deadlift</span><strong style="color:var(--text-main);">${dead1RM > 0 ? kgDisp(dead1RM) : '--'}</strong></div>
-                    <div class="dots-sbd-col"><span>Total</span><strong style="color:var(--accent);">${sbdTotal > 0 ? kgDisp(sbdTotal) : '--'}</strong></div>
-                </div>
-            </div>`;
-
-            // ── Theme picker ──────────────────────────────────────────────────
-            const activeTheme = localStorage.getItem('appTheme') || 'Ember';
-            const bgMode = localStorage.getItem('bgMode') || 'Matte';
-            html += `<div class="theme-picker-row" style="flex-wrap:wrap; gap:8px;">
-                <div style="display:flex; align-items:center; gap:8px; width:100%; margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">Appearance</span>
-                    <button class="theme-reveal-btn" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Hide' : 'Themes'}</button>
-                    <button class="theme-reveal-btn" onclick="toggleBackgroundMode()" style="border-color:${bgMode === 'OLED' ? 'var(--accent)' : 'var(--border)'}; color:${bgMode === 'OLED' ? 'var(--accent)' : 'var(--text-main)'};">
-                        ${bgMode === 'OLED' ? 'OLED Black' : 'Matte/Colored'}
-                    </button>
-                </div>
-                <div class="theme-swatches" style="${window.themePickerExpanded ? '' : 'display:none;'}">
-                    ${THEMES.map(t => `<button class="theme-swatch${t.name === activeTheme ? ' active' : ''}" onclick="applyTheme('${t.name}');renderStats()" title="${t.name}" style="background:linear-gradient(135deg,${t.accent} 50%,${t.teal} 50%);"></button>`).join('')}
-                </div>
             </div>`;
 
             // ── Bodyweight history mini-chart ─────────────────────────────────
@@ -4136,9 +4160,9 @@
                 });
                 fillPts.push(`${(cw-pad)},${ch-pad}`, `${pad},${ch-pad}`);
                 html += `<div class="bw-chart-card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Bodyweight Trend</span>
-                        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${parseFloat(bwVals[bwVals.length-1].toFixed(1))} ${currentUnit}</span>
+                    <div class="bw-chart-head">
+                        <span>Bodyweight, last ${bwHist.length} entries</span>
+                        <strong>${parseFloat(bwVals[bwVals.length-1].toFixed(1))}<small> ${currentUnit}</small></strong>
                     </div>
                     <svg width="100%" viewBox="0 0 ${cw} ${ch}" style="overflow:visible;">
                         <defs><linearGradient id="bwFill" x1="0" y1="0" x2="0" y2="1">
@@ -4151,11 +4175,9 @@
                 </div>`;
             }
 
-            // Feature 2: Muscle Volume Radar Chart
-            html += buildMuscleRadarChart();
-
-            html += `<div class="stats-divider"><div class="stats-divider-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="9" width="3" height="6" rx="1"/><rect x="16" y="9" width="3" height="6" rx="1"/></svg>Current Baselines</div></div>`;
-            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">These 1RM values drive your percentage-based targets.</p>';
+            // Reference 1RMs are inputs, so they come after the results they produce.
+            let baselinesHtml = `<h2 class="vault-section">Reference 1RMs</h2>
+                <p class="vault-section-sub">These drive the weights your programs suggest. Change one and percentage and training-max lifts follow it. Swipe a row to remove it.</p>`;
 
             // 2. Sort Baselines
             const all1RMKeys = Object.keys(global1RMs);
@@ -4167,22 +4189,23 @@
             sorted1RMs.forEach(ex => {
                 const safeExJS = escapeHtml(JSON.stringify(ex));
                 const safeExHTML = escapeHtml(ex);
-                html += `
+                baselinesHtml += `
                 <div class="swipe-wrapper stat-swipe">
                     <div class="swipe-delete-bg" style="right: 15px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </div>
                     <div class="stat-card stat-swipable" style="padding: 12px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
-                        <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${ex}</span>
+                        <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${safeExHTML}</span>
                         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                            <input type="number" class="input-box" style="width: 80px; padding: 8px; font-size: 16px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM(${safeExJS}, this.value)" inputmode="decimal">
+                            <input type="number" class="input-box vault-1rm-input" aria-label="${safeExHTML} reference 1RM in kg" style="width: 84px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM(${safeExJS}, this.value)" inputmode="decimal">
                             <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
                         </div>
                     </div>
                 </div>`;
             });
 
-            html += `<div class="stats-divider"><div class="stats-divider-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="9" width="3" height="6" rx="1"/><rect x="16" y="9" width="3" height="6" rx="1"/></svg>All-Time Heaviest Lifts</div></div>`;
+            html += `<h2 class="vault-section">Best lifts</h2>
+                <p class="vault-section-sub">Your heaviest logged sets. Tap one for its history.</p>`;
 
             // 3. Sort Bests
             const allBestKeys = Object.keys(actualBests);
@@ -4193,7 +4216,7 @@
             if (bestKeys.length === 0) {
                 html += `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 0;color:var(--text-muted);">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-                    <span style="font-size:13px;font-style:italic;">No completed sets yet. Your PRs will appear here.</span>
+                    <span style="font-size:13px;">No sets logged yet. Your best lifts show up here after your first workout.</span>
                 </div>`;
             } else {
                 // SBD achievement cards (3-column row)
@@ -4224,9 +4247,6 @@
                     });
                 }
 
-                // Standalone video analysis sits directly below the Big Three.
-                if (typeof renderVideoVault === 'function') html += renderVideoVault();
-
                 // Non-SBD rows with date
                 const nonSBD = otherKeysBest.filter(k => allBestKeys.includes(k));
                 nonSBD.forEach(ex => {
@@ -4241,8 +4261,8 @@
                         </div>
                         <div class="stat-card stat-swipable" style="padding:14px 18px;margin-bottom:0;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;" data-exname="${safeExHTML}" onclick="window.togglePRTimeline(${safeExJS})">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <span class="stat-name" style="flex:1;padding-right:10px;word-break:break-word;line-height:1.3;">${ex}</span>
-                                <span class="stat-value" style="color:var(--teal);white-space:nowrap;">${kgDisp(b.weight)} ${unitSuffix()} <span style="font-size:13px;color:var(--text-muted);">× ${b.reps}</span></span>
+                                <span class="stat-name" style="flex:1;padding-right:10px;word-break:break-word;line-height:1.3;">${safeExHTML}</span>
+                                <span class="stat-value">${b.weight > 0 ? `${kgDisp(b.weight)}<small> ${unitSuffix()}</small>` : '<small>Bodyweight</small>'} <span class="stat-reps">× ${b.reps}</span></span>
                             </div>
                             <div class="pr-timeline" id="${tlId}" style="display:none;"></div>
                         </div>
@@ -4250,28 +4270,28 @@
                 });
             }
 
-            if (bestKeys.length === 0 && typeof renderVideoVault === 'function') html += renderVideoVault();
+            // Video analysis follows the full best-lifts list, before the reference 1RMs.
+            if (typeof renderVideoVault === 'function') html += renderVideoVault();
 
             // Reset privacy lock every time the vault is opened
             window.physiquePrivacy = true;
 
+            html += baselinesHtml;
+            html += `<h2 class="vault-section">Muscle volume</h2>`;
+            html += buildMuscleRadarChart();
+
             // Physique Tracking UI
-            html += `<div style="display:flex;align-items:center;gap:10px;margin:32px 0 15px;color:var(--text-muted);">
-                <div style="flex:1;height:1px;background:var(--border);"></div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    Physique Tracking
-                </div>
-                <button id="privacy-toggle-btn" onclick="togglePhysiquePrivacy()" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:0.2s;flex-shrink:0;">🙈 Hidden</button>
-                <div style="flex:1;height:1px;background:var(--border);"></div>
+            html += `<div class="vault-section-row">
+                <h2 class="vault-section">Progress photos</h2>
+                <button id="privacy-toggle-btn" class="settings-chip" onclick="togglePhysiquePrivacy()">Show</button>
             </div>`;
-            html += '<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Locally stored progress pictures. These never leave your device.</p>';
+            html += '<p class="vault-section-sub">Stored only on this phone. They never leave your device.</p>';
             html += `
             <div id="physique-gallery" class="privacy-hidden" style="margin-bottom: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;">
                 <div style="color: var(--text-muted); font-style: italic; font-size: 13px;">Loading gallery...</div>
             </div>
             <label class="action-btn" style="background: var(--input-bg); color: var(--text-main); border: 1px dashed var(--border); display: block; text-align: center; cursor: pointer; padding: 15px; font-size: 14px;">
-                📸 Add Progress Picture
+                Add a progress photo
                 <input type="file" accept="image/*" style="display:none;" onchange="handlePictureUpload(event)">
             </label>`;
 

@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=Sofia+Sans+Extra+Condensed:wght@600;700;800&display=swap">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.06.1901">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.06.1907">
     <link rel="stylesheet" href="./styles/video-analysis.css">
 </head>
 <body>
@@ -428,26 +428,24 @@
     <div id="library-screen" class="app-screen">
         <div class="screen-header">
             <h1 class="screen-title">Library</h1>
-            <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your training programs.</p>
         </div>
+        <div id="library-running"></div>
         <details class="folder-card" id="custom-folder">
             <summary class="folder-header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 20px;">🛠️</span>
-                    <span>Custom</span>
-                </div>
-                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+                <span class="folder-logo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+                <span class="folder-name">Custom</span>
+                <span class="folder-count"></span>
+                <svg class="folder-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
             <div class="folder-content" id="custom-folder-content">
                 </div>
         </details>
         <details class="folder-card">
             <summary class="folder-header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="./assets/icons/panash_logo.jpg" alt="Panash" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
-                    <span>Panash</span>
-                </div>
-                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+                <span class="folder-logo"><img src="./assets/icons/panash_logo.jpg" alt=""></span>
+                <span class="folder-name">Panash</span>
+                <span class="folder-count"></span>
+                <svg class="folder-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
             <div class="folder-content">
                 <div class="program-card" role="button" tabindex="0" data-program-id="Full_Force" onclick="startProgram('Full_Force')"><h3 class="program-title">Full Force</h3><p class="program-desc">Panash Powerlifting</p></div>
@@ -462,11 +460,10 @@
 
         <details class="folder-card">
             <summary class="folder-header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="./assets/icons/cbb_logo.jpg" alt="CBB" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
-                    <span>Calgary Barbell</span>
-                </div>
-                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+                <span class="folder-logo"><img src="./assets/icons/cbb_logo.jpg" alt=""></span>
+                <span class="folder-name">Calgary Barbell</span>
+                <span class="folder-count"></span>
+                <svg class="folder-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
             <div class="folder-content">
                 <div class="program-card" role="button" tabindex="0" data-program-id="16week-3" onclick="startProgram('16week-3')"><h3 class="program-title">16-Week Peak 3</h3><p class="program-desc">Competition Prep</p></div>
@@ -475,14 +472,13 @@
                 <div class="program-card" role="button" tabindex="0" data-program-id="Powerbuilding3" onclick="startProgram('Powerbuilding3')"><h3 class="program-title">Powerbuilding 3</h3><p class="program-desc">Strength & Hypertrophy</p></div>
                 <div class="program-card" role="button" tabindex="0" data-program-id="PPL" onclick="startProgram('PPL')"><h3 class="program-title">Push Pull Legs</h3><p class="program-desc">PPL Split</p></div>
 
-                <details style="background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
-                    <summary class="folder-header" style="padding: 12px 14px; font-size: 15px; border-bottom: none;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 700; color: var(--text-main);">Path of Powerlifting</span>
-                        </div>
-                        <span style="color: var(--text-muted); font-size: 12px;">▼</span>
+                <details class="folder-sub">
+                    <summary class="folder-header">
+                        <span class="folder-name">Path of Powerlifting</span>
+                        <span class="folder-count"></span>
+                        <svg class="folder-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                     </summary>
-                    <div class="folder-content" style="padding: 10px; padding-top: 0; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="folder-content">
                         <div class="program-card" role="button" tabindex="0" data-program-id="POP_1" onclick="startProgram('POP_1')"><h3 class="program-title">POP I</h3><p class="program-desc">Foundation Block</p></div>
                         <div class="program-card" role="button" tabindex="0" data-program-id="POP_2" onclick="startProgram('POP_2')"><h3 class="program-title">POP II</h3><p class="program-desc">Development Block</p></div>
                         <div class="program-card" role="button" tabindex="0" data-program-id="POP_3" onclick="startProgram('POP_3')"><h3 class="program-title">POP III</h3><p class="program-desc">Accumulation Block</p></div>
@@ -494,16 +490,15 @@
 
         <details class="folder-card">
             <summary class="folder-header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="./assets/icons/boostcamp_logo.jpg" alt="Boostcamp" style="width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: #fff;">
-                    <span>Boostcamp</span>
-                </div>
-                <span style="color: var(--text-muted); font-size: 14px;">▼</span>
+                <span class="folder-logo"><img src="./assets/icons/boostcamp_logo.jpg" alt=""></span>
+                <span class="folder-name">Boostcamp</span>
+                <span class="folder-count"></span>
+                <svg class="folder-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
             <div class="folder-content" id="boostcamp-folder-content">
                 <div class="program-card" role="button" tabindex="0" data-program-id="nsuns_531_4day" onclick="startProgram('nsuns_531_4day')">
                     <h3 class="program-title">nSuns 5/3/1 — 4 Day LP</h3>
-                    <p class="program-desc">8 Weeks · 4 Days/Week · Strength &amp; Powerbuilding</p>
+                    <p class="program-desc">Strength &amp; Powerbuilding</p>
                 </div>
                 <div class="program-card" role="button" tabindex="0" data-program-id="strongman_bromley" onclick="startProgram('strongman_bromley')">
                     <h3 class="program-title">Bromley Strongman</h3>
@@ -515,23 +510,20 @@
     </div>
 
     <div id="history-screen" class="app-screen">
-        <div class="screen-header" style="position:relative;">
+        <div class="screen-header">
             <h1 class="screen-title">History</h1>
-            <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Your completed training sessions.</p>
-            <button onclick="openDataSheet()" style="position:absolute;top:0;right:0;background:none;border:none;padding:8px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;border-radius:8px;" title="Data Management">
+            <button class="screen-header-tool" onclick="openDataSheet()" aria-label="Settings and data" title="Settings and data">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </div>
-        <div class="history-card" style="padding: 20px 20px 25px 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <span style="font-weight:800; font-size:16px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                    Lift Progress
-                </span>
-                <button id="chart-exercise-btn" class="custom-select" style="width: auto; max-width: 180px;" onclick="document.getElementById('chart-exercise-modal').style.display='flex'">--</button>
+        <div class="history-card lift-progress-card">
+            <div class="lift-progress-head">
+                <span class="lift-progress-title">Lift progress</span>
+                <button id="chart-exercise-btn" class="custom-select" onclick="document.getElementById('chart-exercise-modal').style.display='flex'">--</button>
             </div>
+            <div id="chart-headline" class="chart-headline"></div>
             <div id="chart-container" style="position:relative; height: 140px; width: 100%;"></div>
-            <div id="chart-range-row" style="display:flex; gap:6px; justify-content:flex-end; margin-top:18px;">
+            <div id="chart-range-row" class="chart-range-row">
                 <button class="chart-range-pill active" data-range="recent" onclick="setChartRange('recent')">Recent</button>
                 <button class="chart-range-pill" data-range="90" onclick="setChartRange(90)">3M</button>
                 <button class="chart-range-pill" data-range="180" onclick="setChartRange(180)">6M</button>
@@ -539,7 +531,7 @@
             </div>
         </div>
 
-        <div id="volume-heatmap-card" class="history-card" style="padding: 16px 16px 14px; margin-bottom: 15px;"></div>
+        <div id="volume-heatmap-card" class="history-card heatmap-card"></div>
 
         <div id="history-container">
             <div class="skeleton-block" style="height:68px;margin-bottom:10px;"></div>
@@ -553,8 +545,9 @@
     <div id="data-sheet-overlay" onclick="closeDataSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1600;backdrop-filter:blur(2px);"></div>
     <div id="data-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:1601;border-top:1px solid var(--border);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);overflow-y:auto;max-height:85vh;">
         <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
-        <h3 style="color:var(--text-main);font-size:16px;font-weight:800;margin-bottom:6px;">Data Management</h3>
-        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Backup your PRs, history, and active sessions.</p>
+        <h3 style="color:var(--text-main);font-size:16px;font-weight:800;margin-bottom:6px;">Settings and data</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Appearance, backups, timer sound and cloud sync.</p>
+        <div id="appearance-settings" class="appearance-settings"></div>
         <button class="action-btn" style="background:var(--input-bg);color:var(--text-main);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;" onclick="exportData()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export Backup (.json)
@@ -653,13 +646,12 @@
     </div>
 
     <div id="stats-screen" class="app-screen">
-        <div class="header-nav">
-            <button class="back-btn" onclick="switchTab('home-screen')">◀ Back</button>
-            <h2 style="margin:0; flex:1; text-align:center; color: var(--text-main); font-size: 18px;">Stats</h2>
-            <div style="width: 80px; flex-shrink: 0;"></div>
+        <div class="screen-header vault-header">
+            <button class="back-btn" onclick="switchTab('home-screen')" aria-label="Back to home"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Home</button>
+            <h1 class="screen-title">Iron Vault</h1>
         </div>
 
-        <div id="stats-container" style="margin-top: 20px;">
+        <div id="stats-container">
             <div class="skeleton-block" style="height:180px;margin-bottom:16px;"></div>
             <div class="skeleton-block" style="height:54px;margin-bottom:10px;"></div>
             <div class="skeleton-block" style="height:54px;margin-bottom:10px;"></div>
@@ -791,6 +783,6 @@
 
     <script src="./scripts/video-analysis.js" defer></script>
     <script src="./scripts/technique-guide.js" defer></script>
-    <script src="./scripts/app.js?v=2026.11.06.1901" defer></script>
+    <script src="./scripts/app.js?v=2026.11.06.1907" defer></script>
 </body>
 </html>
