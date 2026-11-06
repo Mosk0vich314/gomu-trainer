@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=Sofia+Sans+Extra+Condensed:wght@600;700;800&display=swap">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.06.1907">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.06.1953">
     <link rel="stylesheet" href="./styles/video-analysis.css">
 </head>
 <body>
@@ -340,7 +340,9 @@
     <!-- Shared autocomplete source for Swap / Add exercise inputs (populated by app.js) -->
     <datalist id="exercise-name-list"></datalist>
 
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" style="--nav-i: 1;">
+        <!-- The bar: one plate rides it to the active tab. Drawn in CSS; the only nav motion. -->
+        <div class="nav-bar" aria-hidden="true"><span class="nav-plate-track"><span class="nav-plate"></span></span></div>
         <button class="nav-item" id="nav-library" onclick="switchTab('library-screen')">
             <div class="nav-icon-wrap">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
@@ -783,6 +785,6 @@
 
     <script src="./scripts/video-analysis.js" defer></script>
     <script src="./scripts/technique-guide.js" defer></script>
-    <script src="./scripts/app.js?v=2026.11.06.1907" defer></script>
+    <script src="./scripts/app.js?v=2026.11.06.1953" defer></script>
 </body>
 </html>

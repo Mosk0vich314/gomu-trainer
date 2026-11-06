@@ -139,7 +139,10 @@ The entire app lives in two files:
 ### App screens (by DOM ID)
 `login-screen` → `home-screen` → `library-screen` → `workout-screen` → `summary-screen` → `history-screen` → `stats-screen`
 
-Screen transitions use `switchTab(tabId)` which applies directional slide animations (`TAB_ORDER` array controls left/right direction). **Do not use CSS `transform` on `.app-screen` animations** — it breaks `position: fixed` children (FAB timer button). Use `left` property instead.
+Screen transitions use `switchTab(tabId)`: screens switch **instantly** (no slide or fade), a new screen opens scrolled to the top, and the nav's plate rides to the tab. The old directional `left` slide plus the nav's blur/indicator/pill transitions made the fixed nav flicker on Android, so don't reintroduce screen animations. **Never put CSS `transform` on `.app-screen`** — it breaks `position: fixed` children (FAB timer button).
+
+### Bottom nav (the bar)
+Deliberately minimal: the nav's top edge is a plain 2px bar (`.nav-bar`), and one plate seen edge-on (`.nav-plate`, accent, in `.nav-plate-track`, a one-third-width track moved by `transform: translateX(calc(var(--nav-i) * 100%))`) stands on it above the active tab — the nav's **only** motion. No knurling, collars, pills or glows. `switchTab` sets `--nav-i` from `TAB_ORDER` (library 0, home 1, history 2) and adds `.no-plate` on screens that aren't tabs (workout, Iron Vault, summary). The nav has a solid `--nav-bg`, no `backdrop-filter` or shadow: anything that re-composites under a fixed bar while screens change is what glitched. Nav height stays ~77px; banners above it are positioned against that.
 
 ### Workout program JSON format
 ```json

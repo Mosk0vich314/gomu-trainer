@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.06.1907";
+        const APP_VERSION = "v2026.11.06.1953";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -683,17 +683,22 @@
         const TAB_ORDER = ['library-screen', 'home-screen', 'history-screen'];
         function switchTab(tabId) {
             const currentScreen = document.querySelector('.app-screen.active');
-            const fromIdx = TAB_ORDER.indexOf(currentScreen?.id ?? '');
-            const toIdx   = TAB_ORDER.indexOf(tabId);
-            const slideLeft = fromIdx !== -1 && toIdx !== -1 && toIdx < fromIdx;
-
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active', 'slide-left'));
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-
             const next = document.getElementById(tabId);
             if (!next) { console.error('switchTab: no screen with id', tabId); return; }
+
+            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             next.classList.add('active');
-            if (slideLeft) next.classList.add('slide-left');
+            // A new screen opens at its top, not at the previous screen's scroll offset.
+            if (currentScreen !== next) window.scrollTo(0, 0);
+
+            // The plate on the nav bar rides to the active tab; off the three tabs it is lifted off.
+            const nav = document.querySelector('.bottom-nav');
+            const navIdx = TAB_ORDER.indexOf(tabId);
+            if (nav) {
+                if (navIdx !== -1) nav.style.setProperty('--nav-i', navIdx);
+                nav.classList.toggle('no-plate', navIdx === -1);
+            }
             
             if(tabId === 'home-screen') {
                 document.getElementById('nav-home').classList.add('active');

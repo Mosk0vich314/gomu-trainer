@@ -67,12 +67,7 @@ button, .pill, .check-circle, .stat-card {
 }
 /* App Screens */
 .app-screen { display: none; padding: 20px; padding-bottom: 180px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative; }
-.app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
-
-@keyframes slideInScreen   { from { opacity: 0; left:  20px; } to { opacity: 1; left: 0; } }
-@keyframes slideInFromLeft { from { opacity: 0; left: -20px; } to { opacity: 1; left: 0; } }
-.app-screen.active { display: block; animation: slideInScreen 0.25s ease-out forwards; }
-.app-screen.active.slide-left { animation: slideInFromLeft 0.25s ease-out forwards; }
+.app-screen.active { display: block; }   /* tabs switch instantly, like a native tab bar */
 
 /* PERFECTED DASHBOARD BACKGROUND */
 #home-screen {
@@ -102,70 +97,53 @@ button, .pill, .check-circle, .stat-card {
     mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
 }
 
-/* Bottom Navigation Bar */
+/* Bottom Navigation Bar — the bar itself.
+   The nav's top edge is a plain bar; one plate stands on it above the active
+   tab and slides to the next one. That slide is the nav's only motion (no blur,
+   glow or fades), so nothing under the fixed bar re-composites while screens change. */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background: var(--nav-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255,255,255,0.06);
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    padding: 14px 0 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
     z-index: 1500;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.6);
 }
+.nav-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; pointer-events: none; background: var(--border); }
+.nav-plate-track {
+    position: absolute; top: 0; left: 0; width: calc(100% / 3); height: 2px;
+    transform: translateX(calc(var(--nav-i, 1) * 100%));
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* A plate seen edge-on, centred on the bar. */
+.nav-plate { position: absolute; left: 50%; top: -7px; width: 6px; height: 16px; margin-left: -3px; border-radius: 1.5px; background: var(--accent); }
+.bottom-nav.no-plate .nav-plate-track { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .nav-plate-track { transition: none; } }
+
 .nav-item {
     color: var(--text-muted);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
-    transition: color 0.2s;
     background: none;
     border: none;
     flex: 1;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
     position: relative;
-    padding-top: 8px;
+    padding-top: 6px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
 }
-/* Orange indicator bar slides in at top of active tab */
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    border-radius: 0 0 2px 2px;
-    background: var(--accent);
-    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.nav-item.active::before { width: 24px; }
-.nav-item.active { color: var(--accent); }
-
-/* Icon background pill on active tab */
-.nav-icon-wrap {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    transition: background 0.2s;
-}
-.nav-item.active .nav-icon-wrap {
-    background: rgba(var(--accent-rgb), 0.12);
-}
+.nav-item.active { color: var(--text-main); }
+.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+.nav-icon-wrap { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
 
 /* Sleek Glass-Morphism Dashboard Hero Card */
 .hero-card { background: color-mix(in srgb, var(--card) 62%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 15px 20px; margin-top: 160px; margin-bottom: 15px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;}
@@ -1492,7 +1470,6 @@ button, input, textarea, select { font-family: inherit; }
 .rpe-pill, .eq-cycle-chip, .target-dismiss-chip, .e1rm-label { font-family: var(--font-body); }
 
 /* Bottom nav: sentence case, no tracking. */
-.nav-item { text-transform: none; letter-spacing: 0; font-size: 12px; }
 
 /* Week spine */
 .spine-title { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; }
