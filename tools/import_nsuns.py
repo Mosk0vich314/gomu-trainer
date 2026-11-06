@@ -60,21 +60,26 @@ ACCESSORY_NOTE = ('Custom accessory added to nSuns. Keep about 2 reps in reserve
                   'Cut accessory sets (Day 4 first) if the 1+ sets start dropping. ')
 
 
-def accessory(name, sets, reps, rep_range, why, rest=90):
+def accessory(name, sets, reps, rep_range, why, rest=90, bodyweight_only=False):
     # The app stores reps as a number, so the range lives in the notes.
-    return dict(name=name, type='accessory',
-                notes=f'{rep_range} reps. {why} ' + ACCESSORY_NOTE,
-                blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None, restSec=rest)])
+    # Bodyweight-only work progresses by reps, so it skips the add-weight advice.
+    ex = dict(name=name, type='accessory',
+              notes=f'{rep_range} reps. {why}' + ('' if bodyweight_only else ' ' + ACCESSORY_NOTE),
+              blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None, restSec=rest)])
+    if bodyweight_only:
+        ex['bodyweightOnly'] = True
+    return ex
 
 
 PULL_UP_WHY = ('Pull-up progression, twice a week. Do about half your max reps per set '
                '(4 x 3-4 if your max is 7), add one rep to one set each session and never grind '
                'to failure. At 4 x 8 add a small weight. If you cannot yet do strict reps, do '
                '3-5 slow negatives (5 s down) plus band-assisted reps and test one strict rep weekly.')
-NORDIC_WHY = ('Football hamstring protection: programmes that include Nordic curls cut hamstring '
-              'injuries by about half. Kneel, anchor your heels and lower yourself as slowly as you can, '
-              'catching yourself with your hands. Very sore at first: start at 2 x 3 and add a rep '
-              'only when the soreness is gone. Keep this day far from match day.')
+NORDIC_WHY = ('Bodyweight only. Football hamstring protection: programmes that include Nordic curls cut '
+              'hamstring injuries by about half. Kneel, anchor your heels and lower yourself as slowly as '
+              'you can, catching yourself with your hands. Very sore at first: start at 2 x 3 and add a rep '
+              'only when the soreness is gone. At 2 x 6, make it harder by lowering more slowly or catching '
+              'yourself later, not by adding weight. Keep this day far from match day.')
 
 
 # Set 3 (95% TM, 1+) drives the TM; the app applies it when the workout is finished.
@@ -92,11 +97,33 @@ LEG_DRIVE = ('Leg drive: set feet between knees and hips, pulled back and out, b
              'Squeeze glutes and drive heels through the floor as you press, keeping your butt on the '
              'bench; it pins your upper back, it does not push you up. Bar travels up and back toward '
              'your face; film heavy sets from the side to check the mid-range. ')
-PROGRESSION = ('Log the reps on the 95% 1+ set: finishing the workout raises the TM for next week. '
-               '0-1 reps: TM stays; 2-3: +2.5 kg; 4-5: +5 kg (bench +2.5); 6+: +7.5 kg (bench +5). '
-               'Supplemental lifts using this TM move with it. '
-               'AMRAP sets: stop when technique breaks down. Only the 1+ set drives progression; '
-               'if recovery or next session\'s 1+ set suffers, leave 1-2 reps in reserve on the final + set. ')
+AMRAP_NOTE = ('AMRAP sets: stop when technique breaks down. Only the 1+ set drives progression; '
+              'if recovery or next session\'s 1+ set suffers, leave 1-2 reps in reserve on the final + set. ')
+
+
+def fmt_kg(kg):
+    return f'{kg:g}'
+
+
+def progression_note(lift, rule, followers):
+    # Written from the same steps the app applies, so the note can never disagree with it.
+    steps = rule['steps']
+    bands = [f'0-{steps[0][0] - 1} reps: TM stays']
+    for i, (lo, kg) in enumerate(steps):
+        hi = steps[i + 1][0] - 1 if i + 1 < len(steps) else None
+        reps = f'{lo}+' if hi is None else (f'{lo}' if hi == lo else f'{lo}-{hi}')
+        bands.append(f'{reps}: +{fmt_kg(kg)} kg')
+    text = (f'Log the reps on the 95% 1+ set: finishing the workout raises your {lift} TM for next week. '
+            + '; '.join(bands) + '. ')
+    for other, share in rule.get('also', {}).items():
+        text += f'{other} rises by {"half" if share == 0.5 else f"{share:.0%}"} of each {lift} increase. '
+    text += f'{followers} use this same TM, so they rise with it. '
+    return text + AMRAP_NOTE
+
+
+def follows_note(parent, day):
+    return (f'No separate max: percentages are of your {parent} TM (90% of your {parent} reference 1RM '
+            f'in Stats). It rises automatically whenever your {parent} TM does, from the Day {day} 1+ set.')
 
 
 def build_program():
@@ -114,22 +141,25 @@ def build_program():
                      'of each bench TM increase (no OHP 1+ set in the 4-day version).')],
         '2': [
             exercise('Squat', 'Squat', blocks([5, 3, 1, 3, 3, 3, 5, 5, 5], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
+                     SETUP + progression_note('squat', LOWER_PROGRESSION, 'Front squats (Day 4)')
+                     + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
             exercise('Sumo Deadlift', 'Deadlift', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
-                     'Percentages use 90% of your conventional Deadlift reference 1RM, not a separate sumo max.')],
+                     follows_note('deadlift', 4))],
         '3': [
             exercise('Bench Press', 'Bench Press', blocks([5, 3, 1, 3, 5, 3, 5, 3, 5], heavy_pct, (3, 9)),
-                     SETUP + LEG_DRIVE + PROGRESSION + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
+                     SETUP + LEG_DRIVE + progression_note('bench', BENCH_PROGRESSION, 'Day 1 bench and close grip (today)')
+                     + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
                      BENCH_PROGRESSION),
             exercise('Close Grip (bench)', 'Bench Press', supplemental_blocks([6, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
-                     'Percentages use 90% of your standard Bench Press reference 1RM, not a close-grip max.')],
+                     follows_note('bench', 3))],
         '4': [
             exercise('Deadlift', 'Deadlift', blocks([5, 3, 1, 3, 3, 3, 3, 3, 3], heavy_pct, (3, 9)),
-                     SETUP + PROGRESSION + 'Final set is 3+ AMRAP. Complete the accessories after the main work.',
+                     SETUP + progression_note('deadlift', LOWER_PROGRESSION, 'Sumo deadlifts (Day 2)')
+                     + 'Final set is 3+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
             exercise('Front Squat', 'Squat', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
-                     'Percentages use 90% of your back Squat reference 1RM, not a front-squat max.')]
+                     follows_note('squat', 2))]
     }
     # Chosen around the lifter's weak points: mid-range bench (triceps long head, incline for
     # the shoulders), learning pull-ups (twice a week), football (Nordics, light leg work)
@@ -140,7 +170,7 @@ def build_program():
               accessory('Overhead Triceps Extension', 2, 10, '10-12',
                         'Cable or dumbbell. Long-head triceps for a bench that stalls mid-range.'),
               accessory('Dumbbell Lateral Raises', 2, 12, '12-15', 'Side delts.')],
-        '2': [accessory('Nordic Hamstring Curl', 2, 3, '3-6', NORDIC_WHY, rest=120),
+        '2': [accessory('Nordic Hamstring Curl', 2, 3, '3-6', NORDIC_WHY, rest=120, bodyweight_only=True),
               accessory('Cable Crunch', 3, 12, '12-15', 'Core.')],
         '3': [accessory('Pull-Up (Bodyweight)', 4, 4, '3-8', PULL_UP_WHY, rest=120),
               accessory('Seated Cable Rows', 3, 10, '10-12', 'Horizontal pulling to balance the pressing.'),

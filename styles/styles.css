@@ -1696,3 +1696,10 @@ button, input, textarea, select { font-family: inherit; }
     }
     .confetti-piece { display: none; }
 }
+
+/* Reps-only bodyweight sets (ex.bodyweightOnly): one quiet cell across the Load and e1RM columns. */
+.set-row .bw-only-load {
+    grid-column: span 2;
+    color: var(--text-muted); font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    border: 1px dashed var(--border); border-radius: 8px; padding: 12px 4px;
+}

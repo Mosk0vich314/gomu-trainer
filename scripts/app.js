@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.04.1502";
+        const APP_VERSION = "v2026.11.06.1849";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -4660,6 +4660,8 @@
 
                 const resolved1RM = getResolved1RM(ex.name);
                 const percentageTrainingMax = getPercentageTrainingMax(ex);
+                // Reps-only bodyweight work (Nordic curls): no load, e1RM, 1RM line or equipment chips.
+                const bwOnly = !!ex.bodyweightOnly;
                 const historical1RM = percentageTrainingMax !== null
                     ? (percentageTrainingMax > 0 ? `Training max: ${kgDisp(percentageTrainingMax)} ${unitSuffix()}` : 'Training max -- (set reference 1RM in Stats)')
                     : (resolved1RM > 0 ? `Ref 1RM: ${kgDisp(resolved1RM)} ${unitSuffix()}` : '1RM --');
@@ -4749,7 +4751,7 @@
 
                         ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
 
-                        ${!isNonExercise ? (() => {
+                        ${!isNonExercise && !bwOnly ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
                             const safeExJS = escapeHtml(JSON.stringify(ex.name));
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
@@ -4762,7 +4764,7 @@
 
                         ${displayNotesHtml}
 
-                        ${!isNonExercise ? `<div class="global-e1rm" id="global-e1rm-${exId}"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
+                        ${!isNonExercise && !bwOnly ? `<div class="global-e1rm" id="global-e1rm-${exId}"><span>${historical1RM}</span>${driftHtml}</div>` : ''}
                     `;
 
                 const numBlocks = ex.blocks.length;
@@ -4835,8 +4837,7 @@
                                 <span>Set</span>
                                 <span>Reps</span>
                                 <span onclick="openRpeHub()" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>
-                                <span>Load</span>
-                                <span>e1RM</span>
+                                ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : '<span>Load</span><span>e1RM</span>'}
                                 <span></span>
                                </div>`;
                         html += `
@@ -4983,12 +4984,12 @@
                                 <span ${noteTapAttr}>${s}${setNote ? '<span style="color:var(--teal);font-size:9px;vertical-align:top;"> ●</span>' : ''}</span>
                                 <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
                                 <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
-                                <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
+                                ${bwOnly ? '<span class="bw-only-load">Bodyweight</span>' : `<span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
                                     <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" aria-label="Show plates per side"><span class="plate-strip" data-load="${loadInputId}"></span></button>`}
                                 </span>
-                                ${e1rmCell}
+                                ${e1rmCell}`}
                                 <span class="check-circle ${isChecked}" id="${checkId}" data-rest="${restSeconds}" ${restFixed ? 'data-restfixed="true"' : ''} data-blocktype="${block.type}" ${isSupersetNext ? 'data-superset="true"' : ''} ${isActivation ? 'data-myotype="activation"' : ''} ${isMyoBackoff ? 'data-myotype="backoff"' : ''} ${isDropSet ? `data-myotype="drop" data-dropfactor="${block.dropFactor || ''}"` : ''} onclick="toggleCheck(this)"></span>
                             </div>${setNote ? `<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:0 16px 6px;text-align:left;">↳ ${escapeHtml(setNote)}</div>` : ''}`;
                         }

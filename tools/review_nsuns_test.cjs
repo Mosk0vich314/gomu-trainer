@@ -36,6 +36,8 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
                 || b.reps !== day[0].blocks[i-1].reps || b.pct !== day[0].blocks[i-1].pct, 'identical neighbours are grouped'));
             day.flatMap(ex => ex.blocks).forEach(b => assert(b.restSec > 0, 'every set has a rest time'));
             if (d > 0) assert.equal(day[0].tmProgression.block, 3);
+            day.slice(0, 2).forEach(ex => assert(!/\(bench \+/.test(ex.notes), 'progression notes are lift-specific'));
+            day.forEach(ex => assert.equal(!!ex.bodyweightOnly, ex.name === 'Nordic Hamstring Curl'));
             amraps += day.flatMap(ex => ex.blocks).filter(b => b.amrap).length;
             day.slice(0, 2).forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
             const accessories = day.slice(2);
