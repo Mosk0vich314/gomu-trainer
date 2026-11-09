@@ -392,7 +392,7 @@ Rest timer counts down to 0, beeps, then continues counting up (overtime). The d
 - The unit toggle (`preferredUnit`) is **display only**. Loads, plate inventory, bar weight and `roundForEquipment()` all work in kg, so the workout screen's load field stays kg; only read-outs convert via `kgDisp()`/`unitSuffix()`.
 - All programs live in `Programs/` and are listed in `Programs/programs-list.json`.
 - `scripts/app.js` is not minified or bundled — edit it directly.
-- Tests: `node --test tools/*.cjs` (no linter). `review_technique_test.cjs` and `review_video_browser_test.cjs` need Playwright on `NODE_PATH`; without it they print `SKIPPED` and exit 0, which is **not** a pass.
+- Tests: `node --test --test-concurrency=1 tools/*.cjs` (no linter). `review_technique_test.cjs` and `review_video_browser_test.cjs` drive a real browser and need Playwright on `NODE_PATH` (installed globally here: `NODE_PATH="$(npm root -g)"`); without it they print `SKIPPED` and exit 0, which is **not** a pass. Run serially: with both browsers decoding video at once the video test has timed out.
 - Dates and thousands separators are formatted with an explicit `'en-US'` locale. Never pass `'default'` or nothing: the UI is English and a device locale gave "lug ago set" month labels next to English copy.
 - On this Windows machine `python` has no `cryptography` module; run the deploy as `py tools/deploy.py "message"`.
 - Fonts: **Sofia Sans** (body, `--font-body`) and **Sofia Sans Extra Condensed** (display numbers, exercise titles, timer — `--font-display`). One superfamily, two widths, loaded from Google Fonts. Use the vars in CSS; small chips/pills stay in the body face because the condensed cut is hard to read under ~14px.

@@ -94,7 +94,7 @@ const http = require('node:http');
         // App theme variables must reach the isolated reader and SVGs.
         await page.evaluate(() => document.documentElement.style.setProperty('--accent', '#b491ff'));
         assert.equal(await guide.locator('.guide-label').evaluate(el => getComputedStyle(el).color), 'rgb(180, 145, 255)');
-        assert.equal(await guide.locator('#bench h2').evaluate(el => getComputedStyle(el).fontFamily), '"Space Grotesk", sans-serif');
+        assert.equal(await guide.locator('#bench h2').evaluate(el => getComputedStyle(el).fontFamily), '"Sofia Sans Extra Condensed", sans-serif');
         assert.deepEqual(errors, []);
         await context.close();
 
