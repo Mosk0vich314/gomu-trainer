@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.09.2132";
+        const APP_VERSION = "v2026.11.09.2139";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -133,18 +133,19 @@
         // readable as TEXT on the theme's card, so the light cuts use the palette's deep
         // colours (or a darkened orange) rather than its pastel fills.
         const THEMES = [
+            // bg is a deepened (dark) or shaded (light) step below the palette surface so cards lift off it.
             // Burning Flame / Truffle Trouble on Abyssal Anchorfish Blue + Blue Fantastic
-            { name: 'Flame Dark',       palette: 'Flame',      mode: 'dark',  accent: '#FFB162', teal: '#DE8566', bg: '#1B2632', card: '#2C3B4D', inputBg: '#384A60', border: '#4A5D75', textMain: '#EEE9DF', textMuted: '#C9C1B1' },
-            { name: 'Flame Light',      palette: 'Flame',      mode: 'light', accent: '#A35139', teal: '#2C3B4D', bg: '#EEE9DF', card: '#F8F5EE', inputBg: '#E2DBCD', border: '#C9C1B1', textMain: '#1B2632', textMuted: '#55606E' },
+            { name: 'Flame Dark',       palette: 'Flame',      mode: 'dark',  accent: '#FFB162', teal: '#DE8566', bg: '#0D141B', card: '#1F2B39', inputBg: '#314256', border: '#44576F', textMain: '#EEE9DF', textMuted: '#C9C1B1' },
+            { name: 'Flame Light',      palette: 'Flame',      mode: 'light', accent: '#A35139', teal: '#2C3B4D', bg: '#DDD5C5', card: '#F8F5EE', inputBg: '#EAE4D8', border: '#BDB4A2', textMain: '#1B2632', textMuted: '#55606E' },
             // Melonade / Royal Seal on Rhapsody in Blue, Ice Shard / Polar Fog text
-            { name: 'Seal Dark',        palette: 'Seal',       mode: 'dark',  accent: '#FFAB6E', teal: '#E86A92', bg: '#001426', card: '#002244', inputBg: '#0E3360', border: '#284B76', textMain: '#F9FAFA', textMuted: '#B9C6D2' },
-            { name: 'Seal Light',       palette: 'Seal',       mode: 'light', accent: '#69092D', teal: '#B85A1E', bg: '#EAEFF2', card: '#F9FAFA', inputBg: '#DEE7ED', border: '#C0CDD7', textMain: '#002244', textMuted: '#4A5F7A' },
+            { name: 'Seal Dark',        palette: 'Seal',       mode: 'dark',  accent: '#FFAB6E', teal: '#E86A92', bg: '#000A16', card: '#002244', inputBg: '#0E3563', border: '#2A4F7C', textMain: '#F9FAFA', textMuted: '#B9C6D2' },
+            { name: 'Seal Light',       palette: 'Seal',       mode: 'light', accent: '#69092D', teal: '#B85A1E', bg: '#D8E2E9', card: '#F9FAFA', inputBg: '#E8EEF2', border: '#B1C2CF', textMain: '#002244', textMuted: '#4A5F7A' },
             // #F06543 / #F09D51 on #313638
-            { name: 'Coral Dark',       palette: 'Coral',      mode: 'dark',  accent: '#F06543', teal: '#F09D51', bg: '#25292B', card: '#313638', inputBg: '#3E4447', border: '#545B5E', textMain: '#E8E9EB', textMuted: '#B5B5AD' },
-            { name: 'Coral Light',      palette: 'Coral',      mode: 'light', accent: '#D0421F', teal: '#A85D12', bg: '#E8E9EB', card: '#F6F6F7', inputBg: '#E0DFD5', border: '#C6C5BA', textMain: '#313638', textMuted: '#666C6F' },
+            { name: 'Coral Dark',       palette: 'Coral',      mode: 'dark',  accent: '#F06543', teal: '#F09D51', bg: '#17191B', card: '#2D3234', inputBg: '#3F4649', border: '#565E61', textMain: '#E8E9EB', textMuted: '#B5B5AD' },
+            { name: 'Coral Light',      palette: 'Coral',      mode: 'light', accent: '#C73D1B', teal: '#A85D12', bg: '#D9D9D2', card: '#F7F7F8', inputBg: '#E8E9EB', border: '#BCBBB0', textMain: '#313638', textMuted: '#5C6265' },
             // Forsythia / Deep Saffron on Oceanic Noir + Nocturnal Expedition
-            { name: 'Expedition Dark',  palette: 'Expedition', mode: 'dark',  accent: '#FFC801', teal: '#FF9932', bg: '#172B36', card: '#1D3B48', inputBg: '#114C5A', border: '#2D6470', textMain: '#F1F6F4', textMuted: '#B8CEC8' },
-            { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', teal: '#114C5A', bg: '#F1F6F4', card: '#FFFFFF', inputBg: '#D9E8E2', border: '#B9CFC7', textMain: '#172B36', textMuted: '#4D666F' },
+            { name: 'Expedition Dark',  palette: 'Expedition', mode: 'dark',  accent: '#FFC801', teal: '#FF9932', bg: '#09141A', card: '#172B36', inputBg: '#114C5A', border: '#2D6470', textMain: '#F1F6F4', textMuted: '#B8CEC8' },
+            { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', teal: '#114C5A', bg: '#D3E3DC', card: '#F9FBFA', inputBg: '#E6F0EC', border: '#A6C2B7', textMain: '#172B36', textMuted: '#4D666F' },
         ];
         // A stored name from the old theme list (Ember, Inferno...) falls back to the default.
         const currentTheme = () => THEMES.find(t => t.name === localStorage.getItem('appTheme')) || THEMES[0];

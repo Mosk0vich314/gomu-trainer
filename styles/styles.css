@@ -4,8 +4,8 @@
 
 :root {
     /* Defaults = Flame Dark (THEMES[0] in app.js); applyTheme() overwrites them. */
-    --bg: #1B2632;
-    --card: #2C3B4D;
+    --bg: #0D141B;
+    --card: #1F2B39;
     --accent: #FFB162;
     --teal: #DE8566;
     /* RGB component triples so rgba(var(--accent-rgb), alpha) tracks the theme */
@@ -14,13 +14,13 @@
     --danger: #ef4444;
     --text-main: #EEE9DF;
     --text-muted: #C9C1B1;
-    --input-bg: #384A60;
-    --border: #4A5D75;
+    --input-bg: #314256;
+    --border: #44576F;
     /* Ink for text ON an accent/teal fill, and the colour hairlines and washes tint
        toward: white on dark themes, the text colour on light ones. Never write
        #000 / #fff / rgba(255,255,255,a) for these - a light theme inverts them. */
-    --on-accent: #1B2632;
-    --on-teal: #1B2632;
+    --on-accent: #0D141B;
+    --on-teal: #0D141B;
     --tint-rgb: 255, 255, 255;
 
     /* Derived surfaces. Roughly a dozen rules hardcoded the Ember zinc palette
@@ -28,10 +28,10 @@
        the OLED toggle - repainted the cards but left the check circles, block
        headers, e1RM pills, timer buttons and bottom nav stuck on zinc. These
        derive from the theme vars instead, so they follow applyTheme(). */
-    --surface-sunken: #202C3A;   /* inputs, e1RM pill - below the card */
-    --surface-row:    #2F3F52;   /* set rows - just above the card */
-    --line-strong:    #84909A;   /* a border that must stay visible (check circle) */
-    --nav-bg:         #232F3E;   /* bottom nav / sticky chrome */
+    --surface-sunken: #121B24;   /* inputs, e1RM pill - below the card */
+    --surface-row:    #243141;   /* set rows - just above the card */
+    --line-strong:    #80878D;   /* a border that must stay visible (check circle) */
+    --nav-bg:         #151E29;   /* bottom nav / sticky chrome */
 
     /* One superfamily, two widths. Body text in Sofia Sans; every number the lifter
        reads mid-set (load, e1RM, timer, scores) in the Extra Condensed cut, set like
