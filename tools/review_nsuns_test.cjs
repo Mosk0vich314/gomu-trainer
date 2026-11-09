@@ -87,7 +87,8 @@ test('finishing a 1+ set progresses that TM per program, follows bench with OHP 
     const tm = ex => context.getPercentageTrainingMax(ex);
     assert.deepEqual({ ...finish('w1_d2', week[2], 4) }, { Squat: 5 });
     assert.equal(tm(week[2][0]), 185);
-    assert.equal(tm(week[4][1]), 185, 'front squat reads the progressed squat TM');
+    assert.equal(week[4][1].name, 'Safety Bar (squat)');
+    assert.equal(tm(week[4][1]), 185, 'safety bar squat reads the progressed squat TM');
     assert.deepEqual({ ...finish('w1_d2', week[2], 1) }, {}, 'redoing the day reverts, then applies the new result');
     assert.equal(tm(week[2][0]), 180);
     assert.deepEqual({ ...finish('w1_d3', week[3], 6) }, { 'Bench Press': 5, 'Overhead Press (bench)': 2.5 });

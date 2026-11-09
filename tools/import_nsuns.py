@@ -144,7 +144,7 @@ def build_program():
                      'of each bench TM increase (no OHP 1+ set in the 4-day version).')],
         '2': [
             exercise('Squat', 'Squat', blocks([5, 3, 1, 3, 3, 3, 5, 5, 5], heavy_pct, (3, 9)),
-                     SETUP + progression_note('squat', LOWER_PROGRESSION, 'Front squats (Day 4)')
+                     SETUP + progression_note('squat', LOWER_PROGRESSION, 'Safety bar squats (Day 4)')
                      + 'Final set is 5+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
             exercise('Sumo Deadlift', 'Deadlift', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [50, 60, 70, 70, 70, 70, 70, 70]),
@@ -161,8 +161,16 @@ def build_program():
                      SETUP + progression_note('deadlift', LOWER_PROGRESSION, 'Sumo deadlifts (Day 2)')
                      + 'Final set is 3+ AMRAP. Complete the accessories after the main work.',
                      LOWER_PROGRESSION),
-            exercise('Front Squat', 'Squat', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [35, 45, 55, 55, 55, 55, 55, 55]),
-                     follows_note('squat', 2))]
+            # Replaces nSuns' front squat: the front rack hurt the lifter's shoulder. The safety bar
+            # keeps the slot's job (upright torso, quads, upper back) with no rack position. It is
+            # stronger than a front squat, so the wave sits 5 points higher than nSuns' 35/45/55.
+            exercise('Safety Bar (squat)', 'Squat', supplemental_blocks([5, 5, 3, 5, 7, 4, 6, 8], [40, 50, 60, 60, 60, 60, 60, 60]),
+                     'Replaces the front squat, which loaded your shoulder. Hold the handles, keep your elbows down '
+                     'and drive your upper back into the pads: the bar tries to fold you forward, so stay upright. '
+                     'Set 5 points higher than the front squat percentages; if the first session feels clearly too '
+                     'easy or a grind, the percentages get adjusted. Plate counts assume your normal bar, and a '
+                     'safety bar usually weighs more, so load to the total on the bar. '
+                     + follows_note('squat', 2))]
     }
     # Chosen around the lifter's weak points: mid-range bench (triceps long head, incline for
     # the shoulders), learning pull-ups (twice a week), football (Nordics, light leg work)
