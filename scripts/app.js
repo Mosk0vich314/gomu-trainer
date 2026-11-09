@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.09.2034";
+        const APP_VERSION = "v2026.11.09.2132";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -129,18 +129,25 @@
         window.addEventListener('unhandledrejection', (e) => showErrorToast((e.reason && e.reason.message) || 'Unexpected async error'));
 
         // --- THEMES ---
+        // Four palettes, each in a dark and a light cut. `accent` and `teal` must stay
+        // readable as TEXT on the theme's card, so the light cuts use the palette's deep
+        // colours (or a darkened orange) rather than its pastel fills.
         const THEMES = [
-            { name: 'Ember',      accent: '#f97316', teal: '#14b8a6', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // The Gold Standard
-            { name: 'Deep Sea',   accent: '#fb923c', teal: '#0d9488', bg: '#020617', card: '#0f172a', inputBg: '#1e293b', border: '#334155' }, // Orange / Teal on Dark Blue
-            { name: 'Bumblebee',  accent: '#fbbf24', teal: '#3b82f6', bg: '#050502', card: '#111109', inputBg: '#1C1C10', border: '#2B2B19' }, // Yellow / Blue
-            { name: 'Hazard',     accent: '#facc15', teal: '#ef4444', bg: '#050202', card: '#120707', inputBg: '#1E1010', border: '#2C1818' }, // Yellow / Red
-            { name: 'Nuclear',    accent: '#89ff00', teal: '#00d1ff', bg: '#020602', card: '#081208', inputBg: '#0F1F0F', border: '#183018' }, // Neon Green / Cyan
-            { name: 'Eclipse',    accent: '#ffffff', teal: '#6366f1', bg: '#09090b', card: '#18181b', inputBg: '#27272a', border: '#3f3f46' }, // White / Indigo
-            { name: 'Magma',      accent: '#ff4d00', teal: '#ffcc00', bg: '#070202', card: '#140606', inputBg: '#220E0E', border: '#321818' }, // Deep Orange / Yellow
-            { name: 'Ice',        accent: '#22d3ee', teal: '#f43f5e', bg: '#020709', card: '#071318', inputBg: '#0E222A', border: '#17333C' }, // Cyan / Rose Red
-            { name: 'Inferno',    accent: '#BB2233', teal: '#F98825', bg: '#05080F', card: '#0F172A', inputBg: '#1A2640', border: '#2D3F5C', textMain: '#F4EAE1', textMuted: '#9A877E' }, // Demonic Red / Atomic Orange on Firmament Blue
-            { name: 'Expedition', accent: '#FFC801', teal: '#FF9932', bg: '#060C0E', card: '#172B36', inputBg: '#114C5A', border: '#32616A', textMain: '#F1F6F4', textMuted: '#D9E8E2' }, // Forsythia / Deep Saffron on Oceanic Noir, with Arctic Powder / Mystic Mint text
+            // Burning Flame / Truffle Trouble on Abyssal Anchorfish Blue + Blue Fantastic
+            { name: 'Flame Dark',       palette: 'Flame',      mode: 'dark',  accent: '#FFB162', teal: '#DE8566', bg: '#1B2632', card: '#2C3B4D', inputBg: '#384A60', border: '#4A5D75', textMain: '#EEE9DF', textMuted: '#C9C1B1' },
+            { name: 'Flame Light',      palette: 'Flame',      mode: 'light', accent: '#A35139', teal: '#2C3B4D', bg: '#EEE9DF', card: '#F8F5EE', inputBg: '#E2DBCD', border: '#C9C1B1', textMain: '#1B2632', textMuted: '#55606E' },
+            // Melonade / Royal Seal on Rhapsody in Blue, Ice Shard / Polar Fog text
+            { name: 'Seal Dark',        palette: 'Seal',       mode: 'dark',  accent: '#FFAB6E', teal: '#E86A92', bg: '#001426', card: '#002244', inputBg: '#0E3360', border: '#284B76', textMain: '#F9FAFA', textMuted: '#B9C6D2' },
+            { name: 'Seal Light',       palette: 'Seal',       mode: 'light', accent: '#69092D', teal: '#B85A1E', bg: '#EAEFF2', card: '#F9FAFA', inputBg: '#DEE7ED', border: '#C0CDD7', textMain: '#002244', textMuted: '#4A5F7A' },
+            // #F06543 / #F09D51 on #313638
+            { name: 'Coral Dark',       palette: 'Coral',      mode: 'dark',  accent: '#F06543', teal: '#F09D51', bg: '#25292B', card: '#313638', inputBg: '#3E4447', border: '#545B5E', textMain: '#E8E9EB', textMuted: '#B5B5AD' },
+            { name: 'Coral Light',      palette: 'Coral',      mode: 'light', accent: '#D0421F', teal: '#A85D12', bg: '#E8E9EB', card: '#F6F6F7', inputBg: '#E0DFD5', border: '#C6C5BA', textMain: '#313638', textMuted: '#666C6F' },
+            // Forsythia / Deep Saffron on Oceanic Noir + Nocturnal Expedition
+            { name: 'Expedition Dark',  palette: 'Expedition', mode: 'dark',  accent: '#FFC801', teal: '#FF9932', bg: '#172B36', card: '#1D3B48', inputBg: '#114C5A', border: '#2D6470', textMain: '#F1F6F4', textMuted: '#B8CEC8' },
+            { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', teal: '#114C5A', bg: '#F1F6F4', card: '#FFFFFF', inputBg: '#D9E8E2', border: '#B9CFC7', textMain: '#172B36', textMuted: '#4D666F' },
         ];
+        // A stored name from the old theme list (Ember, Inferno...) falls back to the default.
+        const currentTheme = () => THEMES.find(t => t.name === localStorage.getItem('appTheme')) || THEMES[0];
 
         window.themePickerExpanded = false;
         window.toggleThemePicker = function() {
@@ -152,32 +159,46 @@
         window.renderAppearance = function() {
             const slot = document.getElementById('appearance-settings');
             if (!slot) return;
-            const activeTheme = localStorage.getItem('appTheme') || 'Ember';
+            const active = currentTheme();
+            const isLight = active.mode === 'light';
             const oled = (localStorage.getItem('bgMode') || 'Matte') === 'OLED';
+            // One swatch per palette, drawn in the active mode's colours.
+            const swatches = THEMES.filter(t => t.mode === active.mode);
             slot.innerHTML = `
                 <div class="settings-row">
-                    <div><div class="settings-row-title">Theme</div><div class="settings-row-sub">${escapeHtml(activeTheme)}</div></div>
+                    <div><div class="settings-row-title">Theme</div><div class="settings-row-sub">${escapeHtml(active.palette)}</div></div>
                     <button type="button" class="settings-chip" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Close' : 'Change'}</button>
                 </div>
                 <div class="theme-swatches" ${window.themePickerExpanded ? '' : 'hidden'}>
-                    ${THEMES.map(t => `<button type="button" class="theme-swatch${t.name === activeTheme ? ' active' : ''}" onclick="applyTheme('${t.name}');renderAppearance()" aria-label="${t.name} theme" title="${t.name}" style="background:linear-gradient(135deg,${t.accent} 50%,${t.teal} 50%);"></button>`).join('')}
+                    ${swatches.map(t => `<button type="button" class="theme-swatch${t.name === active.name ? ' active' : ''}" onclick="applyTheme('${t.name}');renderAppearance()" aria-label="${t.palette} theme" aria-pressed="${t.name === active.name}" style="background:${t.card};color:${t.textMain};"><i style="background:${t.accent};"></i><i style="background:${t.teal};"></i><span>${t.palette}</span></button>`).join('')}
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Light mode</div><div class="settings-row-sub">Every theme has a dark and a light version.</div></div>
+                    <button type="button" class="settings-chip${isLight ? ' on' : ''}" aria-pressed="${isLight}" onclick="toggleThemeMode()">${isLight ? 'On' : 'Off'}</button>
                 </div>
                 <div class="settings-row">
                     <div><div class="settings-row-title">Units</div><div class="settings-row-sub">Changes readouts only. Loads are still logged in kg.</div></div>
                     <button type="button" class="settings-chip" onclick="window.toggleUnit(); renderAppearance()">${getUnit() === 'kg' ? 'kg' : 'lbs'}</button>
                 </div>
-                <div class="settings-row">
+                ${isLight ? '' : `<div class="settings-row">
                     <div><div class="settings-row-title">Pure black background</div><div class="settings-row-sub">Saves battery on OLED screens.</div></div>
                     <button type="button" class="settings-chip${oled ? ' on' : ''}" aria-pressed="${oled}" onclick="toggleBackgroundMode()">${oled ? 'On' : 'Off'}</button>
-                </div>`;
+                </div>`}`;
+        };
+
+        // Same palette, other mode.
+        window.toggleThemeMode = function() {
+            const active = currentTheme();
+            const other = THEMES.find(t => t.palette === active.palette && t.mode !== active.mode);
+            if (other) window.applyTheme(other.name);
+            renderAppearance();
         };
 
         window.toggleBackgroundMode = function() {
             const current = localStorage.getItem('bgMode') || 'Matte';
             const next = current === 'Matte' ? 'OLED' : 'Matte';
             localStorage.setItem('bgMode', next);
-            const savedTheme = localStorage.getItem('appTheme') || 'Ember';
-            window.applyTheme(savedTheme);
+            window.applyTheme(currentTheme().name);
             renderAppearance();
         };
 
@@ -187,39 +208,53 @@
             const n = parseInt(full, 16);
             return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
         };
+        // WCAG relative luminance, to pick the ink that sits on an accent fill.
+        const hexLuminance = (hex) => {
+            const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+            const [r, g, b] = hexToRgbTriple(hex).split(',').map(Number);
+            return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+        };
 
         window.applyTheme = function(name) {
             const theme = THEMES.find(t => t.name === name) || THEMES[0];
-            const bgMode = localStorage.getItem('bgMode') || 'Matte';
+            const isLight = theme.mode === 'light';
+            // The pure-black option only makes sense under a dark theme.
+            const oled = !isLight && (localStorage.getItem('bgMode') || 'Matte') === 'OLED';
             const root = document.documentElement;
+            const bg = oled ? '#000000' : theme.bg;
 
             root.style.setProperty('--accent', theme.accent);
             root.style.setProperty('--teal', theme.teal);
             root.style.setProperty('--accent-rgb', hexToRgbTriple(theme.accent));
             root.style.setProperty('--teal-rgb', hexToRgbTriple(theme.teal));
-            root.style.setProperty('--text-main', theme.textMain || '#f4f4f5');
-            root.style.setProperty('--text-muted', theme.textMuted || '#a1a1aa');
+            root.style.setProperty('--text-main', theme.textMain);
+            root.style.setProperty('--text-muted', theme.textMuted);
+            root.style.setProperty('--bg', bg);
+            root.style.setProperty('--card', oled ? '#0a0a0a' : theme.card);
+            root.style.setProperty('--input-bg', oled ? '#121212' : theme.inputBg);
+            root.style.setProperty('--border', oled ? '#1a1a1a' : theme.border);
 
-            if (bgMode === 'OLED') {
-                root.style.setProperty('--bg', '#000000');
-                root.style.setProperty('--card', '#0a0a0a');
-                root.style.setProperty('--input-bg', '#121212');
-                root.style.setProperty('--border', '#1a1a1a');
-            } else {
-                root.style.setProperty('--bg', theme.bg);
-                root.style.setProperty('--card', theme.card);
-                root.style.setProperty('--input-bg', theme.inputBg);
-                root.style.setProperty('--border', theme.border);
-            }
+            // Ink for text on an accent/teal fill: the theme's dark or light extreme,
+            // whichever contrasts. Hairlines and washes tint toward the text colour.
+            const darkInk = isLight ? theme.textMain : theme.bg;
+            const lightInk = isLight ? theme.card : theme.textMain;
+            root.style.setProperty('--on-accent', hexLuminance(theme.accent) > 0.3 ? darkInk : lightInk);
+            root.style.setProperty('--on-teal', hexLuminance(theme.teal) > 0.3 ? darkInk : lightInk);
+            root.style.setProperty('--tint-rgb', isLight ? hexToRgbTriple(theme.textMain) : '255, 255, 255');
+            root.style.colorScheme = theme.mode;
+            root.dataset.themeMode = theme.mode;
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', bg);
 
-            localStorage.setItem('appTheme', name);
+            localStorage.setItem('appTheme', theme.name);
         };
 
-        function loadTheme() {
-            const saved = localStorage.getItem('appTheme');
-            if (saved) window.applyTheme(saved);
-        }
-        loadTheme();
+        window.applyTheme(currentTheme().name);
+
+        // Which coach notes are expanded, keyed by program/week/day/exercise so the
+        // state survives renderWorkout() but doesn't leak onto another day.
+        const openCoachNotes = new Set();
+        const coachNoteKey = (exIndex) => `${currentProgram}|${selectedWeek}|${selectedDay}|${exIndex}`;
 
         // --- ENCRYPTED DATABASE LOGIC ---
         // tools/encrypt_db.py now derives at 600k (the OWASP floor for PBKDF2-SHA256);
@@ -1943,14 +1978,10 @@
                 const pName = db[activeWorkout.program].name;
                 
                 banner.innerHTML = `
-                    <div style="display:flex; align-items:center; flex:1; overflow: hidden;">
-                        <div class="fb-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        </div>
-                        <div class="fb-text">
-                            <div class="fb-title">Workout in Progress</div>
-                            <div class="fb-subtitle">${escapeHtml(pName)} • W${activeWorkout.week} D${activeWorkout.day}</div>
-                        </div>
+                    <div class="fb-plates" aria-hidden="true"><i></i><i></i><i></i></div>
+                    <div class="fb-text">
+                        <div class="fb-title">On the platform</div>
+                        <div class="fb-subtitle">Week ${activeWorkout.week}, day ${activeWorkout.day} · ${escapeHtml(pName)}</div>
                     </div>
                     <div class="fb-action">Resume</div>
                 `;
@@ -2439,7 +2470,7 @@
             
             // Map the options into the new scrollable modal list
             listHtml.innerHTML = options.map(o => 
-                `<div class="custom-option" style="padding: 15px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" onclick="selectChartEx('${escapeJsAttr(o)}')">${escapeHtml(o)}</div>`
+                `<div class="custom-option" style="padding: 15px 14px; border-bottom: 1px solid rgba(var(--tint-rgb),0.05);" onclick="selectChartEx('${escapeJsAttr(o)}')">${escapeHtml(o)}</div>`
             ).join('');
             
             drawChart();
@@ -2728,7 +2759,7 @@
             </div>
             <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px; margin-left:4px; gap:0;">
                 <span style="font-size:7px; color:var(--text-muted); margin-bottom:2px;">${fmtVol(maxVol)}</span>
-                <div style="width:8px; flex:1; border-radius:4px; background:linear-gradient(to bottom, var(--teal), rgba(var(--teal-rgb), 0.60), rgba(var(--teal-rgb), 0.30), #27272a); min-height:60px;"></div>
+                <div style="width:8px; flex:1; border-radius:4px; background:linear-gradient(to bottom, var(--teal), rgba(var(--teal-rgb), 0.60), rgba(var(--teal-rgb), 0.30), var(--input-bg)); min-height:60px;"></div>
                 <span style="font-size:7px; color:var(--text-muted); margin-top:2px;">0</span>
             </div>
         </div>`;
@@ -2810,7 +2841,7 @@
         Object.keys(ANT_TRACK).forEach(function(muscle) {
             if (d[muscle] > 0) svg += polyStr(ANT_TRACK[muscle], mc(d[muscle], mx));
         });
-        svg += '<text x="50" y="213" fill="#52525b" font-size="7" text-anchor="middle" font-family="Inter,sans-serif">FRONT</text>';
+        svg += '<text x="50" y="213" style="fill:var(--text-muted)" font-size="7" text-anchor="middle" font-family="Inter,sans-serif">FRONT</text>';
         svg += '</svg>';
         return svg;
     }
@@ -2822,7 +2853,7 @@
         Object.keys(POST_TRACK).forEach(function(muscle) {
             if (d[muscle] > 0) svg += polyStr(POST_TRACK[muscle], mc(d[muscle], mx));
         });
-        svg += '<text x="50" y="213" fill="#52525b" font-size="7" text-anchor="middle" font-family="Inter,sans-serif">BACK</text>';
+        svg += '<text x="50" y="213" style="fill:var(--text-muted)" font-size="7" text-anchor="middle" font-family="Inter,sans-serif">BACK</text>';
         svg += '</svg>';
         return svg;
     }
@@ -2855,8 +2886,8 @@
             const color = mc(vol, maxV);
             return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
                 <div style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0;"></div>
-                <span style="color:#a1a1aa;font-size:9px;flex:1;">${MUSCLE_LABELS[muscle] || muscle}</span>
-                <span style="color:#fff;font-size:9px;font-weight:700;">${pct}%</span>
+                <span style="color:var(--text-muted);font-size:9px;flex:1;">${MUSCLE_LABELS[muscle] || muscle}</span>
+                <span style="color:var(--text-main);font-size:9px;font-weight:700;">${pct}%</span>
             </div>`;
         }).join('');
 
@@ -2872,7 +2903,7 @@
                 ${legend}
             </div>
             <div style="text-align:center;margin-top:4px;font-size:8px;color:var(--text-muted);opacity:0.75;">${kgDisp(totalVol, 0).toLocaleString()} ${unitSuffix()} total</div>`;
-        tip.style.cssText = `position:fixed;background:#18181b;border:1px solid #3f3f46;border-radius:12px;padding:12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none;`;
+        tip.style.cssText = `position:fixed;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none;`;
 
         document.body.appendChild(tip);
 
@@ -4480,7 +4511,7 @@
                 let displayLoad = s.label || `${Math.max(0, s.load)} kg`;
                 let badges = s.label ? '' : getPlateBadges(s.load);
                 html += `
-                <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+                <tr style="border-top: 1px solid rgba(var(--tint-rgb),0.05);">
                     <td style="padding: 10px 0; font-size: 14px; font-weight: 600;">${i + 1}</td>
                     <td style="padding: 10px 0;">
                         <div style="color: var(--accent); font-weight: 800; font-size: 16px;">${displayLoad}</div>
@@ -4496,7 +4527,7 @@
                 <tr style="border-top: 1px dashed var(--accent); background: rgba(var(--accent-rgb), 0.05);">
                     <td style="padding: 12px 0; font-size: 12px; font-weight: 800; color: var(--accent);">WORK</td>
                     <td style="padding: 12px 0;">
-                        <div style="color: #fff; font-weight: 900; font-size: 16px;">${targetWeight} kg</div>
+                        <div style="color:var(--text-main); font-weight: 900; font-size: 16px;">${targetWeight} kg</div>
                         ${workBadges}
                     </td>
                     <td style="padding: 12px 0; font-size: 15px; font-weight: 700;">${targetReps}</td>
@@ -4612,7 +4643,7 @@
                     topActionUI = `
                         <div class="status-header" style="flex-direction: column; gap: 15px;">
                             <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
-                            <button class="action-btn" style="background: var(--teal); color: #000; margin: 0; padding: 12px;" onclick="restartCustomWorkout()">▶ Run Template Again</button>
+                            <button class="action-btn" style="background: var(--teal); color: var(--on-teal); margin: 0; padding: 12px;" onclick="restartCustomWorkout()">▶ Run Template Again</button>
                         </div>`;
                 } else {
                     topActionUI = `
@@ -4739,10 +4770,20 @@
                     if (!isNonExercise) {
                         if (ex.notes) {
                             // Note exists: Show it with a pencil icon
-                            displayNotesHtml = `<div class="coach-notes" onclick="openNoteModal(${exIndex}, decodeURIComponent('${safeNotes}'))" style="cursor:pointer;" title="Tap to edit">✎ ${escapeHtml(ex.notes)}</div>`;
+                            // Collapsed to one line by default so a note-heavy program isn't a wall
+                            // of text; tapping opens it, and Edit lives inside the open note.
+                            const noteOpen = openCoachNotes.has(coachNoteKey(exIndex));
+                            displayNotesHtml = `<div class="coach-notes${noteOpen ? ' open' : ''}">
+                                <button type="button" class="coach-notes-toggle" aria-expanded="${noteOpen}" onclick="toggleCoachNote(${exIndex}, this)">
+                                    <span class="coach-notes-label">Notes</span>
+                                    <span class="coach-notes-text">${escapeHtml(ex.notes)}</span>
+                                    <svg class="coach-notes-chevron" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </button>
+                                <button type="button" class="coach-notes-edit" onclick="openNoteModal(${exIndex}, decodeURIComponent('${safeNotes}'))">Edit note</button>
+                            </div>`;
                         } else if (!isCompleted) {
                             // No note yet: Show a subtle "Add Note" button
-                            displayNotesHtml = `<div class="coach-notes" onclick="openNoteModal(${exIndex}, '')" style="cursor:pointer; opacity: 0.4; font-size: 13px;">+ Add Note</div>`;
+                            displayNotesHtml = `<div class="coach-notes coach-notes-add" onclick="openNoteModal(${exIndex}, '')">+ Add note</div>`;
                         }
                     }
 
@@ -5089,9 +5130,9 @@
                 
                 // --- SUPERSET CONTROLS ---
                 if (!isCompleted && displayIndex < displayExercises.length - 1) {
-                    const linkColor = isSupersetNext ? '#fff' : 'var(--text-muted)';
-                    const borderColor = isSupersetNext ? '#fff' : 'var(--border)';
-                    const linkGlow = isSupersetNext ? '0 0 10px rgba(255,255,255,0.3)' : '0 4px 10px rgba(0,0,0,0.5)';
+                    const linkColor = isSupersetNext ? 'var(--text-main)' : 'var(--text-muted)';
+                    const borderColor = isSupersetNext ? 'var(--text-main)' : 'var(--border)';
+                    const linkGlow = isSupersetNext ? '0 0 10px rgba(var(--tint-rgb),0.3)' : '0 4px 10px rgba(0,0,0,0.5)';
                     const linkOpacity = isSupersetNext ? '1' : '0.5';
                     
                     html += `
@@ -5109,8 +5150,8 @@
             if (!isCompleted) {
                 html += `
                 <div style="display: flex; gap: 12px; margin-top: 20px; margin-bottom: 20px;">
-                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openAddExerciseModal()">+ Add</button>
-                    <button class="action-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openReorderModal()">⇅ Reorder</button>
+                    <button class="action-btn" style="flex: 1; background: rgba(var(--tint-rgb),0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openAddExerciseModal()">+ Add</button>
+                    <button class="action-btn" style="flex: 1; background: rgba(var(--tint-rgb),0.05); color: var(--text-main); border: 1px dashed var(--border); margin: 0; padding: 15px; font-size: 14px;" onclick="openReorderModal()">⇅ Reorder</button>
                 </div>`;
             }
             
@@ -5799,6 +5840,14 @@
             document.addEventListener('mouseup', window.onReorderEndHandler);
         }
 
+        window.toggleCoachNote = function(exIndex, btn) {
+            const key = coachNoteKey(exIndex);
+            const open = !openCoachNotes.has(key);
+            if (open) openCoachNotes.add(key); else openCoachNotes.delete(key);
+            btn.parentNode.classList.toggle('open', open);
+            btn.setAttribute('aria-expanded', open);
+        };
+
         window.openNoteModal = function(exIndex, currentNote) {
             window.noteTargetExIndex = exIndex;
             document.getElementById('edit-note-text').value = currentNote && currentNote !== 'undefined' ? currentNote : '';
@@ -5859,9 +5908,9 @@
                 foundSessions.forEach(session => {
                     html += `
                     <div style="background: #1e1e20; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #3f3f46; padding-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
                             <span style="color: var(--accent); font-weight: 800; font-size: 13px; text-transform: uppercase;">${session.date}</span>
-                            <span style="color: #fff; font-weight: 800; font-size: 13px;">Top: ${session.weight}kg</span>
+                            <span style="color:var(--text-main); font-weight: 800; font-size: 13px;">Top: ${session.weight}kg</span>
                         </div>`;
                     session.sets.forEach((s, i) => {
                         let rpeText = s.rpe ? `<span style="color:var(--text-muted); font-size:12px;">@${s.rpe}</span>` : '';
@@ -7586,9 +7635,9 @@
                         const stripeColor = isMain ? 'var(--accent)' : 'var(--teal)';
 
                         exHtml += `
-                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); border-left: 3px solid ${stripeColor};">
-                            <div style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.05); color: ${stripeColor}; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${idx + 1}</div>
-                            <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13px; color: #e4e4e7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ex.name)}</span>
+                        <div style="display: flex; align-items: center; gap: 12px; background: rgba(var(--tint-rgb),0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(var(--tint-rgb),0.02); border-left: 3px solid ${stripeColor};">
+                            <div style="width: 22px; height: 22px; border-radius: 6px; background: rgba(var(--tint-rgb),0.05); color: ${stripeColor}; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${idx + 1}</div>
+                            <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ex.name)}</span>
                         </div>`;
                     });
                     exHtml += `</div>`;
@@ -7624,7 +7673,7 @@
             const weeks = Object.keys(db[mainProgram].weeks).sort((a,b) => a - b);
             for (let w of weeks) {
                 // Wrap each week in a subtle card
-                gridHtml += `<div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">`;
+                gridHtml += `<div style="background: rgba(var(--tint-rgb),0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">`;
                 gridHtml += `<div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; letter-spacing: 0.5px;">Week ${w}</div>`;
                 gridHtml += `<div style="display: flex; gap: 8px; flex-wrap: wrap;">`;
                 
@@ -7633,8 +7682,8 @@
                     totalDays++;
                     const isDone = completedDays[`${mainProgram}_w${w}_d${d}`];
                     
-                    let bg = isDone ? 'var(--accent)' : 'rgba(255,255,255,0.05)';
-                    let color = isDone ? '#000' : 'var(--text-muted)';
+                    let bg = isDone ? 'var(--accent)' : 'rgba(var(--tint-rgb),0.05)';
+                    let color = isDone ? 'var(--on-accent)' : 'var(--text-muted)';
                     let border = isDone ? '1px solid var(--accent)' : '1px solid var(--border)';
                     
                     if (isDone) {
@@ -7653,7 +7702,7 @@
                 gridHtml += `</div>`;
                 
                 // The hidden Accordion dropdown container for this week
-                gridHtml += `<div id="overview-w${w}-details" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);"></div>`;
+                gridHtml += `<div id="overview-w${w}-details" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(var(--tint-rgb),0.1);"></div>`;
                 
                 gridHtml += `</div>`; // End Week Card
             }
@@ -7686,13 +7735,13 @@
             modal.innerHTML = `
                 <div style="background: var(--input-bg); border: 2px solid var(--border); border-radius: 12px; width: 90%; max-width: 380px; padding: 24px; color: var(--text-main); display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; font-size: 20px; font-weight: 900; color: #fff;">${db[mainProgram].name}</h2>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 900; color:var(--text-main);">${db[mainProgram].name}</h2>
                         <div style="color: var(--accent); font-size: 18px; font-weight: 900;">${pct}%</div>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
                         <div style="color: var(--text-muted);">Progress</div>
-                        <div style="font-weight: 800; color: #fff;">${doneDays} / ${totalDays} Workouts</div>
+                        <div style="font-weight: 800; color:var(--text-main);">${doneDays} / ${totalDays} Workouts</div>
                     </div>
                     
                     <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden;">
@@ -7701,12 +7750,12 @@
 
                     ${gridHtml}
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding-top: 15px; border-top: 1px dashed rgba(var(--tint-rgb),0.1);">
                         <div>
                             <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Up Next</div>
                             <div style="font-size: 16px; font-weight: 900; color: var(--accent); margin-top: 2px;">W${nextW || '-'} D${nextD || '-'}</div>
                         </div>
-                        <button class="action-btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); margin: 0; padding: 10px 20px; font-size: 14px; width: auto;" onclick="document.getElementById('program-overview-modal').style.display='none'">Close</button>
+                        <button class="action-btn" style="background: rgba(var(--tint-rgb),0.05); color: var(--text-main); border: 1px solid var(--border); margin: 0; padding: 10px 20px; font-size: 14px; width: auto;" onclick="document.getElementById('program-overview-modal').style.display='none'">Close</button>
                     </div>
                 </div>
             `;
@@ -7748,7 +7797,7 @@
             if (!warmupEditMode) {
                 container.innerHTML = `
                     <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
-                        <button onclick="window.toggleWarmupEdit()" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--text-muted);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                        <button onclick="window.toggleWarmupEdit()" style="background:none;border:1px solid rgba(var(--tint-rgb),0.12);color:var(--text-muted);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             Edit
                         </button>
@@ -7771,8 +7820,8 @@
                             </div>
                         `).join('')}
                     </div>
-                    <button onclick="window.addWarmupItem()" style="width:100%;padding:10px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">+ Add Exercise</button>
-                    <button onclick="window.toggleWarmupEdit()" style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">Done</button>
+                    <button onclick="window.addWarmupItem()" style="width:100%;padding:10px;background:rgba(var(--tint-rgb),0.04);border:1px dashed rgba(var(--tint-rgb),0.15);border-radius:8px;color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">+ Add Exercise</button>
+                    <button onclick="window.toggleWarmupEdit()" style="width:100%;padding:10px;background:var(--accent);color:var(--on-accent);border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">Done</button>
                 `;
             }
         };

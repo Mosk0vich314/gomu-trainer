@@ -144,6 +144,9 @@ Screen transitions use `switchTab(tabId)`: screens switch **instantly** (no slid
 ### Bottom nav (the bar)
 Deliberately minimal: the nav's top edge is a plain 2px bar (`.nav-bar`), and one plate seen edge-on (`.nav-plate`, accent, in `.nav-plate-track`, a one-third-width track moved by `transform: translateX(calc(var(--nav-i) * 100%))`) stands on it above the active tab — the nav's **only** motion. No knurling, collars, pills or glows. `switchTab` sets `--nav-i` from `TAB_ORDER` (library 0, home 1, history 2) and adds `.no-plate` on screens that aren't tabs (workout, Iron Vault, summary). The nav has a solid `--nav-bg`, no `backdrop-filter` or shadow: anything that re-composites under a fixed bar while screens change is what glitched. Nav height stays ~77px; banners above it are positioned against that.
 
+### Resume banner
+`#floating-banner` (shown on Library and History while a session is open, filled by `updateBanners()`) follows the nav's rules: a solid `--nav-bg` slab, no `backdrop-filter` or glow. Left to right: three edge-on plates on a stub of bar (`.fb-plates`), "On the platform" in the display face with week/day and program under it, and a full-height accent `.fb-action` block ("Resume"). It sits at `bottom: 180px` to clear the rest timer.
+
 ### Workout program JSON format
 ```json
 {
@@ -213,18 +216,23 @@ Four separate implementations for different card types — all follow the same p
 **SBD swipe layout note:** SBD cards are in a flex row (`.pr-sbd-row`). Each card is wrapped in `.swipe-wrapper.sbd-swipe` which has `display: flex` so the inner `.pr-sbd-card` stretches to full height. Without `display: flex` on the wrapper the red background bleeds out at the bottom.
 
 ### Themes
-Themes are defined in the `THEMES` array at the top of `app.js`. Each theme object:
+Four palettes — **Flame, Seal, Coral, Expedition** — each in a dark and a light cut, so the `THEMES` array at the top of `app.js` has eight entries:
 ```js
-{ name: 'Name', accent: '#hex', teal: '#hex', bg: '#hex', card: '#hex', inputBg: '#hex', border: '#hex',
-  textMain: '#hex',   // optional — overrides --text-main (default #f4f4f5)
-  textMuted: '#hex'   // optional — overrides --text-muted (default #a1a1aa)
-}
+{ name: 'Flame Dark', palette: 'Flame', mode: 'dark',   // name = `${palette} ${Mode}`, stored in localStorage.appTheme
+  accent: '#hex', teal: '#hex', bg: '#hex', card: '#hex', inputBg: '#hex', border: '#hex',
+  textMain: '#hex', textMuted: '#hex' }                 // all required
 ```
-`applyTheme()` sets 10 CSS variables (`--accent`, `--teal`, `--accent-rgb`, `--teal-rgb`, `--text-main`, `--text-muted`, `--bg`, `--card`, `--input-bg`, `--border`). `textMain`/`textMuted` fall back to defaults if not specified.
+The settings sheet shows one swatch per palette plus a **Light mode** chip (`toggleThemeMode()` swaps to the same palette's other mode). An unknown stored name (the old Ember/Inferno list) falls back to `THEMES[0]`; the `:root` defaults in `styles.css` mirror `THEMES[0]`. The pure-black (OLED) toggle only applies to, and is only shown for, dark themes.
 
-**Never hardcode a surface colour.** `styles.css` derives `--surface-sunken`, `--surface-row`, `--line-strong` and `--nav-bg` from the theme vars (with a plain-hex fallback for browsers without `color-mix`). Every card, row, input, pill, check circle and nav must use a var — hardcoded zinc hexes are what previously left half the UI grey when any non-Ember theme or the OLED toggle was on.
+`applyTheme()` sets `--accent`, `--teal`, `--accent-rgb`, `--teal-rgb`, `--text-main`, `--text-muted`, `--bg`, `--card`, `--input-bg`, `--border`, plus three that exist because of the light themes:
+- `--on-accent` / `--on-teal` — the ink for text ON an accent/teal fill, picked by luminance. **Never write `color: #000` on an accent fill.**
+- `--tint-rgb` — what hairlines and washes tint toward: white on dark themes, the text colour on light ones. **Write `rgba(var(--tint-rgb), a)`, never `rgba(255,255,255,a)`**, and `var(--text-main)` rather than `#fff` for text. Literal white is only for things that sit on a photo or on `--danger`.
 
-**bg/card contrast principle:** `bg` should be near-black (perceivably black, <15 in all RGB channels) with a faint hue tint. `card` should be the first place the theme's color identity is visible. Never make `bg` and `card` too similar — the contrast step is what makes cards readable.
+It also sets `color-scheme` and `data-theme-mode` on `<html>`; light-only fixes hang off `:root[data-theme-mode="light"]`.
+
+**Never hardcode a surface colour.** `styles.css` derives `--surface-sunken`, `--surface-row`, `--line-strong` and `--nav-bg` from the theme vars (with a plain-hex fallback for browsers without `color-mix`). Every card, row, input, pill, check circle and nav must use a var — hardcoded zinc hexes are what previously left half the UI grey when any non-default theme or the OLED toggle was on.
+
+**Colour-picking rules:** `accent` and `teal` are used as *text* as well as fills, so each must reach roughly 4:1 on the theme's `card`. That is why the light cuts use the palette's deep colours (or a darkened orange) instead of its pastel fills, and why a few dark-cut secondaries are lifted versions of the palette colour. `bg` and `card` come from the palette's two darkest (or two lightest) colours and must stay visibly apart; near-black `bg` is no longer the rule — pure black is the OLED toggle's job.
 
 ### Exercise database (canonical names)
 The same exercise appears under different names across programs ("Dumbbell Military Press" / "Shoulder Press (Dumbbell)" / "Dumbbell Overhead Press"). Identity is resolved by `EXERCISE_ALIASES` in app.js (lowercased alias → canonical display name) via `normalizeExName(name)`. Rules:
@@ -258,6 +266,8 @@ Any deviation from this (e.g. `0.950, 0.925` in the RPE-10 row) is the **old wro
 
 ### Session journal
 History entries have an optional `note` field (`string`). It is saved from a textarea on the summary screen via `window.saveSessionNote(val)` (debounced 600ms). Displayed as italic text in the history card summary row (`.history-note`). Stored in IndexedDB with the rest of the workout entry.
+
+**Coach notes are collapsed by default.** An exercise's `notes` render as one truncated line (`.coach-notes` > `.coach-notes-toggle`); tapping it expands the note (`toggleCoachNote(exIndex, btn)`) and reveals the "Edit note" button that opens `openNoteModal`. Open state lives in the in-memory `openCoachNotes` set, keyed by program/week/day/exercise, so it survives `renderWorkout()` but resets on reload. Don't go back to always-open notes: a note-heavy program (nSuns) becomes a wall of text.
 
 **Per-set notes:** tapping a set's number during a workout opens a prompt (`window.openSetNote(rowId)`); the note is stored in the session blob as `${rowId}_note`, rendered as an italic line under the set row, carried into the history log by `generateSummary` (`set.note`), and shown in expanded history cards. **Everything user-controlled that reaches `innerHTML` must be escaped.** Exercise names, coach notes, warm-up items, custom program names and history program names are all user-editable and all go through template literals. Use `escapeHtml()` for text and quoted attribute values, and `escapeJsAttr()` for a JS string inside an attribute (`onclick="fn('<value>')"`). This matters beyond self-XSS: `importData()` applies a backup file wholesale, so an unescaped field is a code-execution path into an origin holding the decrypted DB and the GitHub PAT.
 
@@ -318,7 +328,7 @@ Cards stay hardcoded in `index.html`, but `updateLibraryUI()` decorates them on 
 `renderHistory()` summaries are a date block (`.hs-day`/`.hs-mon`, from the log id timestamp) beside the program + week/day line, the session's heaviest loaded set as the title (`topSetOf`), and sets/duration/volume. `drawChart` also fills `#chart-headline` with the latest e1RM and the change over the selected range.
 
 ### Settings sheet
-The History gear opens `#data-sheet` ("Settings and data"). Theme, units and the OLED background live there (`renderAppearance()`, re-run by `openDataSheet`, `toggleThemePicker`, `toggleBackgroundMode`) — not in the vault.
+The History gear opens `#data-sheet` ("Settings and data"). Theme, light mode, units and the OLED background live there (`renderAppearance()`, re-run by `openDataSheet`, `toggleThemePicker`, `toggleBackgroundMode`) — not in the vault.
 
 ### Exercise type / color logic
 `ex.type === 'main'` → orange (`--accent`). `ex.type === 'accessory'` or anything else → teal (`--teal`). **Always check `ex.type` first.** Do not infer type from the exercise name (e.g. "Single Leg RDL (deadlift)" is accessory despite containing the word "deadlift"). The name-based fallback is only a last resort when `ex.type` is absent, and should only match exact SBD names.
