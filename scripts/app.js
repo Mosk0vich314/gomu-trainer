@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.09.2139";
+        const APP_VERSION = "v2026.11.09.2147";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -136,16 +136,16 @@
             // bg is a deepened (dark) or shaded (light) step below the palette surface so cards lift off it.
             // Burning Flame / Truffle Trouble on Abyssal Anchorfish Blue + Blue Fantastic
             { name: 'Flame Dark',       palette: 'Flame',      mode: 'dark',  accent: '#FFB162', teal: '#DE8566', bg: '#0D141B', card: '#1F2B39', inputBg: '#314256', border: '#44576F', textMain: '#EEE9DF', textMuted: '#C9C1B1' },
-            { name: 'Flame Light',      palette: 'Flame',      mode: 'light', accent: '#A35139', teal: '#2C3B4D', bg: '#DDD5C5', card: '#F8F5EE', inputBg: '#EAE4D8', border: '#BDB4A2', textMain: '#1B2632', textMuted: '#55606E' },
+            { name: 'Flame Light',      palette: 'Flame',      mode: 'light', accent: '#A35139', accentFill: '#FFB162', teal: '#2C3B4D', bg: '#DDD5C5', card: '#F8F5EE', inputBg: '#EAE4D8', border: '#BDB4A2', textMain: '#1B2632', textMuted: '#55606E' },
             // Melonade / Royal Seal on Rhapsody in Blue, Ice Shard / Polar Fog text
             { name: 'Seal Dark',        palette: 'Seal',       mode: 'dark',  accent: '#FFAB6E', teal: '#E86A92', bg: '#000A16', card: '#002244', inputBg: '#0E3563', border: '#2A4F7C', textMain: '#F9FAFA', textMuted: '#B9C6D2' },
-            { name: 'Seal Light',       palette: 'Seal',       mode: 'light', accent: '#69092D', teal: '#B85A1E', bg: '#D8E2E9', card: '#F9FAFA', inputBg: '#E8EEF2', border: '#B1C2CF', textMain: '#002244', textMuted: '#4A5F7A' },
+            { name: 'Seal Light',       palette: 'Seal',       mode: 'light', accent: '#69092D', accentFill: '#FFAB6E', teal: '#B85A1E', bg: '#D8E2E9', card: '#F9FAFA', inputBg: '#E8EEF2', border: '#B1C2CF', textMain: '#002244', textMuted: '#4A5F7A' },
             // #F06543 / #F09D51 on #313638
             { name: 'Coral Dark',       palette: 'Coral',      mode: 'dark',  accent: '#F06543', teal: '#F09D51', bg: '#17191B', card: '#2D3234', inputBg: '#3F4649', border: '#565E61', textMain: '#E8E9EB', textMuted: '#B5B5AD' },
-            { name: 'Coral Light',      palette: 'Coral',      mode: 'light', accent: '#C73D1B', teal: '#A85D12', bg: '#D9D9D2', card: '#F7F7F8', inputBg: '#E8E9EB', border: '#BCBBB0', textMain: '#313638', textMuted: '#5C6265' },
+            { name: 'Coral Light',      palette: 'Coral',      mode: 'light', accent: '#C73D1B', accentFill: '#F06543', teal: '#A85D12', tealFill: '#F09D51', bg: '#D9D9D2', card: '#F7F7F8', inputBg: '#E8E9EB', border: '#BCBBB0', textMain: '#313638', textMuted: '#5C6265' },
             // Forsythia / Deep Saffron on Oceanic Noir + Nocturnal Expedition
             { name: 'Expedition Dark',  palette: 'Expedition', mode: 'dark',  accent: '#FFC801', teal: '#FF9932', bg: '#09141A', card: '#172B36', inputBg: '#114C5A', border: '#2D6470', textMain: '#F1F6F4', textMuted: '#B8CEC8' },
-            { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', teal: '#114C5A', bg: '#D3E3DC', card: '#F9FBFA', inputBg: '#E6F0EC', border: '#A6C2B7', textMain: '#172B36', textMuted: '#4D666F' },
+            { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', accentFill: '#FFC801', teal: '#114C5A', bg: '#D3E3DC', card: '#F9FBFA', inputBg: '#E6F0EC', border: '#A6C2B7', textMain: '#172B36', textMuted: '#4D666F' },
         ];
         // A stored name from the old theme list (Ember, Inferno...) falls back to the default.
         const currentTheme = () => THEMES.find(t => t.name === localStorage.getItem('appTheme')) || THEMES[0];
@@ -171,7 +171,7 @@
                     <button type="button" class="settings-chip" onclick="toggleThemePicker()">${window.themePickerExpanded ? 'Close' : 'Change'}</button>
                 </div>
                 <div class="theme-swatches" ${window.themePickerExpanded ? '' : 'hidden'}>
-                    ${swatches.map(t => `<button type="button" class="theme-swatch${t.name === active.name ? ' active' : ''}" onclick="applyTheme('${t.name}');renderAppearance()" aria-label="${t.palette} theme" aria-pressed="${t.name === active.name}" style="background:${t.card};color:${t.textMain};"><i style="background:${t.accent};"></i><i style="background:${t.teal};"></i><span>${t.palette}</span></button>`).join('')}
+                    ${swatches.map(t => `<button type="button" class="theme-swatch${t.name === active.name ? ' active' : ''}" onclick="applyTheme('${t.name}');renderAppearance()" aria-label="${t.palette} theme" aria-pressed="${t.name === active.name}" style="background:${t.card};color:${t.textMain};"><i style="background:${t.accentFill || t.accent};"></i><i style="background:${t.tealFill || t.teal};"></i><span>${t.palette}</span></button>`).join('')}
                 </div>
                 <div class="settings-row">
                     <div><div class="settings-row-title">Light mode</div><div class="settings-row-sub">Every theme has a dark and a light version.</div></div>
@@ -239,8 +239,12 @@
             // whichever contrasts. Hairlines and washes tint toward the text colour.
             const darkInk = isLight ? theme.textMain : theme.bg;
             const lightInk = isLight ? theme.card : theme.textMain;
-            root.style.setProperty('--on-accent', hexLuminance(theme.accent) > 0.3 ? darkInk : lightInk);
-            root.style.setProperty('--on-teal', hexLuminance(theme.teal) > 0.3 ? darkInk : lightInk);
+            // Fills may be brighter than the text accent (accentFill / tealFill, light themes).
+            const accentFill = theme.accentFill || theme.accent, tealFill = theme.tealFill || theme.teal;
+            root.style.setProperty('--accent-fill', accentFill);
+            root.style.setProperty('--teal-fill', tealFill);
+            root.style.setProperty('--on-accent', hexLuminance(accentFill) > 0.3 ? darkInk : lightInk);
+            root.style.setProperty('--on-teal', hexLuminance(tealFill) > 0.3 ? darkInk : lightInk);
             root.style.setProperty('--tint-rgb', isLight ? hexToRgbTriple(theme.textMain) : '255, 255, 255');
             root.style.colorScheme = theme.mode;
             root.dataset.themeMode = theme.mode;
@@ -1910,7 +1914,7 @@
                 const color = `color-mix(in srgb, var(--accent) ${Math.round(t * 100)}%, var(--teal))`;
 
                 return `<div class="${classes}" onclick="selectWeek('${w}')" title="Week ${w}: ${Math.round(pcts[i]*100)}%">
-                    <div class="spine-bararea"><div class="spine-bar" style="height:${h}px; background:var(--teal); background:${color};"></div></div>
+                    <div class="spine-bararea"><div class="spine-bar" style="height:${h}px; background: var(--teal-fill); background:${color};"></div></div>
                     <div class="spine-wk">${w}</div>
                 </div>`;
             }).join('');
@@ -2225,6 +2229,8 @@
 
                 completedDays[key] = true;
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                // Bests as they stood at the start, so the summary can light up new ones.
+                window._summaryBestsBefore = (activeWorkout && activeWorkout.backupState && activeWorkout.backupState.actualBests) || null;
                 activeWorkout = null;
                 localStorage.removeItem('activeWorkout');
 
@@ -2280,6 +2286,44 @@
             renderDayPills();
             renderWorkout();
             updateBanners();
+        }
+
+        // Summary scoresheet: one line per lift with its top set, the change against the
+        // last session that had the lift, and three lights when it set a new best.
+        // Must run BEFORE the new log is pushed to workoutHistoryCache.
+        function renderSummarySheet(details) {
+            const el = document.getElementById('sum-lifts');
+            if (!el) return;
+            const topOf = (sets) => sets.reduce((t, s) => (!t || s.load > t.load || (s.load === t.load && s.reps > t.reps)) ? s : t, null);
+            const before = window._summaryBestsBefore;
+            const now = safeParse('actualBests', {});
+            const rows = details.map(exLog => {
+                const top = topOf(exLog.sets);
+                if (!top) return '';
+                const canon = normalizeExName(exLog.name);
+                let prev = null;
+                for (const log of workoutHistoryCache) {
+                    const m = (log.details || []).find(d => normalizeExName(d.name) === canon && d.sets && d.sets.length);
+                    if (m) { prev = topOf(m.sets); break; }
+                }
+                const isBest = !!(before && now[canon] && now[canon].e1rm > ((before[canon] && before[canon].e1rm) || 0));
+                const topTxt = top.load > 0 ? `${kgDisp(top.load)} ${unitSuffix()}${top.reps > 0 ? ` × ${top.reps}` : ''}` : `${top.reps} reps`;
+                let delta = 'First time', cls = '';
+                if (prev) {
+                    const d = top.load > 0 || prev.load > 0 ? top.load - prev.load : 0;
+                    const r = top.reps - prev.reps;
+                    if (d !== 0) { delta = `${d > 0 ? '+' : '−'}${kgDisp(Math.abs(d))} ${unitSuffix()}`; cls = d > 0 ? 'up' : 'down'; }
+                    else if (r !== 0) { delta = `${r > 0 ? '+' : '−'}${Math.abs(r)} ${Math.abs(r) === 1 ? 'rep' : 'reps'}`; cls = r > 0 ? 'up' : 'down'; }
+                    else delta = 'Same';
+                }
+                return `<div class="sum-lift${isBest ? ' is-best' : ''}">
+                    <span class="sl-name">${escapeHtml(exLog.name)}${isBest ? '<span class="judge-lights" role="img" aria-label="New best"><i></i><i></i><i></i></span>' : ''}</span>
+                    <span class="sl-top">${topTxt}</span>
+                    <span class="sl-delta ${cls}">${delta}</span>
+                </div>`;
+            }).join('');
+            el.innerHTML = rows ? `<div class="sum-lift sum-lift-head"><span>Lift</span><span>Top set</span><span>vs last</span></div>${rows}` : '';
+            el.style.display = rows ? '' : 'none';
         }
 
         function generateSummary(key, durationMs = 0) {
@@ -2384,12 +2428,14 @@
 
             if (timeEl) timeEl.innerText = timeString;
             // These hardcoded "kg" meant the summary lied in lbs mode.
-            if (volEl) volEl.innerText = `${kgDisp(totalVolume, 0).toLocaleString()} ${unitSuffix()}`;
+            if (volEl) volEl.innerText = `${kgDisp(totalVolume, 0).toLocaleString('en-US')} ${unitSuffix()}`;
             if (setsEl) setsEl.innerText = completedSets;
             if (maxEl) maxEl.innerText = `${kgDisp(maxLoad, 1)} ${unitSuffix()}`;
             if (exEl) exEl.innerText = exCount;
             // ------------------------
             
+            renderSummarySheet(workoutDetails);
+
             const logEntry = {
                 id: Date.now().toString(),
                 key: key,
@@ -2571,7 +2617,7 @@
             
             const fmtDate = ts => {
                 const d = new Date(ts);
-                return d.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             };
 
             // With many points (long ranges) thin the labels so they don't overlap:
@@ -2718,7 +2764,7 @@
             const firstDay = col[0].date;
             const prevFirst = wi > 0 ? cells[wi - 1][0].date : null;
             if (!prevFirst || firstDay.getMonth() !== prevFirst.getMonth()) {
-                return firstDay.toLocaleString('default', { month: 'short' });
+                return firstDay.toLocaleString('en-US', { month: 'short' });
             }
             return '';
         });
@@ -2903,7 +2949,7 @@
             <div style="border-top:1px solid #2a2a2e;padding-top:6px;">
                 ${legend}
             </div>
-            <div style="text-align:center;margin-top:4px;font-size:8px;color:var(--text-muted);opacity:0.75;">${kgDisp(totalVol, 0).toLocaleString()} ${unitSuffix()} total</div>`;
+            <div style="text-align:center;margin-top:4px;font-size:8px;color:var(--text-muted);opacity:0.75;">${kgDisp(totalVol, 0).toLocaleString('en-US')} ${unitSuffix()} total</div>`;
         tip.style.cssText = `position:fixed;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none;`;
 
         document.body.appendChild(tip);
@@ -2978,7 +3024,7 @@
                 }
 
                 const dur = fmtDuration(log.duration);
-                const volDisplay = `${kgDisp(log.volume, 0).toLocaleString()} ${unitSuffix()}`;
+                const volDisplay = `${kgDisp(log.volume, 0).toLocaleString('en-US')} ${unitSuffix()}`;
                 const when = dateOf(log);
                 const top = topSetOf(log);
                 const where = `${escapeHtml(log.programName)}, week ${escapeHtml(log.week)} day ${escapeHtml(log.day)}`;
@@ -4644,7 +4690,7 @@
                     topActionUI = `
                         <div class="status-header" style="flex-direction: column; gap: 15px;">
                             <span style="color:#22c55e; font-weight:800; font-size: 15px;">✅ Workout Completed</span>
-                            <button class="action-btn" style="background: var(--teal); color: var(--on-teal); margin: 0; padding: 12px;" onclick="restartCustomWorkout()">▶ Run Template Again</button>
+                            <button class="action-btn" style="background: var(--teal-fill); color: var(--on-teal); margin: 0; padding: 12px;" onclick="restartCustomWorkout()">▶ Run Template Again</button>
                         </div>`;
                 } else {
                     topActionUI = `
@@ -4654,9 +4700,7 @@
                 }
             } else if (isActive) {
             bottomActionUI = `
-            <div style="text-align: center; margin-bottom: 5px; margin-top: 10px; color: var(--text-muted); font-size: 10px; font-weight: 800; opacity: 0.6; letter-spacing: 1px;">
-                <span style="color: var(--danger);">◀ Swipe to cancel</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: var(--teal);">Slide to rack it ▶</span>
-            </div>
+            <div class="finish-hint"><span>Swipe left to cancel the session</span><span>Slide right to finish</span></div>
             <div class="swipe-wrapper" id="stop-swipe-wrapper" style="margin-bottom: 60px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: var(--danger);">
                 <div class="swipe-delete-bg" style="right: 25px; opacity: 1; flex-direction: row; gap: 6px;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -4671,7 +4715,7 @@
                 </div>
             </div>`;
             } else {
-                topActionUI = `<button class="action-btn btn-start" onclick="toggleWorkoutState('start')">▶ Start Workout</button>`;
+                topActionUI = `<button class="action-btn btn-start" onclick="toggleWorkoutState('start')">Start workout</button>`;
             }
 
             let html = topActionUI + `<div class="${(isPreview || isCompleted) ? 'preview-mode' : ''}">`;
@@ -4823,11 +4867,12 @@
                             const safeExJS = escapeHtml(JSON.stringify(ex.name));
                             const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
                             const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
+                            // Bench only: the video lab opens from a chip, not a full-width button above the sets.
+                            const videoChip = techniqueLift === 'bench' ? `<div class="bench-video-entry"><button type="button" class="bench-video-button" aria-label="Analyze video" onclick="openBenchVideoAnalysis('${exId}', this)" ${videoUnavailable ? `disabled aria-describedby="${exId}-video-help"` : ''}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Video</button>${videoUnavailable ? `<p id="${exId}-video-help">${videoUnavailable}</p>` : ''}</div>` : '';
                             const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
-                            return `<div class="ex-chip-row"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}</div>`;
+                            return `<div class="ex-chip-row"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}${videoChip}</div>`;
                         })() : ''}
 
-                        ${techniqueLift === 'bench' ? `<div class="bench-video-entry"><button type="button" class="bench-video-button" aria-label="Analyze video" onclick="openBenchVideoAnalysis('${exId}', this)" ${videoUnavailable ? `disabled aria-describedby="${exId}-video-help"` : ''}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Analyze video<span>RPE lab</span></button>${videoUnavailable ? `<p id="${exId}-video-help">${videoUnavailable}</p>` : ''}</div>` : ''}
 
                         ${displayNotesHtml}
 
@@ -4838,6 +4883,14 @@
 
                 // MYO-REP: capture activation set load so back-offs default to the same weight
                 let myoActivationLoad = null;
+
+                // Compact tables: the column header prints once per run of same-shaped blocks,
+                // a ladder (nSuns: nine single-set blocks) gets slim prescription lines, and
+                // "Add set" sits only under the exercise's last block.
+                const visibleBlockIdx = ex.blocks.map((b, i) => b._deleted ? -1 : i).filter(i => i >= 0);
+                const lastVisibleBlock = visibleBlockIdx[visibleBlockIdx.length - 1];
+                const isLadder = visibleBlockIdx.length >= 3;
+                let lastColKind = null;
 
                 ex.blocks.forEach((block, bIndex) => {
                     if (block._deleted) return; // block removed via swipe-delete of its only set
@@ -4907,12 +4960,15 @@
                                 ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : '<span>Load</span><span>e1RM</span>'}
                                 <span></span>
                                </div>`;
+                        const colKind = isTimeBased ? `time${block.targetRpe ? '-rpe' : ''}` : 'std';
+                        const showCols = colKind !== lastColKind;
+                        lastColKind = colKind;
                         html += `
-                        <div class="block-container">
+                        <div class="block-container${isLadder ? ' ladder' : ''}${showCols ? '' : ' no-cols'}">
                             <div class="block-header">
                                 <span class="block-label">${blockCountLabel}</span>
                             </div>
-                            ${colHeaders}
+                            ${showCols ? colHeaders : ''}
                         `;
                     }
 
@@ -5118,10 +5174,8 @@
                     }
                     
                     // NEW: Add Set Button at the bottom of the block
-                    if (!isCompleted) {
-                        html += `<div style="text-align: center; margin-top: 4px; margin-bottom: 16px;">
-                                    <button class="pill" style="margin: 0 auto; padding: 6px 14px; font-size: 11px; background: transparent; border: 1px dashed var(--border);" onclick="addSetToBlock(${exIndex}, ${bIndex})">+ Add Set</button>
-                                 </div>`;
+                    if (!isCompleted && bIndex === lastVisibleBlock) {
+                        html += `<div class="add-set-row"><button class="add-set-btn" onclick="addSetToBlock(${exIndex}, ${bIndex})">+ Add set</button></div>`;
                     }
                     
                     html += `</div>`; // Close block-container
@@ -5161,6 +5215,13 @@
             container.innerHTML = html;
             attachListeners();
             paintPlateStrips();
+            // While the session is running the week strip, day tabs and program tools fold
+            // away behind the "Week n, day n" line in the header (toggleWorkoutNav).
+            const wScreen = document.getElementById('workout-screen');
+            wScreen.classList.toggle('session-live', !!isActive);
+            const whereBtn = document.getElementById('workout-where');
+            if (whereBtn) whereBtn.firstElementChild.textContent = `Week ${selectedWeek}, day ${selectedDay}`;
+            syncDoneExercises();
             
             // Initialize swipe logic for ANY uncompleted workout
             if (!isCompleted) {
@@ -5180,6 +5241,64 @@
                 if (typeof window.colorizeRpe === 'function') window.colorizeRpe(el);
             });
         }
+
+        window.toggleWorkoutNav = function() {
+            const s = document.getElementById('workout-screen');
+            const open = s.classList.toggle('show-nav');
+            document.getElementById('workout-where').setAttribute('aria-expanded', open);
+        };
+
+        // Finished exercises fold to one line during a live session. Reopened ones are
+        // remembered (per workout key + exercise) so a re-render doesn't fold them again.
+        const reopenedDone = new Set();
+        function syncDoneExercises() {
+            const screen = document.getElementById('workout-screen');
+            if (!screen) return;
+            const live = screen.classList.contains('session-live');
+            const key = getWorkoutKey();
+            let anyChecked = false;
+            document.querySelectorAll('#workout-container .exercise-container').forEach(card => {
+                const checks = card.querySelectorAll('.check-circle');
+                const done = card.querySelectorAll('.check-circle.checked').length;
+                if (done) anyChecked = true;
+                const allDone = live && checks.length > 0 && done === checks.length;
+                const id = key + '|' + card.id;
+                if (!allDone) reopenedDone.delete(id);
+                const fold = allDone && !reopenedDone.has(id);
+                let line = card.querySelector('.ex-done-line');
+                if (allDone && !line) {
+                    line = document.createElement('button');
+                    line.type = 'button';
+                    line.className = 'ex-done-line';
+                    line.onclick = () => {
+                        if (card.classList.contains('done-folded')) reopenedDone.add(id); else reopenedDone.delete(id);
+                        syncDoneExercises();
+                    };
+                    card.querySelector('.ex-title-container').after(line);
+                }
+                if (!allDone && line) { line.remove(); line = null; }
+                if (line) {
+                    // Heaviest loaded set of the card, as "92.5 kg × 4".
+                    let top = null;
+                    card.querySelectorAll('.set-row:not(.header)').forEach(row => {
+                        const load = parseFloat((row.querySelector('.main-load, .acc-load') || {}).value);
+                        const reps = parseInt((row.querySelector('input[id$="_reps"]') || {}).value, 10);
+                        if (load > 0 && (!top || load > top.load)) top = { load, reps };
+                    });
+                    const sets = `${done} ${done === 1 ? 'set' : 'sets'} done`;
+                    const topTxt = top ? `, top set ${kgDisp(top.load)} ${unitSuffix()}${top.reps > 0 ? ' × ' + top.reps : ''}` : '';
+                    line.setAttribute('aria-expanded', !fold);
+                    line.innerHTML = `<span>${sets}${topTxt}</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+                }
+                card.classList.toggle('done-folded', fold);
+            });
+            screen.classList.toggle('sets-started', live && anyChecked);
+        }
+        // toggleCheck doesn't re-render, so re-evaluate shortly after any check tap
+        // (the pause lets the tick land before the card folds).
+        document.addEventListener('click', (e) => {
+            if (e.target.closest && e.target.closest('#workout-container .check-circle')) setTimeout(syncDoneExercises, 450);
+        });
 
         function setupSlider() {
             const thumb = document.getElementById('slider-thumb');
@@ -7236,11 +7355,19 @@
 
         function updateAnalytics() {
             renderStreak();
-            let history = safeParse('workoutHistory', []);
-            let ltWorkouts = history.length;
-            let ltSets = 0;
-            let ltVol = 0;
-            history.forEach(log => { ltSets += (log.sets || 0); ltVol += (log.volume || 0); });
+            // This week (Monday to now) against last week. Lifetime totals were numbers
+            // nobody could act on; these say whether the week is on track.
+            const history = (typeof workoutHistoryCache !== 'undefined' && workoutHistoryCache.length) ? workoutHistoryCache : safeParse('workoutHistory', []);
+            const monday = new Date(); monday.setHours(0, 0, 0, 0);
+            monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+            const weekStart = monday.getTime(), lastStart = weekStart - 7 * 86400000;
+            const wk = { n: 0, sets: 0, vol: 0 }, last = { n: 0, sets: 0, vol: 0 };
+            history.forEach(log => {
+                const ts = parseInt(log.id, 10);
+                const bucket = ts >= weekStart ? wk : ts >= lastStart ? last : null;
+                if (!bucket) return;
+                bucket.n++; bucket.sets += (log.sets || 0); bucket.vol += (log.volume || 0);
+            });
             const formatVol = (vKg) => {
                 const v = getUnit() === 'lbs' ? vKg * 2.2046 : vKg;
                 const u = unitSuffix();
@@ -7248,12 +7375,18 @@
                 if (v >= 1000) return (v/1000).toFixed(1) + 'k ' + u;
                 return Math.round(v) + ' ' + u;
             };
+            const prog = localStorage.getItem('activeProgram');
+            const planned = prog && db[prog] && db[prog].weeks ? Object.keys(db[prog].weeks[Object.keys(db[prog].weeks)[0]] || {}).length : 0;
             const wEl = document.getElementById('lt-workouts');
             const sEl = document.getElementById('lt-sets');
             const vEl = document.getElementById('lt-vol');
-            if(wEl) wEl.innerText = ltWorkouts;
-            if(sEl) sEl.innerText = ltSets;
-            if(vEl) vEl.innerText = formatVol(ltVol);
+            const cEl = document.getElementById('wk-compare');
+            if(wEl) wEl.innerHTML = planned ? `${wk.n}<small> of ${planned}</small>` : String(wk.n);
+            if(sEl) sEl.innerText = wk.sets;
+            if(vEl) vEl.innerText = formatVol(wk.vol);
+            if(cEl) cEl.textContent = last.n
+                ? `Last week: ${last.n} ${last.n === 1 ? 'session' : 'sessions'}, ${last.sets} sets, ${formatVol(last.vol)}.`
+                : (wk.n ? 'Nothing logged last week.' : 'Nothing logged yet this week.');
         }
 
         async function cancelActiveWorkout() {
@@ -7746,7 +7879,7 @@
                     </div>
                     
                     <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden;">
-                        <div style="width: ${pct}%; height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease-out;"></div>
+                        <div style="width: ${pct}%; height: 100%; background: var(--accent-fill); border-radius: 4px; transition: width 0.5s ease-out;"></div>
                     </div>
 
                     ${gridHtml}
@@ -7822,7 +7955,7 @@
                         `).join('')}
                     </div>
                     <button onclick="window.addWarmupItem()" style="width:100%;padding:10px;background:rgba(var(--tint-rgb),0.04);border:1px dashed rgba(var(--tint-rgb),0.15);border-radius:8px;color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">+ Add Exercise</button>
-                    <button onclick="window.toggleWarmupEdit()" style="width:100%;padding:10px;background:var(--accent);color:var(--on-accent);border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">Done</button>
+                    <button onclick="window.toggleWarmupEdit()" style="width:100%;padding:10px;background: var(--accent-fill);color:var(--on-accent);border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">Done</button>
                 `;
             }
         };
@@ -7903,7 +8036,7 @@
         }
         function fmtShortDate(ts) {
             if (!ts) return '';
-            return new Date(ts).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' });
+            return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
         }
 
         // ── PR Timeline toggle ────────────────────────────────────────────────

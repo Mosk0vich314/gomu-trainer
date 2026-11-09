@@ -22,7 +22,9 @@ function context() {
         document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {} },
         addEventListener() {}, setTimeout: () => 1, clearTimeout() {},
         scrollTo() {}, gdriveBackup() {}, setDB() {}, isBodyweightExercise: () => false, kgDisp: n => n, unitSuffix: () => 'kg',
-        showConfirm: async () => true, navigator: {}, console
+        showConfirm: async () => true, navigator: {}, console,
+        // Training-max progression has its own suite (review_nsuns_test.cjs); the finish path only needs it callable.
+        applyTrainingMaxProgression: () => ({}), flushPendingUndo() {}
     });
     c.window = c;
     vm.runInContext(section('let _sessionCacheKey =', 'let currentProgram ='), c);

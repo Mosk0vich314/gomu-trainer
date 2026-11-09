@@ -1,7 +1,12 @@
 // Browser regression check. Run with Playwright on NODE_PATH.
 // Uses synthetic workout data in an isolated browser and a local static server.
 const assert = require('node:assert/strict');
-const { chromium } = require('playwright');
+let chromium;
+try { ({ chromium } = require('playwright')); } catch (e) {
+    // Not a pass: the browser checks did not run. Put Playwright on NODE_PATH to run them.
+    console.log('SKIPPED ' + require('node:path').basename(__filename) + ': Playwright is not on NODE_PATH');
+    process.exit(0);
+}
 const path = require('node:path');
 const os = require('node:os');
 const fs = require('node:fs');

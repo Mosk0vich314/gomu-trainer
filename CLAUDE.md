@@ -144,6 +144,16 @@ Screen transitions use `switchTab(tabId)`: screens switch **instantly** (no slid
 ### Bottom nav (the bar)
 Deliberately minimal: the nav's top edge is a plain 2px bar (`.nav-bar`), and one plate seen edge-on (`.nav-plate`, accent, in `.nav-plate-track`, a one-third-width track moved by `transform: translateX(calc(var(--nav-i) * 100%))`) stands on it above the active tab — the nav's **only** motion. No knurling, collars, pills or glows. `switchTab` sets `--nav-i` from `TAB_ORDER` (library 0, home 1, history 2) and adds `.no-plate` on screens that aren't tabs (workout, Iron Vault, summary). The nav has a solid `--nav-bg`, no `backdrop-filter` or shadow: anything that re-composites under a fixed bar while screens change is what glitched. Nav height stays ~77px; banners above it are positioned against that.
 
+### Workout screen layout
+- **Compact set tables.** The Set/Reps/RPE/Load/e1RM column header prints once per run of same-shaped blocks (`lastColKind` in `renderWorkout`), not once per block. An exercise with three or more blocks is a ladder (`.block-container.ladder`) and gets slim prescription lines. "Add set" appears only under the exercise's last visible block and adds to that block. Before this, an nSuns day was about 7,300 px tall.
+- **Finished exercises fold.** During a live session, `syncDoneExercises()` (end of `renderWorkout`, and 450 ms after any check tap, since `toggleCheck` does not re-render) adds `.done-folded` to a card whose every set is checked and inserts `.ex-done-line` ("9 sets done, top set 155 kg"). Tapping the line reopens it; reopened cards are remembered in `reopenedDone`.
+- **Live-session chrome.** `renderWorkout` toggles `.session-live` on `#workout-screen`. While live, the week strip, day tabs and Program Management are hidden; the `#workout-where` line under the title ("Week 1, day 2") brings them back (`toggleWorkoutNav`, `.show-nav`). The warm-up card also hides once a set is checked (`.sets-started`).
+- **Start workout** is a solid `--accent-fill` block (the screen's primary action). The bench video lab opens from a "Video" chip in `.ex-chip-row` (the `.bench-video-entry` wrapper is `display: contents` there), not a full-width button.
+- Cards are flat: 14px radius, no drop shadows, chevron SVGs instead of ▼/◀ glyphs.
+
+### Summary scoresheet and "This week"
+`renderSummarySheet(details)` fills `#sum-lifts` with one line per lift: top set, change against the last logged session containing that lift, and three small lights when `actualBests` rose above the workout-start snapshot (`window._summaryBestsBefore`, captured in the finish branch before `activeWorkout` is cleared). It must run before the new log is pushed to `workoutHistoryCache`. Home's old "Lifetime" card is now "This week" (`updateAnalytics`): sessions against the active program's days per week, sets and volume since Monday, with last week's totals underneath.
+
 ### Resume banner
 `#floating-banner` (shown on Library and History while a session is open, filled by `updateBanners()`) follows the nav's rules: a solid `--nav-bg` slab, no `backdrop-filter` or glow. Left to right: three edge-on plates on a stub of bar (`.fb-plates`), "On the platform" in the display face with week/day and program under it, and a full-height accent `.fb-action` block ("Resume"). It sits at `bottom: 180px` to clear the rest timer.
 
@@ -220,19 +230,21 @@ Four palettes — **Flame, Seal, Coral, Expedition** — each in a dark and a li
 ```js
 { name: 'Flame Dark', palette: 'Flame', mode: 'dark',   // name = `${palette} ${Mode}`, stored in localStorage.appTheme
   accent: '#hex', teal: '#hex', bg: '#hex', card: '#hex', inputBg: '#hex', border: '#hex',
-  textMain: '#hex', textMuted: '#hex' }                 // all required
+  textMain: '#hex', textMuted: '#hex',                  // all required
+  accentFill: '#hex', tealFill: '#hex' }                // optional: brighter FILL colour (light cuts)
 ```
 The settings sheet shows one swatch per palette plus a **Light mode** chip (`toggleThemeMode()` swaps to the same palette's other mode). An unknown stored name (the old Ember/Inferno list) falls back to `THEMES[0]`; the `:root` defaults in `styles.css` mirror `THEMES[0]`. The pure-black (OLED) toggle only applies to, and is only shown for, dark themes.
 
 `applyTheme()` sets `--accent`, `--teal`, `--accent-rgb`, `--teal-rgb`, `--text-main`, `--text-muted`, `--bg`, `--card`, `--input-bg`, `--border`, plus three that exist because of the light themes:
-- `--on-accent` / `--on-teal` — the ink for text ON an accent/teal fill, picked by luminance. **Never write `color: #000` on an accent fill.**
+- `--accent-fill` / `--teal-fill` — the colour for FILLS (buttons, the nav plate, progress dots, ticked boxes). Defaults to the accent; a light cut sets `accentFill` so text reads in the deep colour while fills keep the palette's bright orange/yellow. **A filled background is `var(--accent-fill)`, never `var(--accent)`**; inside an exercise card use `--theme-fill` / `--on-theme`.
+- `--on-accent` / `--on-teal` — the ink for text ON those fills, picked by luminance. **Never write `color: #000` on an accent fill.**
 - `--tint-rgb` — what hairlines and washes tint toward: white on dark themes, the text colour on light ones. **Write `rgba(var(--tint-rgb), a)`, never `rgba(255,255,255,a)`**, and `var(--text-main)` rather than `#fff` for text. Literal white is only for things that sit on a photo or on `--danger`.
 
 It also sets `color-scheme` and `data-theme-mode` on `<html>`; light-only fixes hang off `:root[data-theme-mode="light"]`.
 
 **Never hardcode a surface colour.** `styles.css` derives `--surface-sunken`, `--surface-row`, `--line-strong` and `--nav-bg` from the theme vars (with a plain-hex fallback for browsers without `color-mix`). Every card, row, input, pill, check circle and nav must use a var — hardcoded zinc hexes are what previously left half the UI grey when any non-default theme or the OLED toggle was on.
 
-**Colour-picking rules:** `accent` and `teal` are used as *text* as well as fills, so each must reach roughly 4:1 on the theme's `card`. That is why the light cuts use the palette's deep colours (or a darkened orange) instead of its pastel fills, and why a few dark-cut secondaries are lifted versions of the palette colour. `bg` and `card` come from the palette's two darkest (or two lightest) colours and must stay visibly apart; near-black `bg` is no longer the rule — pure black is the OLED toggle's job.
+**Colour-picking rules:** `accent` and `teal` are used as *text* as well as fills, so each must reach roughly 4:1 on the theme's `card`. That is why the light cuts use the palette's deep colours (or a darkened orange) instead of its pastel fills, and why a few dark-cut secondaries are lifted versions of the palette colour. `card` is the palette's dark (or light) surface colour; `bg` is a deepened (dark cuts) or shaded (light cuts) step below it, at roughly 1.25:1 or more against the card. The first version used two neighbouring palette colours for `bg` and `card` and every screen looked faded: cards, rows and inputs all sat on the same tone. Inputs (`--surface-sunken`) are mixed toward `bg`, so a deeper `bg` is also what makes them read as wells.
 
 ### Exercise database (canonical names)
 The same exercise appears under different names across programs ("Dumbbell Military Press" / "Shoulder Press (Dumbbell)" / "Dumbbell Overhead Press"). Identity is resolved by `EXERCISE_ALIASES` in app.js (lowercased alias → canonical display name) via `normalizeExName(name)`. Rules:
@@ -380,6 +392,8 @@ Rest timer counts down to 0, beeps, then continues counting up (overtime). The d
 - The unit toggle (`preferredUnit`) is **display only**. Loads, plate inventory, bar weight and `roundForEquipment()` all work in kg, so the workout screen's load field stays kg; only read-outs convert via `kgDisp()`/`unitSuffix()`.
 - All programs live in `Programs/` and are listed in `Programs/programs-list.json`.
 - `scripts/app.js` is not minified or bundled — edit it directly.
-- There are no tests and no linter configured.
+- Tests: `node --test tools/*.cjs` (no linter). `review_technique_test.cjs` and `review_video_browser_test.cjs` need Playwright on `NODE_PATH`; without it they print `SKIPPED` and exit 0, which is **not** a pass.
+- Dates and thousands separators are formatted with an explicit `'en-US'` locale. Never pass `'default'` or nothing: the UI is English and a device locale gave "lug ago set" month labels next to English copy.
+- On this Windows machine `python` has no `cryptography` module; run the deploy as `py tools/deploy.py "message"`.
 - Fonts: **Sofia Sans** (body, `--font-body`) and **Sofia Sans Extra Condensed** (display numbers, exercise titles, timer — `--font-display`). One superfamily, two widths, loaded from Google Fonts. Use the vars in CSS; small chips/pills stay in the body face because the condensed cut is hard to read under ~14px.
 - Z-index layers: nav bar `1500`, data sheet overlay `1600`, data sheet `1601`, modals above that, undo toast `1601`.

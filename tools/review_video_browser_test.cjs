@@ -5,7 +5,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
-const { chromium } = require('playwright');
+let chromium;
+try { ({ chromium } = require('playwright')); } catch (e) {
+    // Not a pass: the browser checks did not run. Put Playwright on NODE_PATH to run them.
+    console.log('SKIPPED ' + require('node:path').basename(__filename) + ': Playwright is not on NODE_PATH');
+    process.exit(0);
+}
 
 (async () => {
     const server = http.createServer((req, res) => {

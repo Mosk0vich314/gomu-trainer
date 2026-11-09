@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=Sofia+Sans+Extra+Condensed:wght@600;700;800&display=swap">
 
-    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.09.2139">
+    <link rel="stylesheet" href="./styles/styles.css?v=2026.11.09.2147">
     <link rel="stylesheet" href="./styles/video-analysis.css">
 </head>
 <body>
@@ -288,7 +288,7 @@
                 <input type="number" id="ob-dl" placeholder="e.g. 180" inputmode="decimal">
             </div>
 
-            <button class="action-btn" style="background: var(--accent); color: var(--on-accent); margin: 0;" onclick="saveOnboarding()">Save Baselines</button>
+            <button class="action-btn" style="background: var(--accent-fill); color: var(--on-accent); margin: 0;" onclick="saveOnboarding()">Save Baselines</button>
             <button class="readiness-skip" onclick="skipOnboarding()">I'll add these later</button>
         </div>
     </div>
@@ -411,14 +411,13 @@
         <div id="deload-hint" style="display:none;"></div>
 
         <div class="analytics-card" id="lifetime-stats-card" style="margin-bottom: 10px;">
-            <div class="analytics-header">
-                Lifetime
-            </div>
+            <div class="analytics-header">This week</div>
             <div class="analytics-grid">
-                <div><div class="a-val" id="lt-workouts" style="color: var(--accent);">0</div><div class="a-lbl">Workouts</div></div>
+                <div><div class="a-val" id="lt-workouts" style="color: var(--accent);">0</div><div class="a-lbl">Sessions</div></div>
                 <div><div class="a-val" id="lt-sets" style="color: var(--accent);">0</div><div class="a-lbl">Sets</div></div>
                 <div><div class="a-val" id="lt-vol" style="color: var(--accent);">0</div><div class="a-lbl">Lifted</div></div>
             </div>
+            <div class="analytics-sub" id="wk-compare"></div>
         </div>
 
         <button class="stats-launch-btn" onclick="switchTab('stats-screen')">
@@ -676,20 +675,23 @@
                 <div class="s-stat"><span>Heaviest</span><strong id="sum-max">0 kg</strong></div>
             </div>
 
+            <div id="sum-lifts" class="sum-lifts" style="display:none;"></div>
+
             <div id="sum-tm" style="display:none; margin-top:14px; padding:10px 12px; border-radius:10px; background:var(--surface-row); color:var(--accent); font-size:13px; font-weight:700; line-height:1.6;"></div>
 
             <textarea id="session-note" aria-label="Session note" placeholder="How did this session feel? (optional)" maxlength="300" oninput="saveSessionNote(this.value)" style="width:100%;box-sizing:border-box;background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:12px;font-size:14px;font-family:'Sofia Sans',sans-serif;resize:none;min-height:72px;outline:none;margin:16px 0 4px;display:block;"></textarea>
-            <button class="action-btn" style="background: var(--accent); color: var(--on-accent);" onclick="switchTab('home-screen')">Back to home</button>
+            <button class="action-btn" style="background: var(--accent-fill); color: var(--on-accent);" onclick="switchTab('home-screen')">Back to home</button>
         </div>
     </div>
 
     <div id="workout-screen" class="app-screen">
 
         <div class="header-nav">
-            <button class="back-btn" onclick="switchTab('library-screen')">◀ Library</button>
+            <button class="back-btn" onclick="switchTab('library-screen')" aria-label="Back to library"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>Library</button>
             <div style="flex:1; text-align:center;">
                 <h2 id="workout-program-title" style="margin:0; color: var(--text-main); font-size: 15px; line-height: 1.3; display: flex; align-items: center; justify-content: center; word-break: break-word;">Workout</h2>
                 <div id="workout-duration" style="font-size: 13px; color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; display: none;">00:00</div>
+                <button type="button" id="workout-where" class="workout-where" aria-expanded="false" onclick="toggleWorkoutNav()"><span>Week 1, day 1</span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
             </div>
             <div style="width: 80px; flex-shrink: 0;"></div>
         </div>
@@ -708,7 +710,7 @@
         <details class="warmup-card" id="program-management-card" style="margin-bottom: 20px;">
             <summary class="warmup-summary" style="color: var(--text-muted);">
                 <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Program Management</span>
-                <span class="warmup-arrow" style="color: var(--text-muted);">▼</span>
+                <span class="warmup-arrow" style="color: var(--text-muted);"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </summary>
 
             <div class="warmup-content">
@@ -730,7 +732,7 @@
         <details class="warmup-card" id="standard-warmup-card" style="margin-bottom: 25px;">
             <summary class="warmup-summary">
                 <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Standard Warm-Up Routine</span>
-                <span class="warmup-arrow">▼</span>
+                <span class="warmup-arrow"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </summary>
 
             <div class="warmup-content">
@@ -785,6 +787,6 @@
 
     <script src="./scripts/video-analysis.js" defer></script>
     <script src="./scripts/technique-guide.js" defer></script>
-    <script src="./scripts/app.js?v=2026.11.09.2139" defer></script>
+    <script src="./scripts/app.js?v=2026.11.09.2147" defer></script>
 </body>
 </html>
