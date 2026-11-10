@@ -24,7 +24,7 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
         assert.equal(Object.keys(week).length, 4);
         let amraps = 0;
         Object.values(week).forEach((day, d) => {
-            assert.equal(day.length, [5, 6, 7, 6][d]);
+            assert.equal(day.length, [5, 6, 6, 6][d]);
             assert.equal(day.slice(0, 2).flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), 17);
             // Expand grouped blocks back into the per-set wave.
             const perSet = Array.from(day[0].blocks.flatMap(b => Array.from({ length: b.sets }, () => b)));
@@ -41,7 +41,7 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
             amraps += day.flatMap(ex => ex.blocks).filter(b => b.amrap).length;
             day.slice(0, 2).forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
             const accessories = day.slice(2);
-            assert.equal(accessories.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), [9, 10, 12, 10][d]);
+            assert.equal(accessories.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), [10, 10, 10, 10][d]);
             accessories.forEach(ex => {
                 assert.equal(ex.type, 'accessory');
                 assert.equal(ex.percentageReference, undefined);
@@ -100,4 +100,17 @@ test('finishing a 1+ set progresses that TM per program, follows bench with OHP 
     refs.Squat = 210;
     assert.equal(tm(week[2][0]), 189, 'a new Stats 1RM restarts the TM from it');
     assert.equal(refs.Squat, 210, 'progression never writes the global 1RM');
+});
+
+test('accessories preset intensity techniques and never repeat side delts', () => {
+    const week = program.weeks[1], names = d => week[d].slice(2).map(ex => ex.name);
+    const modes = Object.values(week).flat().filter(ex => ex.mode).map(ex => [ex.name, ex.mode.type]);
+    assert.deepEqual(modes, [['Overhead Triceps Extension', 'myo'], ['Dumbbell Bicep Curl', 'myo'],
+        ['Close Grip Lat Pulldown', 'dropset'], ['Face Pulls', 'myo'], ['Dumbbell Lateral Raises', 'myo']]);
+    assert.equal(JSON.stringify(week[4].find(ex => ex.name === 'Dumbbell Lateral Raises').mode),
+        JSON.stringify({ type: 'myo', actReps: 12, actSets: 2, backSets: 4, backReps: 3, rpe: 9 }));
+    assert.equal([1, 2, 3, 4].filter(d => names(d).includes('Dumbbell Lateral Raises')).length, 1);
+    assert.deepEqual(Object.values(week).flat().filter(ex => ex.supersetNext).map(ex => ex.name), ['Pull-Up (Bodyweight)', 'Hammer Curl']);
+    // The app treats any note containing "myo" as legacy note-based mini-set work.
+    Object.values(week).flat().forEach(ex => assert(!/myo/i.test(ex.notes), ex.name));
 });

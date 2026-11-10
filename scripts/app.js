@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.10.1316";
+        const APP_VERSION = "v2026.11.10.1730";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -2119,9 +2119,11 @@
 
             // Modes define the final block structure; set-count and deletion edits below
             // refer to that rendered structure, including blocks absent from the source DB.
+            // A program can preset a mode on an exercise (`mode` in its JSON, same shape as a
+            // stored one). The lifter's own choice wins, including { type: 'off' }.
             const programModes = safeParse(`programModes_${prog}`, {});
             exercises.forEach(ex => {
-                const m = programModes[ex._originalName];
+                const m = Object.prototype.hasOwnProperty.call(programModes, ex._originalName) ? programModes[ex._originalName] : ex.mode;
                 if (m && (m.type === 'myo' || m.type === 'dropset')) {
                     ex.blocks = buildModeBlocks(ex, m);
                     ex._mode = m.type;
@@ -2158,7 +2160,7 @@
         // its target. Drop blocks carry a cumulative `dropFactor` used to auto-strip weight.
         function buildModeBlocks(ex, mode) {
             const baseBlock = (ex.blocks || []).find(b => b.targetRpe || b.pct) || (ex.blocks || [])[0] || {};
-            const baseRpe = baseBlock.targetRpe || null;
+            const baseRpe = mode.rpe || baseBlock.targetRpe || null;
             const basePct = baseBlock.pct || null;
             const actSets = Math.max(1, mode.actSets || 1);
             const actReps = mode.actReps || (mode.type === 'dropset' ? 6 : 12);
@@ -5673,8 +5675,9 @@
                 const key = getWorkoutKey();
                 let savedSession = safeParse(key, {});
                 if (!savedSession.supersets) savedSession.supersets = {};
-                // Toggle the boolean state
-                savedSession.supersets[exIndex] = !savedSession.supersets[exIndex];
+                // Toggle from what is on screen: the link may come from the program itself.
+                const shown = getActiveExercises(currentProgram, selectedWeek, selectedDay, key)[exIndex];
+                savedSession.supersets[exIndex] = !(shown && shown.supersetNext);
                 localStorage.setItem(key, JSON.stringify(savedSession));
             }
             
@@ -5701,9 +5704,10 @@
             const origName = ex._originalName || ex.name;
             const modes = safeParse(`programModes_${currentProgram}`, {});
 
-            if (modes[origName] && modes[origName].type === 'myo') {
-                // Turn OFF — reverts to DB blocks on the corresponding day of every week
-                setProgramMode(origName, null);
+            if (ex._mode === 'myo') {
+                // Turn OFF — reverts to DB blocks on the corresponding day of every week.
+                // A mode preset by the program needs an explicit 'off' to stay off.
+                setProgramMode(origName, ex.mode ? { type: 'off' } : null);
                 return;
             }
             // Legacy notes-based Myo-rep (e.g. created via Add Exercise) — turn off the old way
@@ -5741,8 +5745,8 @@
             const origName = ex._originalName || ex.name;
             const modes = safeParse(`programModes_${currentProgram}`, {});
 
-            if (modes[origName] && modes[origName].type === 'dropset') {
-                setProgramMode(origName, null);
+            if (ex._mode === 'dropset') {
+                setProgramMode(origName, ex.mode ? { type: 'off' } : null);
                 return;
             }
             window.dropTargetName = origName;

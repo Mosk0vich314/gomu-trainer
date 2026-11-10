@@ -305,6 +305,8 @@ Two transformations propagate across the **whole program**, keyed by an exercise
 
 Both are cleared together on program reset and on program completion (`allDone`).
 
+**Program presets.** A program's own JSON can ship an exercise already in a mode: `"mode": modeObj` on the exercise (nSuns accessories), plus `"supersetNext": true` to link it to the next exercise. The stored `programModes_` entry wins when the key exists, otherwise the preset applies; switching a preset off with the chip stores `{ type: 'off' }` (a plain delete would fall straight back to the preset). `modeObj.rpe` optionally sets the activation RPE; without it the exercise's own block RPE is used. The exercise's `blocks` stay plain straight sets, which is what "off" shows. Don't put the word "myo" in such an exercise's notes: notes containing it are treated as legacy note-based Myo (how the PPL program is stored).
+
 `modeObj` shapes:
 - Myo: `{ type:'myo', actReps, actSets, backSets, backReps }`
 - Drop: `{ type:'dropset', actReps, actSets, drops, stripPct }`
