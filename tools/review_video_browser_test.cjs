@@ -15,7 +15,7 @@ try { ({ chromium } = require('playwright')); } catch (e) {
 (async () => {
     const server = http.createServer((req, res) => {
         const pathname = new URL(req.url, 'http://localhost').pathname.replace(/^\/$/, '/index.html');
-        if (!/^\/(?:index\.html|sw\.js|scripts\/(?:(?:app|technique-guide|technique-models|video-analysis|video-analysis-core)\.js|database\.enc)|styles\/[\w.-]+\.css|assets\/[\w/.-]+)$/.test(pathname) || pathname.includes('..')) { res.writeHead(404).end(); return; }
+        if (!/^\/(?:index\.html|sw\.js|scripts\/(?:(?:app|technique-guide|video-analysis|video-analysis-core)\.js|database\.enc)|styles\/[\w.-]+\.css|assets\/[\w/.-]+)$/.test(pathname) || pathname.includes('..')) { res.writeHead(404).end(); return; }
         const file = path.join(__dirname, '..', pathname);
         if (!fs.existsSync(file)) { res.writeHead(404).end(); return; }
         res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' })[path.extname(file)] || 'application/octet-stream' });

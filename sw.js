@@ -1,17 +1,14 @@
-const CACHE_NAME = 'gomu-trainer-v2026.11.09.2211'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.11.10.1030'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
   './styles/styles.css',
   './scripts/app.js',
   './scripts/technique-guide.js',
-  './scripts/technique-models.js',
   './scripts/video-analysis.js',
   './scripts/video-analysis-core.js',
   './styles/video-analysis.css',
-  './styles/technique-content.css',
   './styles/technique-guide.css',
-  './assets/technique-manual.json',
   './scripts/database.enc',
   './assets/manifest.json',
   './assets/logo.png',

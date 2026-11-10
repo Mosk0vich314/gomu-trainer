@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.09.2211";
+        const APP_VERSION = "v2026.11.10.1030";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -990,7 +990,7 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'videoRpeCalibration', 'videoAnalysisArchive'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'techniqueCues', 'videoRpeCalibration', 'videoAnalysisArchive'];
         const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
@@ -4860,7 +4860,7 @@
                             `}
                         </div>
 
-                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>Technique</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
+                        ${techniqueLift ? `<div class="exercise-reference-actions"><button type="button" data-technique-cue="${techniqueLift}" onclick="openTechniqueGuide('${techniqueLift}', this)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v15M12 5C8 2 4 3 2 4v15c3-1 6-1 10 1 4-2 7-2 10-1V4c-2-1-6-2-10 1Z"/></svg>${typeof techniqueCueHtml === 'function' ? techniqueCueHtml(techniqueLift) : 'Technique'}</button><button type="button" onclick="openHistoryOverlay('${escapeJsAttr(ex.name)}')">History</button></div>` : ''}
 
                         ${!isNonExercise && !bwOnly ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
