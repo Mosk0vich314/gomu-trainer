@@ -1060,6 +1060,11 @@ button, .pill, .check-circle, .stat-card {
     z-index: 2;
 }
 
+:root[data-theme-mode="light"] .app-version-display {
+    color: var(--text-main);
+    opacity: 0.6;
+}
+
 /* Remove the pill styling completely */
 .app-version-display span {
     display: none;
