@@ -60,11 +60,11 @@ ACCESSORY_NOTE = ('Custom accessory added to nSuns. Keep about 2 reps in reserve
                   'Cut accessory sets (Day 4 first) if the 1+ sets start dropping. ')
 
 
-def accessory(name, sets, reps, rep_range, why, rest=90, bodyweight_only=False):
+def accessory(name, sets, reps, rep_range, why, rest=90, bodyweight_only=False, unit='reps'):
     # The app stores reps as a number, so the range lives in the notes.
     # Bodyweight-only work progresses by reps, so it skips the add-weight advice.
     ex = dict(name=name, type='accessory',
-              notes=f'{rep_range} reps. {why}' + ('' if bodyweight_only else ' ' + ACCESSORY_NOTE),
+              notes=f'{rep_range} {unit}. {why}' + ('' if bodyweight_only else ' ' + ACCESSORY_NOTE),
               blocks=[dict(type='acc', sets=sets, reps=reps, targetRpe=8.0, pct=None, restSec=rest)])
     if bodyweight_only:
         ex['bodyweightOnly'] = True
@@ -75,6 +75,13 @@ PULL_UP_WHY = ('Pull-up progression, twice a week. Do about half your max reps p
                '(4 x 3-4 if your max is 7), add one rep to one set each session and never grind '
                'to failure. At 4 x 8 add a small weight. If you cannot yet do strict reps, do '
                '3-5 slow negatives (5 s down) plus band-assisted reps and test one strict rep weekly.')
+PULL_UP_EASY_WHY = ('Second pull-up day, practice only: two crisp sets at the same reps as Day 1, '
+                    'never near failure. The progression happens on Day 1; the pulldowns that follow '
+                    'supply the volume.')
+COPENHAGEN_WHY = ('Bodyweight only; the number is seconds per side, not reps. Football groin protection: '
+                  'adductor strength is the main guard against groin strains. Side plank with the top leg '
+                  'on a bench and the bottom leg hanging. Start with the knee on the bench, move to the '
+                  'ankle when 30 seconds is easy.')
 NORDIC_WHY = ('Bodyweight only. Football hamstring protection: programmes that include Nordic curls cut '
               'hamstring injuries by about half. Kneel, anchor your heels and lower yourself as slowly as '
               'you can, catching yourself with your hands. Very sore at first: start at 2 x 3 and add a rep '
@@ -173,26 +180,37 @@ def build_program():
                      + follows_note('squat', 2))]
     }
     # Chosen around the lifter's weak points: mid-range bench (triceps long head, incline for
-    # the shoulders), learning pull-ups (twice a week), football (Nordics, light leg work)
-    # and low deadlift energy (no extra hinging; Day 4 accessories are upper body only).
+    # the shoulders), learning pull-ups (twice a week), football (Nordics, adductors, calves)
+    # and low deadlift energy (no extra hinging). Spread so no day stacks an accessory on the
+    # muscle its main lifts just hammered: triceps and biceps isolation sit on the leg days,
+    # the small leg work on the upper days, and Day 1 (17 pressing sets) carries no pressing
+    # or delt accessory at all.
     accessories = {
         '1': [accessory('Pull-Up (Bodyweight)', 4, 4, '3-8', PULL_UP_WHY, rest=120),
               accessory('Chest Supported Row', 3, 10, '10-12', 'Horizontal pulling to balance the pressing.'),
-              accessory('Overhead Triceps Extension', 2, 10, '10-12',
-                        'Cable or dumbbell. Long-head triceps for a bench that stalls mid-range.'),
-              accessory('Dumbbell Lateral Raises', 2, 12, '12-15', 'Side delts.')],
+              accessory('Standing Calf Raise', 2, 12, '10-15',
+                        'Calves, the one leg muscle the squats and deadlifts leave alone. '
+                        'Pause a second at the bottom stretch.')],
         '2': [accessory('Nordic Hamstring Curl', 2, 3, '3-6', NORDIC_WHY, rest=120, bodyweight_only=True),
-              accessory('Cable Crunch', 3, 12, '12-15', 'Core.')],
-        '3': [accessory('Pull-Up (Bodyweight)', 4, 4, '3-8', PULL_UP_WHY, rest=120),
+              accessory('Overhead Triceps Extension', 3, 10, '10-12',
+                        'Cable or dumbbell. Long-head triceps for a bench that stalls mid-range. '
+                        'On the squat day so the triceps are not already spent from pressing.'),
+              accessory('Dumbbell Bicep Curl', 3, 10, '10-12', 'Biceps.'),
+              accessory('Cable Crunch', 2, 12, '12-15', 'Core.')],
+        '3': [accessory('Pull-Up (Bodyweight)', 2, 4, '3-8', PULL_UP_EASY_WHY, rest=120),
+              accessory('Close Grip Lat Pulldown', 3, 10, '8-12',
+                        'Finishes the vertical pulling the two pull-up sets started. Close underhand or '
+                        'neutral grip, so the biceps work as hard as the lats.'),
               accessory('Seated Cable Rows', 3, 10, '10-12', 'Horizontal pulling to balance the pressing.'),
               accessory('Face Pulls', 2, 15, '15', 'Rear delts and upper back for shoulder health.'),
-              accessory('Dumbbell Bicep Curl', 3, 10, '10-12', 'Biceps.')],
+              accessory('Dumbbell Lateral Raises', 2, 12, '12-15', 'Side delts.')],
         '4': [accessory('DB Incline Bench', 3, 8, '8-10',
                         'Upper chest and front delts for the mid-range of the bench. '
                         'Placed on the no-bench day so shoulders and chest are fresh.'),
               accessory('Dumbbell Lateral Raises', 3, 12, '12-15', 'Side delts.'),
               accessory('Hammer Curl', 2, 10, '10-12', 'Biceps and forearms.'),
-              accessory('Cable Crunch', 2, 12, '12-15', 'Core.')]
+              accessory('Copenhagen Plank', 2, 20, '20-30', COPENHAGEN_WHY, bodyweight_only=True,
+                        unit='seconds a side')]
     }
     for day, additions in accessories.items():
         week[day].extend(additions)

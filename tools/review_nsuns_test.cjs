@@ -24,7 +24,7 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
         assert.equal(Object.keys(week).length, 4);
         let amraps = 0;
         Object.values(week).forEach((day, d) => {
-            assert.equal(day.length, [6, 4, 6, 6][d]);
+            assert.equal(day.length, [5, 6, 7, 6][d]);
             assert.equal(day.slice(0, 2).flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), 17);
             // Expand grouped blocks back into the per-set wave.
             const perSet = Array.from(day[0].blocks.flatMap(b => Array.from({ length: b.sets }, () => b)));
@@ -37,11 +37,11 @@ test('32 sessions preserve ordered waves, 17 main/supplemental sets per day and 
             day.flatMap(ex => ex.blocks).forEach(b => assert(b.restSec > 0, 'every set has a rest time'));
             if (d > 0) assert.equal(day[0].tmProgression.block, 3);
             day.slice(0, 2).forEach(ex => assert(!/\(bench \+/.test(ex.notes), 'progression notes are lift-specific'));
-            day.forEach(ex => assert.equal(!!ex.bodyweightOnly, ex.name === 'Nordic Hamstring Curl'));
+            day.forEach(ex => assert.equal(!!ex.bodyweightOnly, ['Nordic Hamstring Curl', 'Copenhagen Plank'].includes(ex.name)));
             amraps += day.flatMap(ex => ex.blocks).filter(b => b.amrap).length;
             day.slice(0, 2).forEach(ex => ex.blocks.forEach(b => assert.equal(b.targetRpe, undefined)));
             const accessories = day.slice(2);
-            assert.equal(accessories.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), [11, 5, 12, 10][d]);
+            assert.equal(accessories.flatMap(ex => ex.blocks).reduce((n,b) => n+b.sets, 0), [9, 10, 12, 10][d]);
             accessories.forEach(ex => {
                 assert.equal(ex.type, 'accessory');
                 assert.equal(ex.percentageReference, undefined);
