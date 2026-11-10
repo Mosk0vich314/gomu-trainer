@@ -80,6 +80,37 @@ const http = require('node:http');
         await guide.getByRole('tab', { name: 'Setup' }).click();
         assert.equal(await guide.locator('.tg-steps li').count(), 6);
         assert.match(await guide.locator('.tg-steps .tg-mine').first().innerText(), /^\d+ cm$/);
+        // Width: grip from the body, tuned by hand, saved, backed up and carried into Setup.
+        await guide.getByRole('tab', { name: 'Width' }).click();
+        const grip = guide.locator('[data-w="bg"]');
+        const startGrip = await grip.locator('.tg-w-num').innerText();
+        assert.match(startGrip, /^\d+ cm$/);
+        assert.equal(await grip.locator('.tg-w-reset').isHidden(), true);
+        assert.match(await grip.locator('.tg-w-read').innerText(), /^Forearms vertical at the chest/);
+        const plan = await guide.locator('.tg-w-svg').innerHTML();
+        await grip.locator('input').fill('81');
+        assert.equal(await grip.locator('.tg-w-num').innerText(), '81 cm');
+        assert.equal(await grip.locator('.tg-w-mark').innerText(), 'Index finger on the ring');
+        assert.match(await grip.locator('.tg-w-read').innerText(), /outside the elbows.*widest legal grip/);
+        assert.notEqual(await guide.locator('.tg-w-svg').innerHTML(), plan);
+        assert(!(await guide.locator('.tg-w-svg').innerHTML()).includes('NaN'));
+        assert.equal(await guide.locator('.tg-stats dd').first().innerText(), '81 cm');
+        assert.equal(await page.evaluate(async () => JSON.parse((await collectBackup(false)).preferences.techniqueBody).w.bg), 81);
+        await guide.getByRole('tab', { name: 'Setup' }).click();
+        assert.equal(await guide.locator('.tg-steps .tg-mine').first().innerText(), '81 cm');
+        await guide.getByRole('tab', { name: 'Width' }).click();
+        await grip.locator('.tg-w-reset').click();
+        assert.equal(await grip.locator('.tg-w-num').innerText(), startGrip);
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('techniqueBody')).w.bg), undefined);
+        // The conventional deadlift grip follows the stance until it is set by hand.
+        await guide.getByRole('tab', { name: 'Deadlift' }).click();
+        const pullGrip = () => guide.locator('[data-w="dgc"] .tg-w-num').innerText();
+        const narrow = await pullGrip();
+        await guide.locator('[data-width="dsc"]').fill('50');
+        assert.notEqual(await pullGrip(), narrow);
+        await guide.locator('[data-width-reset="dsc"]').click();
+        assert.equal(await pullGrip(), narrow);
+        await guide.getByRole('tab', { name: 'Bench' }).click();
         // Pin a cue: at most two, shown on the workout card after closing.
         await guide.getByRole('tab', { name: 'Cues' }).click();
         for (const id of ['bp-bend', 'bp-pull', 'bp-away']) await guide.locator(`[data-pin="${id}"]`).click();
@@ -112,7 +143,7 @@ const http = require('node:http');
         for (const width of [320, 390, 768, 1280]) {
             await page.setViewportSize({ width, height: 900 });
             for (const id of ['bench', 'squat', 'deadlift']) {
-                for (const tab of ['Setup', 'Cues', 'Fixes']) {
+                for (const tab of ['Setup', 'Cues', 'Width', 'Fixes']) {
                     await page.evaluate(id => openTechniqueGuide(id), id);
                     await guide.getByRole('tab', { name: tab }).click();
                     const overflow = await guide.locator('.tg-body, .tg-model, .tg-read').evaluateAll(els => els.some(el => el.scrollWidth > el.clientWidth + 1));

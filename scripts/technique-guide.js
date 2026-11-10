@@ -32,7 +32,9 @@
         a: { label: 'Arm', min: 50, max: 80, avg: h => .385 * h - 6, hint: 'Shoulder tip to the middle of your closed fist, arm straight.' },
         b: { label: 'Shoulders', min: 32, max: 50, avg: h => .23 * h, hint: 'Bony tip to bony tip across the back. Not the widest part of the delts.' }
     };
-    const store = { v: 2, h: 178, f: null, t: null, a: null, b: null, low: true, sumo: false, arch: 1 };
+    // w holds grip and stance widths the lifter has tuned by hand, keyed like 'bg' (bench grip).
+    // A missing key follows the start computed from the body.
+    const store = { v: 2, h: 178, f: null, t: null, a: null, b: null, low: true, sumo: false, arch: 1, w: {} };
 
     function loadBody() {
         let saved = null;
@@ -43,6 +45,7 @@
             Object.keys(FIELDS).forEach(k => { const n = num(saved[k]); if (n !== null) store[k] = clamp(n, FIELDS[k].min, FIELDS[k].max); });
             store.low = saved.low !== false; store.sumo = saved.sumo === true;
             store.arch = [0, 1, 2].includes(saved.arch) ? saved.arch : 1;
+            if (saved.w && typeof saved.w === 'object') Object.keys(saved.w).forEach(k => { const n = num(saved.w[k]); if (/^[a-z]{2,3}$/.test(k) && n !== null) store.w[k] = n; });
         } else if (saved.inH !== undefined) {
             // First guide stored the raw form (wingspan, sitting height). Convert once.
             const H = num(saved.inH), W = num(saved.inW), B = num(saved.inB), F = num(saved.inF), S = num(saved.inS);
@@ -112,7 +115,7 @@
     const ARCH = [2, 7, 12]; // cm of sternum lift for Flat / Arch / Big arch
     function benchGrip(b) { return clamp(r0(2 * (b.B / 2 - 2 + .55 * b.Lu - 4) + 4), 40, RINGS); }
     function bpCalc(b, lift, ph) {
-        const PAD = 45, S = [0, PAD + 7.5], grip = benchGrip(b);
+        const PAD = 45, S = [0, PAD + 7.5], grip = pick('bg', benchGrip(b), 40, RINGS);
         const lat = Math.max(0, grip / 2 + 4 - (b.B / 2 - 2));
         const hLock = Math.sqrt(Math.max(1, b.A * b.A - lat * lat));
         const hip = [b.T - lift * .5, PAD + 7.5], ctrl = [hip[0] * .45, S[1] + lift / .44];
@@ -188,10 +191,137 @@
 
     /* ---------- content ---------- */
     const mine = v => `<b class="tg-mine">${v}</b>`;
-    const range = (a, b) => `${r0(a)} to ${r0(b)} cm`;
-    function ringText(grip) {
-        const d = (grip - RINGS) / 2;
-        return Math.abs(d) < 1 ? 'index fingers on the rings' : `index fingers ${Math.abs(d).toFixed(0)} cm ${d < 0 ? 'inside' : 'outside'} the rings`;
+
+    /* ---------- grip and stance ---------- */
+    // Every grip is measured between the index fingers, every stance between the heels.
+    const HAND = 8.5; // cm across four fingers
+    function pick(key, start, min, max) { return clamp(store.w[key] == null ? r0(start) : store.w[key], min, max); }
+    // Where the ring mark falls on the hand, which is how a width is found on a real bar.
+    function ringMark(v) {
+        const d = (RINGS - v) / 2;
+        if (d < -1.2) return `Index finger ${r0(-d)} cm outside the ring`;
+        if (d < 1.2) return 'Index finger on the ring';
+        if (d < 3.3) return 'Middle finger on the ring';
+        if (d < 5.5) return 'Ring finger on the ring';
+        if (d < 7.7) return 'Pinky on the ring';
+        if (d < 10) return 'Pinky just inside the ring';
+        return `Index finger ${r0(d)} cm inside the ring`;
+    }
+    const armTilt = (v, b) => deg(Math.asin(clamp((v / 2 + HAND / 2 - (b.B / 2 - 2)) / b.A, -1, 1)));
+    function armRead(v, b) {
+        const a = Math.abs(armTilt(v, b));
+        return a < 2.5 ? 'Arms hang straight down.' : `Arms ${r0(a)}° off vertical, which adds ${(b.A * (1 - Math.cos(rad(a)))).toFixed(1)} cm to the pull.`;
+    }
+    const benchElbow = b => b.B / 2 - 2 + .55 * b.Lu; // elbow, out from the midline, with the bar on the chest
+    function widths(lift, b) {
+        const out = {}, x = n => (n).toFixed(1);
+        const add = (name, m) => { m.v = pick(m.key, m.start, m.min, m.max); m.start = clamp(r0(m.start), m.min, m.max); out[name] = m; return m; };
+        if (lift === 'bench') {
+            const start = benchGrip(b), Lf = b.A - b.Lu;
+            add('grip', {
+                key: 'bg', label: 'Grip', how: 'between index fingers', min: 40, max: RINGS, start, lo: start - 4, hi: Math.min(RINGS, start + 6), mark: ringMark,
+                read(v) {
+                    const t = deg(Math.asin(clamp((v / 2 + 2 - benchElbow(b)) / Lf, -1, 1))), rom = r0(bpCalc(b, ARCH[store.arch], 1).rom);
+                    const stack = Math.abs(t) < 3 ? 'Forearms vertical at the chest.' : `Wrists ${r0(Math.abs(t))}° ${t > 0 ? 'outside' : 'inside'} the elbows at the chest.`;
+                    return `${stack} Bar travel ${rom} cm.` + (v >= RINGS ? ' This is the widest legal grip.' : '');
+                },
+                why: 'The start is where your forearms are vertical at the chest: your shoulder width plus how far your elbows travel out.',
+                wider: 'You are slow off the chest, your arms are long, and your shoulders are happy. Watch the bar travel above as you move it.',
+                narrower: 'The front of the shoulder aches, the wrists bend back, or lockout is your strong point.',
+                check: 'Film from the head or the feet. At the touch the wrist sits over the elbow. Move one finger at a time and keep each width for two weeks.'
+            });
+            out.feet = { label: 'Feet', how: 'no single number', fixed: 'Wider than your hips, as far back as you can with the heels still down.',
+                why: 'The feet are there to push you up the bench and hold the arch, so position matters more than width.',
+                check: 'Push hard through the floor. The glutes stay on the bench and the feet do not slide. If the glutes lift, move the feet wider or further forward.' };
+        } else if (lift === 'squat') {
+            const low = store.low, gLo = b.B * (low ? 1.5 : 1.3), gHi = b.B * (low ? 2 : 1.7);
+            const sLo = b.B * (low ? 1.05 : .95), sHi = b.B * (low ? 1.25 : 1.1), long = clamp((b.ratio - .78) / .14, 0, 1);
+            const s = add('stance', {
+                key: low ? 'ssl' : 'ssh', label: 'Stance', how: 'between the heels', min: 25, max: 90, start: lerp(sLo, sHi, .25 + .5 * long), lo: sLo, hi: sHi,
+                mark: v => `Toes out about ${5 * Math.round((15 + 15 * clamp((v - sLo) / (sHi - sLo), 0, 1)) / 5)}°`,
+                read: v => `${x(v / b.B)} × your shoulder width.` + (v > sHi + 4 ? ' Wide: a shorter squat, but depth and knee tracking get harder.' : v < sLo - 4 ? ' Narrow: more knee travel and a longer squat.' : ''),
+                why: `Wide enough for the hips to drop between the thighs, narrow enough for the knees to track over the toes. ${long > .7 ? 'Yours starts toward the wide end because your thighs are long for your torso.' : long < .3 ? 'Yours starts toward the narrow end because your thighs are short for your torso.' : 'Yours starts mid-range.'}`,
+                wider: 'The hips pinch at the bottom, you fold forward, or you cannot reach depth without the lower back tucking under.',
+                narrower: 'The knees cave in, the groin aches, or you lose the bounce out of the bottom.',
+                check: 'Sit in the bottom of a bodyweight squat and shuffle your feet until the hips sink freely. From the front, each thigh points where its toes point.'
+            });
+            s.toes = +s.mark(s.v).match(/\d+/)[0];
+            add('grip', {
+                key: low ? 'sgl' : 'sgh', label: 'Grip', how: 'between index fingers', min: 45, max: 120, start: b.B * (low ? 1.75 : 1.5), lo: gLo, hi: gHi, mark: ringMark,
+                read: v => `${x(v / b.B)} × your shoulder width. ` + (v < gLo ? 'Narrow: a very tight back, hard on elbows and shoulders.' : v > gHi ? 'Wide: easy on the shoulders, but the upper back is harder to keep tight.' : 'A tight upper back without forcing the shoulders.'),
+                why: `As narrow as your shoulders allow with straight wrists. A narrow grip squeezes the upper back into a shelf for the bar${low ? ', and low bar needs a little more room than high bar' : ''}.`,
+                wider: 'Elbows, wrists or the front of the shoulder hurt, or you cannot keep the wrists straight.',
+                narrower: 'The bar moves on your back, or the upper back goes soft out of the bottom.',
+                check: 'Wrists straight, elbows under the bar or just behind it, and no elbow ache the day after. Bring it in one finger at a time as your shoulders loosen.'
+            });
+        } else if (store.sumo) {
+            const ideal = clamp(.45 * b.B + 1.3 * b.F, 1.6 * b.B, 2.2 * b.B);
+            const s = add('stance', {
+                key: 'dss', label: 'Stance', how: 'between the heels', min: 50, max: 120, start: ideal, lo: ideal - 8, hi: ideal + 8,
+                mark: v => `Toes out about ${5 * Math.round((30 + 15 * clamp((v - ideal + 8) / 16, 0, 1)) / 5)}°`,
+                read: v => v > ideal + 6 ? 'Wide for your thighs: the knees end up inside the ankles unless your hips open a lot.' : v < ideal - 6 ? 'Semi-sumo: the shins lean in a little. Easier off the floor, longer pull.' : 'Shins vertical at the start, seen from the front.',
+                why: 'Wide enough that the shins are vertical seen from the front, with the knees over the ankles. The start comes from your thigh length.',
+                wider: 'It leaves the floor easily but your back takes over, and your hips can open further without pain.',
+                narrower: 'It is glued to the floor, the knees cave in, or the hips hurt.',
+                check: 'Film the start from the front: shins vertical, knees over the ankles, hips close to the bar. Knees inside the ankles means too wide.'
+            });
+            s.toes = +s.mark(s.v).match(/\d+/)[0];
+            add('grip', {
+                key: 'dgs', label: 'Grip', how: 'between index fingers', min: 25, max: 70, start: b.B - 10, lo: b.B - 12, hi: b.B - 2, mark: ringMark,
+                read: v => armRead(v, b),
+                why: 'Straight down from the shoulders, inside the knees. Any wider only makes the pull longer.',
+                wider: 'Your hands rub the inside of your thighs at lockout.',
+                narrower: 'Your arms angle out, or your forearms push against your knees.',
+                check: 'From the front the arms hang plumb. On many bars this puts the hands where the knurling starts.'
+            });
+        } else {
+            const s = add('stance', {
+                key: 'dsc', label: 'Stance', how: 'between the heels', min: 15, max: 55, start: b.B * .65, lo: b.B * .55, hi: b.B * .75,
+                mark: () => 'Toes out about 10°',
+                read: v => v > b.B * .8 ? 'Wider than your hips: the knees crowd your arms and push the grip out.' : v < b.B * .5 ? 'Very narrow: little room for the belly, harder to balance.' : `${x(v / b.B)} × your shoulder width.`,
+                why: 'Feet under the hip joints, where you would stand to jump as high as you can.',
+                wider: 'Your belly or thighs block the start position, or your hips feel jammed.',
+                narrower: 'The knees push into your arms, or the grip has to go wide to clear them.',
+                check: 'Jump straight up three times and look at where your feet land. Start there.'
+            });
+            s.toes = 10;
+            const gStart = Math.max(b.B - 10, s.v + 16);
+            add('grip', {
+                key: 'dgc', label: 'Grip', how: 'between index fingers', min: 30, max: RINGS, start: gStart, lo: gStart - 1, hi: gStart + 6, mark: ringMark,
+                read: v => (v < s.v + 13 ? 'Too narrow for this stance: your hands land on your knees. ' : '') + armRead(v, b),
+                why: 'As narrow as your legs allow, so the arms hang straight and the pull is as short as it can be. It follows your stance.',
+                wider: 'Your knees push your elbows out, or your thumbs scrape your thighs.',
+                narrower: 'There is a gap between your arms and your legs.',
+                check: 'Thumbs brush the outside of the thighs on the way up. Arms straight, not bowed around the knees.'
+            });
+        }
+        return out;
+    }
+    // Front view, to scale across: the bar with its rings, the lifter's shoulders, hands and feet.
+    function widthPlan(lift, b, m) {
+        const n = v => v.toFixed(1), both = fn => fn(1) + fn(-1), sj = b.B / 2 - 2, g = m.grip.v;
+        const seg = (cls, x1, y1, x2, y2) => `<line class="${cls}" x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}"/>`;
+        const bar = (y, label = true) => seg('tg-w-shaft', -67, y, 67, y) + both(s => seg('tg-w-sleeve', s * 68, y, s * 88, y) + seg('tg-w-collar', s * 67, y - 5, s * 67, y + 5)
+            + seg('tg-w-ring', s * RINGS / 2, y - 5.5, s * RINGS / 2, y + 5.5) + (label ? `<text class="tg-w-label" x="${n(s * RINGS / 2)}" y="${n(y - 8)}">ring</text>` : ''));
+        const hands = y => both(s => `<rect class="tg-w-hand" x="${n(s > 0 ? g / 2 : -g / 2 - HAND)}" y="${n(y - 4.5)}" width="${HAND}" height="9" rx="2.5"/>`);
+        const feet = (y, st) => both(s => `<rect class="tg-w-foot" x="${n(s * st.v / 2 - 5)}" y="${n(y - 4)}" width="10" height="27" rx="5" transform="rotate(${-s * st.toes} ${n(s * st.v / 2)} ${n(y)})"/>`);
+        const head = y => `<circle class="tg-w-head" cx="0" cy="${y}" r="7.5"/>`;
+        let s = '', h;
+        if (lift === 'bench') {
+            const yb = 14, ex = benchElbow(b), lx = g / 2 + 2, Lf = b.A - b.Lu, ye = yb + Math.sqrt(Math.max(1, Lf * Lf - (lx - ex) * (lx - ex))), ys = ye - 9;
+            s += both(k => seg('tg-w-plumb', k * ex, yb - 9, k * ex, ye)) + seg('tg-w-body', -sj, ys, sj, ys);
+            s += both(k => seg('tg-w-arm', k * sj, ys, k * ex, ye) + seg('tg-w-arm', k * ex, ye, k * lx, yb) + `<circle class="tg-w-joint" cx="${n(k * ex)}" cy="${n(ye)}" r="1.5"/>`);
+            s += bar(yb) + hands(yb); h = ye + 7;
+        } else if (lift === 'squat') {
+            const yb = 24, yf = 54;
+            s += head(11) + both(k => seg('tg-w-plumb', k * b.B / 2, yb + 4, k * b.B / 2, yf + 24)) + seg('tg-w-body', -b.B / 2 + 4, yb + 4, b.B / 2 - 4, yb + 4);
+            s += feet(yf, m.stance) + bar(yb) + hands(yb); h = yf + 28;
+        } else {
+            const ys = 22, hx = g / 2 + HAND / 2, yb = ys + Math.sqrt(Math.max(1, b.A * b.A - (hx - sj) * (hx - sj)));
+            s += head(9) + both(k => seg('tg-w-plumb', k * sj, ys, k * sj, yb)) + seg('tg-w-body', -b.B / 2 + 4, ys, b.B / 2 - 4, ys);
+            s += feet(yb - 9, m.stance) + both(k => seg('tg-w-arm', k * sj, ys, k * hx, yb)) + bar(yb, Math.abs(m.stance.v / 2 - RINGS / 2) > 16) + hands(yb); h = yb + 22;
+        }
+        return { svg: s, box: `-88 -2 176 ${Math.round(h + 2)}` };
     }
     const BRACE = { t: 'Settle, then brace', d: 'Let the bar stop moving. Small exhale to drop the ribs, then one big breath into the belt: front, sides and back.' };
 
@@ -215,14 +345,14 @@
                 if (b.ratio < .78) return `Short thighs for your torso. You can stay upright (about ${lean}°), and a narrower stance will work well.`;
                 return `About ${lean}° of lean at the bottom is what a balanced squat looks like on your proportions. Don't fight it to look more upright.`;
             },
-            setup: b => [
-                { t: 'Wedge under the bar', d: `Hands about ${mine(r0(b.B * (store.low ? 1.75 : 1.5)) + ' cm')} apart, wrists straight. ${store.low ? 'Bar on the shelf your rear delts make when you squeeze the upper back.' : 'Bar on top of the traps.'} Pull it into you until it feels like part of your back.` },
+            setup: b => { const w = widths('squat', b); return [
+                { t: 'Wedge under the bar', d: `Index fingers ${mine(w.grip.v + ' cm')} apart (${w.grip.mark(w.grip.v).toLowerCase()}), wrists straight. ${store.low ? 'Bar on the shelf your rear delts make when you squeeze the upper back.' : 'Bar on top of the traps.'} Pull it into you until it feels like part of your back.` },
                 { t: 'Both feet under it, stand up', d: 'Big breath, hips through, lift it with both legs. Never from a split stance.' },
                 { t: 'Three steps', d: 'Back, back, adjust. Then stop moving your feet.' },
-                { t: 'Find your stance', d: `Heels ${mine(range(b.B * (store.low ? 1.05 : .95), b.B * (store.low ? 1.25 : 1.1)))} apart, toes out 15 to 30°.` },
+                { t: 'Find your stance', d: `Heels ${mine(w.stance.v + ' cm')} apart, toes out about ${w.stance.toes}°.` },
                 BRACE,
                 { t: 'Meet day', d: 'Wait for “Squat”. Hip crease below the top of the knee. Stand still, knees locked, for “Rack”.', meet: true }
-            ],
+            ]; },
             cues: [
                 { id: 'sq-feet', ph: 'top', t: 'Grip the floor', d: 'Big toe, little toe, heel. Weight stays midfoot.' },
                 { id: 'sq-air', ph: 'top', t: 'Big air into the belt', d: 'Brace before you move, hold it to the top.' },
@@ -260,11 +390,11 @@
                 return `This grip puts your forearms vertical at the bottom. A few centimetres wider shortens the ${rom} cm stroke if your shoulders are happy with it.`;
             },
             setup: b => {
-                const g = benchGrip(b);
+                const g = widths('bench', b).grip.v;
                 return [
                     { t: 'Eyes under the bar', d: 'So the unrack is a short pull, not a reach.' },
                     { t: 'Shoulder blades back and down', d: 'Pinch them together and tuck them toward your back pockets. They stay there the whole set.' },
-                    { t: 'Take your grip', d: `${mine(g + ' cm')} between index fingers (${ringText(g)}). Bar low in the palm, over the wrist, thumbs around.` },
+                    { t: 'Take your grip', d: `${mine(g + ' cm')} between index fingers (${ringMark(g).toLowerCase()}). Bar low in the palm, over the wrist, thumbs around.` },
                     { t: 'Feet down, chest up', d: 'Plant the feet and push yourself toward your head. Chest high, glutes on the bench. Keep that leg tension until the bar is racked.' },
                     { t: 'Breathe, pull it out', d: 'Big breath, then pull the bar out over the shoulders with straight arms. Pressing it out of the hooks unpacks your shoulders.' },
                     { t: 'Meet day', d: '“Start”, hold it still on the chest for “Press”, lock out for “Rack”. Head, shoulders and glutes stay down, feet flat. Elbows must drop to shoulder-joint height.', meet: true }
@@ -307,19 +437,19 @@
                 if (tc <= 56) return `Conventional suits your build: you start fairly upright, at about ${tc}° (sumo would be ${ts}°).`;
                 return `Neither style has a clear edge on your build (${tc}° conventional, ${ts}° sumo). Run both for a few weeks and keep the one that moves more at the same effort.`;
             },
-            setup: b => (store.sumo ? [
-                { t: 'Feet wide, bar over midfoot', d: `Heels ${mine(range(b.B * 1.7, b.B * 2.1))} apart, toes out 30 to 45°, shins vertical when seen from the front.` },
-                { t: 'Grip straight down', d: `Hands about ${mine(r0(b.B * 1.08) + ' cm')} apart, arms hanging plumb inside the knees. Don’t move the bar.` },
+            setup: b => { const w = widths('deadlift', b); return (store.sumo ? [
+                { t: 'Feet wide, bar over midfoot', d: `Heels ${mine(w.stance.v + ' cm')} apart, toes out about ${w.stance.toes}°, shins vertical when seen from the front.` },
+                { t: 'Grip straight down', d: `Index fingers ${mine(w.grip.v + ' cm')} apart, arms hanging plumb inside the knees. Don’t move the bar.` },
                 { t: 'Knees out, hips to the bar', d: 'Open the knees over the toes and sit in until your hips are close to the bar.' }
             ] : [
-                { t: 'Bar over midfoot', d: `Two or three centimetres from your shins as you stand. Heels ${mine(range(b.B * .55, b.B * .75))} apart.` },
-                { t: 'Grip without moving the bar', d: `Hinge down. Hands about ${mine(r0(b.B * 1.22) + ' cm')} apart, just outside the legs.` },
+                { t: 'Bar over midfoot', d: `Two or three centimetres from your shins as you stand. Heels ${mine(w.stance.v + ' cm')} apart.` },
+                { t: 'Grip without moving the bar', d: `Hinge down. Index fingers ${mine(w.grip.v + ' cm')} apart, just outside the legs.` },
                 { t: 'Shins to the bar', d: 'Bend the knees until the shins touch it. Don’t roll it.' }
             ]).concat([
                 { t: 'Brace, flex your armpits', d: 'Big breath into the belt. Lats pull the bar into you.' },
                 { t: 'Pull the slack out', d: `Lift until the bar clicks against the plates and bends. Chest up, hips wedged in. ${store.sumo ? 'Sumo is slow off the floor: build tension, never jerk it.' : 'You are already pulling before it leaves the floor.'}` },
                 { t: 'Meet day', d: 'No start signal. Stand tall, knees locked, shoulders back, and hold for “Down”. Follow the bar down with both hands.', meet: true }
-            ]),
+            ]); },
             cues: [
                 { id: 'dl-lats', ph: 'start', t: 'Flex your armpits', d: 'Lats on. The bar stays against you.' },
                 { id: 'dl-slack', ph: 'start', t: 'Slack out, chest up', d: 'Hear the click before you pull.' },
@@ -401,7 +531,7 @@
                 </section>
                 <section class="tg-read">
                     <div class="tg-tabs" role="tablist" aria-label="Guide">
-                        ${[['setup', 'Setup'], ['cues', 'Cues'], ['fixes', 'Fixes']].map(([id, label]) => `<button type="button" role="tab" data-tab="${id}">${label}</button>`).join('')}
+                        ${[['setup', 'Setup'], ['cues', 'Cues'], ['width', 'Width'], ['fixes', 'Fixes']].map(([id, label]) => `<button type="button" role="tab" data-tab="${id}">${label}</button>`).join('')}
                     </div>
                     <div class="tg-panel" role="tabpanel" tabindex="-1"></div>
                 </section>
@@ -422,11 +552,13 @@
             else if (hit('.tg-body-btn')) toggleBody();
             else if (hit('.tg-reset')) { ['f', 't', 'a', 'b'].forEach(k => { store[k] = null; }); saveBody(); syncBodyForm(); renderAll(); }
             else if ((el = hit('[data-pin]'))) togglePin(el.dataset.pin);
+            else if ((el = hit('[data-width-reset]'))) { delete store.w[el.dataset.widthReset]; saveBody(); renderModel(); syncWidths(); }
             else if ((el = hit('[data-pose]'))) { stop(); view.dir = el.dataset.pose === 'up' || el.dataset.pose === 'press' ? -1 : 1; setPose(GUIDE[view.lift].poseOf[el.dataset.pose]); }
         });
         dialog.addEventListener('input', event => {
-            const field = event.target.dataset.field;
-            if (field) { store[field] = +event.target.value; saveBody(); syncBodyForm(); renderAll(); }
+            const field = event.target.dataset.field, wkey = event.target.dataset.width;
+            if (wkey) { store.w[wkey] = +event.target.value; saveBody(); renderModel(); syncWidths(); }
+            else if (field) { store[field] = +event.target.value; saveBody(); syncBodyForm(); renderAll(); }
             else if (event.target.classList.contains('tg-scrub')) { stop(); const v = event.target.value / 100; view.dir = v < view.ph ? -1 : 1; setPose(v); }
         });
         $('.tg-bodyform').addEventListener('submit', event => event.preventDefault());
@@ -486,7 +618,7 @@
         dialog.querySelectorAll('[data-tab]').forEach(el => el.setAttribute('aria-selected', String(el.dataset.tab === view.tab)));
         if (view.tab === 'setup') {
             panel.innerHTML = `<ol class="tg-steps">${g.setup(b).map(s => `<li class="${s.meet ? 'tg-meet' : ''}"><h3>${s.t}</h3><p>${s.d}</p></li>`).join('')}</ol>
-                <p class="tg-note">Highlighted numbers come from your body. Meet rules are IPF-style; check your federation’s rulebook.</p>`;
+                <p class="tg-note">Highlighted numbers come from your body; tune grip and stance under Width. Meet rules are IPF-style; check your federation’s rulebook.</p>`;
         } else if (view.tab === 'cues') {
             const groups = Object.keys(g.poseOf).map(ph => {
                 const cues = g.cues.filter(c => c.ph === ph && cueShown(view.lift, c));
@@ -497,9 +629,41 @@
             }).join('');
             panel.innerHTML = groups + `<p class="tg-note">Pin up to two. Pinned cues show on the lift’s card in your workout, because one or two is all you can hold under the bar.</p>`;
             view.phase = ''; drawFigure();
+        } else if (view.tab === 'width') {
+            const m = widths(view.lift, b), tune = (dt, dd) => dd ? `<div><dt>${dt}</dt><dd>${dd}</dd></div>` : '';
+            panel.innerHTML = `<figure class="tg-w-plan"><svg class="tg-w-svg" role="img" aria-label="${g.label}: bar, hands${m.stance ? ' and feet' : ''} from the front, to scale" preserveAspectRatio="xMidYMid meet"></svg>
+                <figcaption>Front view, to scale. Orange is you: hands${m.stance ? ' and feet' : ''}. Teal is what you line up with: the rings, 81 cm apart, and ${view.lift === 'bench' ? 'your elbows' : 'your shoulders'}.</figcaption></figure>`
+                + Object.values(m).map(w => `<section class="tg-w"${w.key ? ` data-w="${w.key}"` : ''}>
+                    <div class="tg-w-top"><h3>${w.label}</h3><span>${w.how}</span></div>
+                    ${w.key ? `<div class="tg-w-val"><output class="tg-w-num"></output><span class="tg-w-mark"></span></div>
+                    <div class="tg-w-slider"><input type="range" data-width="${w.key}" min="${w.min}" max="${w.max}" step="1" aria-label="${g.label} ${w.label.toLowerCase()}, centimetres ${w.how}"><div class="tg-w-scale"><i class="tg-w-band"></i><i class="tg-w-start"></i></div></div>
+                    <p class="tg-w-read"></p><button type="button" class="tg-w-reset" data-width-reset="${w.key}" hidden></button>` : `<p class="tg-w-read">${w.fixed}</p>`}
+                    <p class="tg-w-why">${w.why}</p>
+                    <dl class="tg-w-tune">${tune('Go wider if', w.wider)}${tune('Go narrower if', w.narrower)}${tune('Check', w.check)}</dl>
+                </section>`).join('')
+                + `<p class="tg-note">The teal band under each slider is the usual range for your build, and the tick is where to start. Your settings are saved and used in Setup. Finger landmarks assume a hand about 9 cm wide and rings 81 cm apart; some squat and deadlift bars are marked differently.</p>`;
+            syncWidths();
         } else {
             panel.innerHTML = `<dl class="tg-fixes">${g.fixes.map(([see, fix]) => `<div><dt>${see}</dt><dd>${fix}</dd></div>`).join('')}</dl>`;
         }
+    }
+    // Fills the Width tab's numbers and drawing in place, so a slider keeps its drag.
+    function syncWidths() {
+        if (view.tab !== 'width') return;
+        const m = widths(view.lift, body()), plan = widthPlan(view.lift, body(), m), svg = $('.tg-w-svg');
+        if (!svg) return;
+        svg.setAttribute('viewBox', plan.box); svg.innerHTML = plan.svg;
+        Object.values(m).filter(w => w.key).forEach(w => {
+            const el = $(`[data-w="${w.key}"]`); if (!el) return;
+            const q = sel => el.querySelector(sel), pct = v => clamp((v - w.min) / (w.max - w.min) * 100, 0, 100), input = q('input');
+            if (document.activeElement !== input) input.value = w.v;
+            q('.tg-w-num').textContent = w.v + ' cm';
+            q('.tg-w-mark').textContent = w.mark(w.v);
+            q('.tg-w-read').textContent = w.read(w.v);
+            q('.tg-w-band').style.cssText = `left:${pct(w.lo).toFixed(1)}%;width:${(pct(w.hi) - pct(w.lo)).toFixed(1)}%`;
+            q('.tg-w-start').style.left = pct(w.start).toFixed(1) + '%';
+            const reset = q('.tg-w-reset'); reset.hidden = w.v === w.start; reset.textContent = `Back to my start, ${w.start} cm`;
+        });
     }
     function renderAll() { renderModel(); renderPanel(); }
 

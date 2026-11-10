@@ -69,7 +69,7 @@
 
 /* Setup / Cues / Fixes */
 .tg-read { padding: 0 16px 28px; }
-.tg-tabs { position: sticky; top: 0; z-index: 1; display: flex; gap: 22px; margin-top: 10px; background: var(--card); border-bottom: 1px solid var(--border); }
+.tg-tabs { position: sticky; top: 0; z-index: 2; display: flex; gap: 22px; margin-top: 10px; background: var(--card); border-bottom: 1px solid var(--border); }
 .tg-tabs button { min-height: 48px; padding: 0 2px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; font: 700 22px/1 var(--font-display); color: var(--text-muted); }
 .tg-tabs button[aria-selected="true"] { color: var(--text-main); border-bottom-color: var(--accent-fill); }
 .tg-panel { padding-top: 6px; outline: none; }
@@ -101,6 +101,41 @@
 .tg-fixes dt { font: 700 22px/1.05 var(--font-display); }
 .tg-fixes dd { margin: 4px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-muted); max-width: 58ch; }
 
+/* Width: grip and stance */
+.tg-w-plan { position: sticky; top: 49px; z-index: 1; margin: 0; padding: 10px 0 8px; background: var(--card); border-bottom: 1px solid var(--border); }
+.tg-w-svg { display: block; width: 100%; height: auto; max-height: 230px; border-radius: 14px; background: var(--surface-sunken); }
+.tg-w-plan figcaption { margin-top: 6px; font-size: 12px; line-height: 1.4; color: var(--text-muted); }
+.tg-w-shaft { stroke: var(--text-muted); stroke-width: 2.8; }
+.tg-w-sleeve { stroke: var(--line-strong); stroke-width: 5; }
+.tg-w-collar { stroke: var(--text-muted); stroke-width: 2.6; }
+.tg-w-ring { stroke: var(--teal); stroke-width: 1.4; }
+.tg-w-label { fill: var(--teal); font: 500 6.5px var(--font-body); text-anchor: middle; }
+.tg-w-plumb { stroke: var(--teal); stroke-width: .9; stroke-dasharray: 3 3; }
+.tg-w-body { stroke: var(--text-main); stroke-width: 9; stroke-linecap: round; }
+.tg-w-head { fill: var(--text-main); }
+.tg-w-arm { stroke: color-mix(in srgb, var(--text-main) 72%, var(--surface-sunken)); stroke-width: 5; stroke-linecap: round; }
+.tg-w-joint { fill: var(--surface-sunken); }
+.tg-w-hand, .tg-w-foot { fill: var(--accent-fill); }
+.tg-w { padding: 14px 0 12px; border-bottom: 1px solid var(--border); }
+.tg-w-top { display: flex; align-items: baseline; gap: 8px; }
+.tg-w-top h3 { margin: 0; font: 700 22px/1.05 var(--font-display); }
+.tg-w-top span { font-size: 12px; color: var(--text-muted); }
+.tg-w-val { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin-top: 4px; }
+.tg-w-num { font: 700 46px/.95 var(--font-display); color: var(--accent); }
+.tg-w-mark { font-size: 15px; font-weight: 700; }
+.tg-w-slider { position: relative; padding-bottom: 8px; }
+.tg-w-scale { position: relative; height: 5px; margin: -9px 10px 0; border-radius: 3px; background: var(--surface-row); pointer-events: none; }
+.tg-w-band { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: rgba(var(--teal-rgb), .6); }
+.tg-w-start { position: absolute; top: -3px; width: 2px; height: 11px; margin-left: -1px; background: var(--teal); }
+.tg-w-read { margin: 8px 0 0; font-size: 15px; line-height: 1.4; max-width: 58ch; }
+.tg-w-why { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: var(--text-muted); max-width: 58ch; }
+.tg-w-reset { min-height: 44px; padding: 0 2px; border: 0; background: none; font: 500 14px var(--font-body); color: var(--teal) !important; text-decoration: underline; text-underline-offset: 3px; }
+.tg-w-reset[hidden] { display: none; }
+.tg-w-tune { margin: 8px 0 0; }
+.tg-w-tune div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 0 8px; padding: 5px 0; }
+.tg-w-tune dt { font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+.tg-w-tune dd { margin: 0; font-size: 14px; line-height: 1.4; }
+
 /* Workout card: pinned cues replace the word "Technique". */
 .exercise-reference-actions button[data-technique-cue] { min-width: 0; text-align: left; }
 .exercise-reference-actions button[data-technique-cue] svg { flex-shrink: 0; }
@@ -114,6 +149,8 @@
     .tg-stage { grid-template-columns: minmax(0, 1fr) 92px; }
     .tg-stats dd { font-size: 28px; }
     .tg-cue-group { grid-template-columns: 64px minmax(0, 1fr); }
+    .tg-tabs { gap: 16px; }
+    .tg-w-tune div { grid-template-columns: 84px minmax(0, 1fr); }
     .tg-seg button { padding: 0 9px; font-size: 13px; }
 }
 @media (min-width: 760px) {
