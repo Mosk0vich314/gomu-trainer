@@ -58,6 +58,10 @@ const http = require('node:http');
         await guide.locator('[data-pose="touch"] .tg-cue-phase').click();
         assert.equal(await guide.locator('.tg-phase').innerText(), 'Touch');
         assert.equal(await guide.locator('.tg-scrub').inputValue(), '100');
+        // With the bar on the chest the forearm is vertical: elbow straight under the bar, below it.
+        const [, benchElbow, benchBar] = (await guide.locator('.tg-limb').getAttribute('points')).split(' ').map(p => p.split(',').map(Number));
+        assert.equal(benchElbow[0], benchBar[0]);
+        assert(benchElbow[1] - benchBar[1] > 20, 'forearm should hang a forearm length under the bar');
         assert.equal(await guide.locator('.tg-play').getAttribute('aria-pressed'), 'false');
         // The body sliders redraw the figure and the numbers, and are saved and backed up.
         await guide.getByRole('button', { name: 'My body' }).click();

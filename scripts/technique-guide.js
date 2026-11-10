@@ -120,9 +120,21 @@
         const c = curve(.33), touch = [c[0], c[1] + 10], lock = [1, S[1] + hLock];
         const k = [lerp(lock[0], touch[0], .25), lerp(touch[1], lock[1], .25)]; // J path: back toward the face first
         const at = t => [(1 - t) * (1 - t) * lock[0] + 2 * t * (1 - t) * k[0] + t * t * touch[0], (1 - t) * (1 - t) * lock[1] + 2 * t * (1 - t) * k[1] + t * t * touch[1]];
-        const bar = at(ph), Lf = b.A - b.Lu, e = lerp(lat * b.Lu / b.A, Math.min(lat, b.Lu - 1), ph);
-        const l1 = Math.sqrt(Math.max(1, b.Lu * b.Lu - e * e)), l2 = Math.sqrt(Math.max(1, Lf * Lf - (lat - e) * (lat - e)));
-        const elbow = ik2(S, bar, l1, l2, false);
+        // Seen from the side the forearm is vertical for the whole rep: the elbow sits under the bar.
+        // How far out the elbow is (e, toward the viewer) is the free variable; solve its height so
+        // both the upper arm and the forearm keep their real length.
+        const bar = at(ph), Lf = b.A - b.Lu, bx = bar[0] - S[0];
+        const reach = Math.sqrt(Math.max(1, b.Lu * b.Lu - bx * bx));
+        const miss = y => { const e = Math.sqrt(Math.max(0, reach * reach - (y - S[1]) * (y - S[1]))); return (bar[1] - y) * (bar[1] - y) + (lat - e) * (lat - e) - Lf * Lf; };
+        const y0 = S[1] - reach, y1 = Math.min(bar[1], S[1] + reach);
+        let lo = y0, hi = null, ey = y0, least = Math.abs(miss(y0));
+        for (let i = 1; i <= 96 && hi === null; i++) {
+            const y = y0 + (y1 - y0) * i / 96, m = miss(y);
+            if (Math.abs(m) < least) { least = Math.abs(m); ey = y; }
+            if (m <= 0) hi = y; else lo = y;
+        }
+        if (hi !== null) { for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (miss(m) > 0) lo = m; else hi = m; } ey = (lo + hi) / 2; }
+        const elbow = [bar[0], ey];
         const ankle = [hip[0] + .55 * b.F - lift, 8], knee = ik2(hip, ankle, b.F, b.Ls, true);
         return { PAD, S, hip, ctrl, bar, at, elbow, ankle, knee, lock, touch, grip, rom: lock[1] - touch[1] };
     }
