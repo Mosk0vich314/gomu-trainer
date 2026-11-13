@@ -215,7 +215,7 @@ test('a program can preset a mode and a superset link, and the lifter can overri
     assert.deepEqual(Array.from(row.blocks, b => b.type), ['work', 'drop', 'drop', 'work', 'drop', 'drop']);
     assert.equal(row.blocks[0].targetRpe, 9);
     assert.equal(raise._mode, 'myo');
-    assert.deepEqual(Array.from(raise.blocks, b => [b.type, b.sets, b.reps]), [['work', 2, 12], ['backoff', 4, 3]]);
+    assert.deepEqual(Array.from(raise.blocks, b => [b.type, b.sets, b.reps]), [['work', 1, 12], ['backoff', 4, 3], ['work', 1, 12], ['backoff', 4, 3]]);
     // The source program keeps its straight sets, which is what switching the mode off shows.
     assert.equal(day[0].blocks.length, 1);
     // Switching a preset off stores an explicit 'off' (the DROP chip does this).

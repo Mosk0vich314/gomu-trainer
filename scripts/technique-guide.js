@@ -304,7 +304,11 @@
         const bar = (y, label = true) => seg('tg-w-shaft', -67, y, 67, y) + both(s => seg('tg-w-sleeve', s * 68, y, s * 88, y) + seg('tg-w-collar', s * 67, y - 5, s * 67, y + 5)
             + seg('tg-w-ring', s * RINGS / 2, y - 5.5, s * RINGS / 2, y + 5.5) + (label ? `<text class="tg-w-label" x="${n(s * RINGS / 2)}" y="${n(y - 8)}">ring</text>` : ''));
         const hands = y => both(s => `<rect class="tg-w-hand" x="${n(s > 0 ? g / 2 : -g / 2 - HAND)}" y="${n(y - 4.5)}" width="${HAND}" height="9" rx="2.5"/>`);
-        const feet = (y, st) => both(s => `<rect class="tg-w-foot" x="${n(s * st.v / 2 - 5)}" y="${n(y - 4)}" width="10" height="27" rx="5" transform="rotate(${-s * st.toes} ${n(s * st.v / 2)} ${n(y)})"/>`);
+        // Footprints seen from above, toes up the page: heel on the stance line (the number is
+        // heel to heel), narrow heel, wide toe end, turned out. Drawn toes-down, the old capsules
+        // read as pigeon-toed.
+        const FOOT = 'M-3.4 0C-3.6 -8 -5.4 -15 -5.4 -20C-5.4 -25 -2.8 -27 0 -27C2.8 -27 5.4 -25 5.4 -20C5.4 -15 3.6 -8 3.4 0C3.4 2.4 1.8 3.4 0 3.4C-1.8 3.4 -3.4 2.4 -3.4 0Z';
+        const feet = (y, st) => both(s => `<path class="tg-w-foot" d="${FOOT}" transform="translate(${n(s * st.v / 2)} ${n(y + 20)}) rotate(${s * st.toes})"/>`);
         const head = y => `<circle class="tg-w-head" cx="0" cy="${y}" r="7.5"/>`;
         let s = '', h;
         if (lift === 'bench') {

@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.10.1730";
+        const APP_VERSION = "v2026.11.13.1853";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -2166,10 +2166,14 @@
             const actReps = mode.actReps || (mode.type === 'dropset' ? 6 : 12);
 
             if (mode.type === 'myo') {
-                return [
-                    { type: 'work', sets: actSets, reps: actReps, targetRpe: baseRpe || 8.0, pct: basePct },
-                    { type: 'backoff', sets: Math.max(1, mode.backSets || 4), reps: mode.backReps || Math.max(3, Math.floor(actReps / 2)), targetRpe: null, pct: null }
-                ];
+                // Each activation set is its own block followed by its own back-offs:
+                // two activations means activation → mini-sets → activation → mini-sets.
+                const myo = [];
+                for (let a = 1; a <= actSets; a++) {
+                    myo.push({ type: 'work', sets: 1, reps: actReps, targetRpe: baseRpe || 8.0, pct: basePct });
+                    myo.push({ type: 'backoff', sets: Math.max(1, mode.backSets || 4), reps: mode.backReps || Math.max(3, Math.floor(actReps / 2)), targetRpe: null, pct: null });
+                }
+                return myo;
             }
             // dropset — each activation set is its own block, followed by its own drop sequence,
             // so every activation+drops group is checked off independently.
@@ -4917,7 +4921,8 @@
                     const dotColor = isMain ? 'var(--accent)' : 'var(--teal)';
                     
                     // SMART DETECTION: Activations are always the first block, OR any single set with 8+ reps
-                    const isMyoActivation = isMyo && (bIndex === 0 || (block.sets === 1 && block.reps >= 8));
+                    // Program-mode myo (buildModeBlocks) is typed: every 'work' block is an activation.
+                    const isMyoActivation = isMyo && (ex._mode === 'myo' ? block.type !== 'backoff' : (bIndex === 0 || (block.sets === 1 && block.reps >= 8)));
                     const isMyoBackoff = isMyo && !isMyoActivation;
                     const isDropSet = isDrop && block.type === 'drop';
                     const isDropActivation = isDrop && !isDropSet;
