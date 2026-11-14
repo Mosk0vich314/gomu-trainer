@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.14.1837";
+        const APP_VERSION = "v2026.11.15.0059";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -960,7 +960,8 @@
             const customFolderContent = document.getElementById('custom-folder-content');
             if (customFolderContent) {
                 const customProgs = safeParse('customPrograms', {});
-                let html = `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 10px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">Start an empty workout</button>`;
+                let html = typeof userProgramsLibraryHtml === 'function' ? userProgramsLibraryHtml() : ''; // scripts/program-editor.js
+                html += `<button class="action-btn btn-start" style="padding: 12px; margin-bottom: 10px; font-size: 14px; border-style: dashed;" onclick="startCustomWorkout()">Start an empty workout</button>`;
                 html += `<div style="display:flex;gap:8px;margin-bottom:15px;">
                     <button class="reset-btn" style="flex:1;padding:10px;font-size:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="exportCustomWorkout()">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -1196,7 +1197,7 @@
                 if (data[k] != null && !['string', 'number'].includes(typeof data[k])) fail();
             });
             if (data.activeWorkout != null && (!isObject(data.activeWorkout) || !isWorkoutStorageKey(data.activeWorkout.key || ''))) fail();
-            for (const [field, validKey] of [['programSwaps', k => k.startsWith('programSwaps_')], ['programModes', k => k.startsWith('programModes_')], ['programTMs', k => k.startsWith('programTMs_')], ['workoutSessions', isWorkoutStorageKey]]) {
+            for (const [field, validKey] of [['programSwaps', k => k.startsWith('programSwaps_')], ['programModes', k => k.startsWith('programModes_')], ['programTMs', k => k.startsWith('programTMs_')], ['workoutSessions', isWorkoutStorageKey], ['userPrograms', k => k.startsWith('User_')]]) {
                 Object.entries(data[field] || {}).forEach(([k, value]) => { if (!validKey(k) || !isObject(value)) fail(); });
             }
             for (const [field, keys] of [['preferences', BACKUP_PREFERENCES], ['migrations', BACKUP_MIGRATIONS]]) {
@@ -1225,7 +1226,9 @@
             setJSON('lastUsedWeights', data.lastUsedWeights);
             setJSON('equipmentModes', data.equipmentModes);
             setJSON('customPrograms', data.customPrograms);
-            setJSON('userPrograms', data.userPrograms);
+            // Merged, never replaced: the Gist leaves out copies of built-in programs,
+            // so restoring from it must not delete the ones on this phone.
+            if (data.userPrograms) setJSON('userPrograms', { ...safeParse('userPrograms', {}), ...data.userPrograms });
             setJSON('warmupRoutine', data.warmupRoutine);
             setJSON('gymPlateInventory', data.gymPlateInventory);
             setJSON('gymPlateInventoryLb', data.gymPlateInventoryLb);
@@ -1320,6 +1323,7 @@
         };
 
         const GIST_MAX_CHARS = 8000000;
+        const GIST_INCLUDES_PROGRAM_COPIES = false;
         async function gdriveBackup() {
             const pat = localStorage.getItem('gistPAT') || '';
             if (!pat.trim()) return;
@@ -1330,6 +1334,12 @@
                 // sessions, pretty-printed). Only a backup too big for a Gist is trimmed,
                 // oldest sessions first, and the settings sheet then says how many it holds.
                 // Large files come back through raw_url on restore.
+                // A copy of a built-in (encrypted) program is that program's content in
+                // the clear. It stays on the phone and in exported files; it is never
+                // uploaded. The lifter's own programs do go up.
+                if (!GIST_INCLUDES_PROGRAM_COPIES) {
+                    backup.userPrograms = Object.fromEntries(Object.entries(backup.userPrograms || {}).filter(([, prog]) => !(prog && prog.copyOf)));
+                }
                 let history = workoutHistoryCache.slice();
                 let content = JSON.stringify({ ...backup, workoutHistory: history });
                 while (content.length > GIST_MAX_CHARS && history.length > 50) {

@@ -1,0 +1,76 @@
+/* Program editor (scripts/program-editor.js). Uses the app's theme vars only. */
+#program-editor { position: fixed; inset: 0; z-index: 1700; background: var(--bg); color: var(--text-main); font-family: var(--font-body); }
+#program-editor[hidden] { display: none; }
+#program-editor *, #program-editor *::before { box-sizing: border-box; }
+#program-editor button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#program-editor :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+#program-editor input, #program-editor select {
+    width: 100%; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface-sunken, var(--input-bg)); color: var(--text-main); font: 600 16px var(--font-body);
+}
+#program-editor input::placeholder { color: var(--text-muted); opacity: .7; }
+#program-editor input:disabled { opacity: .4; }
+
+.pe { display: flex; flex-direction: column; height: 100%; max-width: 640px; margin: 0 auto; }
+.pe-head {
+    display: grid; grid-template-columns: 88px minmax(0, 1fr) 88px; align-items: center; gap: 8px; flex-shrink: 0;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; background: var(--nav-bg, var(--card)); border-bottom: 2px solid var(--line-strong, var(--border));
+}
+.pe-head h2 { margin: 0; font: 800 26px/1 var(--font-display); text-align: center; white-space: nowrap; }
+.pe-quiet { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--text-muted); font-size: 15px; font-weight: 700; text-align: left; }
+.pe-save { min-height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--accent-fill); color: var(--on-accent); font-size: 15px; font-weight: 800; }
+.pe-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px calc(40px + env(safe-area-inset-bottom, 0px)); }
+
+.pe-error { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--danger); border-radius: 10px; color: var(--danger); font-size: 14px; font-weight: 700; }
+.pe-error[hidden] { display: none; }
+.pe-field { display: block; margin-bottom: 20px; }
+.pe-field > span, .pe-nav-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+#program-editor .pe-field input { min-height: 54px; font: 800 30px/1.1 var(--font-display); }
+
+/* Weeks and days: number chips, the active one filled like the nav plate. */
+.pe-nav-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 8px; }
+.pe-nav-label { margin: 0; }
+.pe-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
+.pe-chips::-webkit-scrollbar { display: none; }
+.pe-chip {
+    flex: 0 0 auto; min-width: 44px; min-height: 44px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px;
+    background: none; color: var(--text-muted); font: 800 22px/1 var(--font-display); font-variant-numeric: tabular-nums;
+}
+.pe-chip[aria-pressed="true"] { background: var(--accent-fill); color: var(--on-accent); border-color: transparent; }
+.pe-chip-add { border-style: dashed; color: var(--text-main); }
+.pe-tools { display: flex; flex-wrap: wrap; gap: 0 18px; margin: 0 0 10px 52px; }
+.pe-link { min-height: 44px; padding: 0; border: 0; background: none; color: var(--teal); font-size: 13px; font-weight: 700; }
+.pe-link:disabled { color: var(--text-muted); opacity: .5; cursor: default; }
+
+.pe-day-title { margin: 14px 0 10px; font: 800 24px/1 var(--font-display); }
+.pe-empty { margin: 0 0 14px; color: var(--text-muted); font-size: 14px; }
+
+/* An exercise: the same card as on the workout screen, type colour on the left rule. */
+.pe-ex { margin-bottom: 14px; padding: 10px 10px 4px 12px; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--teal); border-radius: 14px; }
+.pe-ex.main { border-left-color: var(--accent); }
+.pe-ex-head { display: grid; grid-template-columns: minmax(0, 1fr) 40px 40px 40px; gap: 2px; align-items: center; }
+#program-editor .pe-ex-name { font: 800 22px/1.1 var(--font-display); }
+.pe-icon { width: 40px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--text-muted); }
+.pe-icon.danger { color: var(--danger); }
+.pe-icon:disabled { opacity: .25; cursor: default; }
+.pe-seg { display: inline-grid; grid-template-columns: 1fr 1fr; margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.pe-seg button { min-height: 44px; padding: 0 16px; border: 0; background: none; color: var(--text-muted); font-size: 13px; font-weight: 700; }
+.pe-seg button[aria-pressed="true"] { background: var(--surface-row, var(--input-bg)); color: var(--text-main); }
+#program-editor .pe-notes { font-size: 14px; font-weight: 500; }
+.pe-blocks { margin-top: 12px; }
+.pe-block { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.9fr) 36px; gap: 6px; align-items: center; margin-top: 6px; }
+.pe-block-head { margin-top: 0; }
+.pe-block-head span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: center; }
+#program-editor .pe-block input { padding: 0 2px; text-align: center; font-weight: 700; -moz-appearance: textfield; appearance: textfield; }
+#program-editor .pe-block input::-webkit-outer-spin-button, #program-editor .pe-block input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#program-editor .pe-block select { padding: 0 4px; font-size: 14px; }
+.pe-block .pe-icon { width: 36px; }
+.pe-add { width: 100%; min-height: 54px; border: 1px dashed var(--line-strong, var(--border)); border-radius: 14px; background: none; color: var(--text-main); font-size: 15px; font-weight: 800; }
+
+/* Library: the lifter's programs at the top of the Custom folder. */
+.pe-library-head { margin: 12px 0 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+/* Secondary on purpose: "Start an empty workout" below it is the folder's one filled button. */
+.pe-new { width: 100%; min-height: 48px; margin-bottom: 4px; border: 1px dashed var(--line-strong, var(--border)); border-radius: 12px; background: none; color: var(--text-main); font: 800 14px var(--font-body); cursor: pointer; }
+.pe-card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pe-card-tools { display: flex; gap: 6px; flex-shrink: 0; }
+.program-delete.pe-card-edit { color: var(--text-main); }
