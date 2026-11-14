@@ -16,7 +16,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 const response = label => ({ label, status: 200, type: 'basic', clone() { return this; } });
 
 function worker(options = {}) {
-    const handlers = {}, deleted = [], writes = [], notifications = [], timers = new Map();
+    const handlers = {}, deleted = [], writes = [], notifications = [], timers = new Map(), delays = [];
     let nextTimer = 1;
     const cache = {
         match: options.match || (async () => undefined),
@@ -46,7 +46,7 @@ function worker(options = {}) {
         fetch: options.fetch || (async () => { throw new Error('Offline'); }),
         Response: { error: () => ({ type: 'error' }) },
         console: { warn() {} },
-        setTimeout: fn => { const id = nextTimer++; timers.set(id, fn); return id; },
+        setTimeout: (fn, ms) => { const id = nextTimer++; timers.set(id, fn); delays.push(ms); return id; },
         clearTimeout: id => timers.delete(id)
     });
     vm.runInContext(source, context);
@@ -60,7 +60,7 @@ function worker(options = {}) {
         handlers[name](event);
         return { event, pending };
     }
-    return { dispatch, deleted, writes, notifications, timers };
+    return { dispatch, deleted, writes, notifications, timers, delays };
 }
 
 function request(path = 'scripts/database.enc?v=123') {
@@ -168,4 +168,29 @@ test('visible app uses its foreground beep without a notification', async () => 
     await [...w.timers.values()][0]();
     await Promise.all(scheduled.pending);
     assert.equal(w.notifications.length, 0);
+});
+
+test('a five-minute rest alerts at the worker limit and says how long is left', async () => {
+    const w = worker();
+    const scheduled = w.dispatch('message', { data: { action: 'scheduleTimer', delay: 300000 } });
+    assert.deepEqual(w.delays, [270000]);
+    await [...w.timers.values()][0]();
+    await Promise.all(scheduled.pending);
+    assert.equal(w.notifications[0][0], '30 seconds of rest left');
+});
+
+test('a rest inside the worker limit still alerts on time', async () => {
+    const w = worker();
+    const scheduled = w.dispatch('message', { data: { action: 'scheduleTimer', delay: 240000 } });
+    assert.deepEqual(w.delays, [240000]);
+    await [...w.timers.values()][0]();
+    await Promise.all(scheduled.pending);
+    assert.equal(w.notifications[0][0], 'Bar is loaded');
+});
+
+test('a rest far beyond the worker limit is refused out loud instead of armed', () => {
+    const w = worker(), sent = [];
+    w.dispatch('message', { data: { action: 'scheduleTimer', delay: 600000 }, source: { postMessage: m => sent.push(m) } });
+    assert.equal(w.timers.size, 0);
+    assert.equal(sent[0].action, 'timerAlarmTooLong');
 });

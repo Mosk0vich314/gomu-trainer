@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.13.1853";
+        const APP_VERSION = "v2026.11.14.1837";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -45,6 +45,9 @@
         // High-rep e1RM is not comparable to a low-rep max, so sets above this
         // rep count still display an e1RM but never set an all-time PR.
         const PR_MAX_REPS = 12;
+        // "No lift" needs a real shortfall. The prescribed load is rounded to a plate, so
+        // an on-plan top set can land a kilo under the reference; that is not a miss.
+        const NO_LIFT_MARGIN = 0.975;
         const RTS_PCT_FLOOR = 0.40;
 
         function rtsPct(rpe, reps) {
@@ -74,6 +77,56 @@
             const pct = rtsPct(rpe, reps);
             if (!pct || pct <= 0) return 0;
             return w / pct;
+        }
+
+        // --- UNIT BOUNDARY ---
+        // Everything stored or calculated is kg. In lbs mode the load, bodyweight and
+        // 1RM FIELDS show and accept pounds, and these four helpers are the only place
+        // the two meet. Never parseFloat() a load field directly: use loadFieldKg().
+        const LB_PER_KG = 2.2046;
+        function isLbs() { return localStorage.getItem('preferredUnit') === 'lbs'; }
+        // What the lifter typed -> kg (NaN when the field is empty or not a number).
+        function kgFromEntry(v) {
+            const n = parseFloat(v);
+            if (!isFinite(n)) return NaN;
+            return isLbs() ? Math.round(n / LB_PER_KG * 1000) / 1000 : n;
+        }
+        // A stored kg value -> the text a field shows ('' stays '').
+        function entryFromKg(kg) {
+            if (kg === '' || kg === null || kg === undefined) return '';
+            const n = parseFloat(kg);
+            if (!isFinite(n)) return '';
+            return String(parseFloat((isLbs() ? n * LB_PER_KG : n).toFixed(isLbs() ? 1 : 2)));
+        }
+        function loadFieldKg(input) { return input ? kgFromEntry(input.value) : NaN; }
+        function setLoadField(input, kg) { if (input) input.value = entryFromKg(kg); }
+        // A load as it is kept in the session blob and in lastUsedWeights: a kg string.
+        function loadFieldKgString(input) {
+            const kg = loadFieldKg(input);
+            return isFinite(kg) ? String(kg) : '';
+        }
+
+        // --- TRAINING WEEK ---
+        // One definition of where the week starts, shared by the Home week row and
+        // "This week" (they used to disagree: Saturday against Monday). Saturday is the
+        // default because that is the schedule the week row was built around.
+        const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        function weekStartDay() {
+            const d = parseInt(localStorage.getItem('weekStart'), 10);
+            return d >= 0 && d <= 6 ? d : 6;
+        }
+        // Midnight on the first day of the training week containing `from` (default: now).
+        function weekStartDate(from) {
+            const d = from ? new Date(from) : new Date();
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - ((d.getDay() - weekStartDay() + 7) % 7));
+            return d;
+        }
+        function cycleWeekStart() {
+            const order = [6, 0, 1]; // Saturday, Sunday, Monday
+            localStorage.setItem('weekStart', String(order[(order.indexOf(weekStartDay()) + 1) % order.length]));
+            renderAppearance();
+            updateDashboard();
         }
 
         // --- HTML ESCAPE ---
@@ -178,8 +231,20 @@
                     <button type="button" class="settings-chip${isLight ? ' on' : ''}" aria-pressed="${isLight}" onclick="toggleThemeMode()">${isLight ? 'On' : 'Off'}</button>
                 </div>
                 <div class="settings-row">
-                    <div><div class="settings-row-title">Units</div><div class="settings-row-sub">Changes readouts only. Loads are still logged in kg.</div></div>
+                    <div><div class="settings-row-title">Units</div><div class="settings-row-sub">${isLbs() ? 'Loads are entered in pounds, rounded to 5 lb, with pound plates.' : 'Loads are entered in kilograms.'}</div></div>
                     <button type="button" class="settings-chip" onclick="window.toggleUnit(); renderAppearance()">${getUnit() === 'kg' ? 'kg' : 'lbs'}</button>
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Week starts on</div><div class="settings-row-sub">Used by the week row and "This week" on Home.</div></div>
+                    <button type="button" class="settings-chip" onclick="cycleWeekStart()">${WEEKDAY_NAMES[weekStartDay()]}</button>
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Stay unlocked</div><div class="settings-row-sub">This phone remembers the password between launches.</div></div>
+                    <button type="button" class="settings-chip${stayUnlockedOn() ? ' on' : ''}" aria-pressed="${stayUnlockedOn()}" onclick="toggleStayUnlocked()">${stayUnlockedOn() ? 'On' : 'Off'}</button>
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-row-title">Lock app</div><div class="settings-row-sub">Forgets the password on this phone and asks for it again.</div></div>
+                    <button type="button" class="settings-chip" onclick="lockApp()">Lock</button>
                 </div>
                 ${isLight ? '' : `<div class="settings-row">
                     <div><div class="settings-row-title">Pure black background</div><div class="settings-row-sub">Saves battery on OLED screens.</div></div>
@@ -318,7 +383,7 @@
             } catch (e) {
                 if (silent && e.name === 'OperationError') {
                     sessionStorage.removeItem('gomu_key');
-                    localStorage.removeItem('gomu_auth_passed');
+                    forgetPassword(); // the vault password changed: the remembered one is dead
                 }
                 document.getElementById('login-screen').style.display = '';
                 const errorText = document.getElementById('login-error');
@@ -337,7 +402,7 @@
                 return;
             }
             sessionStorage.setItem('gomu_key', password);
-            localStorage.setItem('gomu_auth_passed', 'true');
+            if (!silent) rememberPassword(password);
             if (!silent) {
                 const loginScreen = document.getElementById('login-screen');
                 loginScreen.style.transition = 'opacity 0.4s ease';
@@ -353,6 +418,52 @@
                 showErrorToast('Startup error: ' + (e && e.message ? e.message : e));
             }
         }
+
+        // --- STAY UNLOCKED ON THIS DEVICE ---
+        // sessionStorage dies with the tab, so Android asked for the password on every
+        // cold start. The password is now kept across launches, but not in the clear: a
+        // random AES-GCM key that cannot be exported (extractable: false) lives in
+        // IndexedDB and wraps it. Script on this origin can use the key, nothing can read
+        // it out, and "Lock app" in Settings deletes both. Device-bound on purpose:
+        // neither part is in any backup.
+        const VAULT_REMEMBER_KEY = 'vaultRemember';
+        function stayUnlockedOn() { return localStorage.getItem('stayUnlocked') !== 'false'; }
+        async function rememberPassword(password) {
+            if (!password || !stayUnlockedOn()) return;
+            try {
+                const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(password));
+                await setDB(VAULT_REMEMBER_KEY, { key, iv, ct });
+            } catch (e) { console.warn('Could not remember the password on this device:', e); }
+        }
+        async function recallPassword() {
+            try {
+                const saved = await getDB(VAULT_REMEMBER_KEY, null);
+                if (!saved || !saved.key) return null;
+                const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: saved.iv }, saved.key, saved.ct);
+                return new TextDecoder().decode(plain);
+            } catch (e) { return null; }
+        }
+        async function forgetPassword() {
+            try { await setDB(VAULT_REMEMBER_KEY, null); } catch (e) {}
+        }
+        window.toggleStayUnlocked = async function() {
+            if (stayUnlockedOn()) {
+                localStorage.setItem('stayUnlocked', 'false');
+                await forgetPassword();
+            } else {
+                localStorage.removeItem('stayUnlocked');
+                await rememberPassword(sessionStorage.getItem('gomu_key'));
+            }
+            renderAppearance();
+        };
+        window.lockApp = async function() {
+            flushSessionState();
+            await forgetPassword();
+            sessionStorage.removeItem('gomu_key');
+            window.location.reload();
+        };
 
         window.checkLogin = function() {
             const input = document.getElementById('login-password').value;
@@ -384,6 +495,25 @@
                 tx.objectStore(STORE_NAME).put(value, key);
                 tx.oncomplete = () => resolve();
                 tx.onerror = () => reject(tx.error);
+                // A full disk aborts the transaction without an error event on the
+                // request, which used to leave this promise pending forever.
+                tx.onabort = () => reject(tx.error || new Error('Storage write was aborted'));
+            });
+        }
+
+        // Workout history is the one store that must never fail quietly. If IndexedDB
+        // refuses the write, the newest logs are parked in localStorage and merged back
+        // in on the next launch (bootDatabase), and the lifter is told.
+        const UNSAVED_HISTORY_KEY = 'unsavedHistory';
+        function saveHistory() {
+            return setDB('workoutHistory', workoutHistoryCache).then(() => {
+                localStorage.removeItem(UNSAVED_HISTORY_KEY);
+                return true;
+            }).catch(err => {
+                console.error('History save failed:', err);
+                try { localStorage.setItem(UNSAVED_HISTORY_KEY, JSON.stringify(workoutHistoryCache.slice(0, 5))); } catch (e) {}
+                showErrorToast('History was not saved. Export a backup from Settings.');
+                return false;
             });
         }
 
@@ -411,6 +541,12 @@
                 }
             }
             workoutHistoryCache = dbHistory;
+            // Logs parked by a failed save (see saveHistory) go back in, then we retry.
+            const parked = safeParse(UNSAVED_HISTORY_KEY, null);
+            if (Array.isArray(parked) && parked.length) {
+                workoutHistoryCache = mergeHistoryById(workoutHistoryCache, parked);
+                await saveHistory();
+            }
         }
 
         // --- BATCHED SESSION WRITES ---
@@ -915,7 +1051,7 @@
         }
 
         window.updateBodyweight = function(val) {
-            let bw = parseFloat(val);
+            let bw = kgFromEntry(val); // the field is in the lifter's unit
             if (!isNaN(bw) && bw > 0) {
                 localStorage.setItem('userBodyweight', bw);
                 const bwHist = safeParse('bwHistory', []);
@@ -990,8 +1126,8 @@
         // ── Unified backup collection / restore ──────────────────────────────
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
-        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'techniqueCues', 'videoRpeCalibration', 'videoAnalysisArchive'];
-        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1'];
+        const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'techniqueCues', 'videoRpeCalibration', 'videoAnalysisArchive', 'weekStart', 'gymBarbellWeightLb'];
+        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1', 'seededTemplates_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
             flushSessionState();
@@ -1012,8 +1148,10 @@
                 lastUsedWeights: safeParse('lastUsedWeights', {}),
                 equipmentModes: safeParse('equipmentModes', {}),
                 customPrograms: safeParse('customPrograms', {}),
+                userPrograms: safeParse('userPrograms', {}),
                 warmupRoutine: safeParse('warmupRoutine', null),
                 gymPlateInventory: safeParse('gymPlateInventory', null),
+                gymPlateInventoryLb: safeParse('gymPlateInventoryLb', null),
                 programSwaps: {},
                 programModes: {},
                 programTMs: {},
@@ -1049,9 +1187,9 @@
             const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
             const fail = () => { throw new Error('Invalid backup structure. No data was restored.'); };
             if (!isObject(data) || !['workoutHistory', 'actualBests', 'completedDays', 'customPrograms'].some(k => Object.hasOwn(data, k))) fail();
-            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'programSwaps', 'programModes', 'programTMs', 'workoutSessions', 'preferences', 'migrations'];
+            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'userPrograms', 'programSwaps', 'programModes', 'programTMs', 'workoutSessions', 'preferences', 'migrations'];
             maps.forEach(k => { if (data[k] != null && !isObject(data[k])) fail(); });
-            ['workoutHistory', 'progressPictures', 'bwHistory', 'warmupRoutine', 'gymPlateInventory'].forEach(k => {
+            ['workoutHistory', 'progressPictures', 'bwHistory', 'warmupRoutine', 'gymPlateInventory', 'gymPlateInventoryLb'].forEach(k => {
                 if (data[k] != null && !Array.isArray(data[k])) fail();
             });
             ['activeProgram', 'userBodyweight', 'userGender', 'preferredUnit', 'gymBarbellWeight'].forEach(k => {
@@ -1087,8 +1225,10 @@
             setJSON('lastUsedWeights', data.lastUsedWeights);
             setJSON('equipmentModes', data.equipmentModes);
             setJSON('customPrograms', data.customPrograms);
+            setJSON('userPrograms', data.userPrograms);
             setJSON('warmupRoutine', data.warmupRoutine);
             setJSON('gymPlateInventory', data.gymPlateInventory);
+            setJSON('gymPlateInventoryLb', data.gymPlateInventoryLb);
             setJSON('activeWorkout', data.activeWorkout);
             setStr('activeProgram', data.activeProgram);
             setStr('userBodyweight', data.userBodyweight);
@@ -1152,7 +1292,11 @@
                 const errTs = parseInt(localStorage.getItem('lastGistError') || '0');
                 let txt = '';
                 if (errTs > lastTs) txt = '⚠️ Last backup attempt failed — check your PAT / connection';
-                else if (lastTs) txt = 'Last backup: ' + fmtRelTime(lastTs);
+                else if (lastTs) {
+                    const [heldN, totalN] = (localStorage.getItem('lastGistSessions') || '').split('/').map(Number);
+                    const scope = !totalN ? '' : heldN >= totalN ? `, all ${totalN} sessions` : `, newest ${heldN} of ${totalN} sessions`;
+                    txt = 'Last backup: ' + fmtRelTime(lastTs) + scope;
+                }
                 lastEl.innerText = txt;
                 lastEl.style.display = txt ? 'block' : 'none';
                 lastEl.style.color = errTs > lastTs ? 'var(--danger)' : 'var(--text-muted)';
@@ -1175,16 +1319,24 @@
             window.updateGistUI();
         };
 
+        const GIST_MAX_CHARS = 8000000;
         async function gdriveBackup() {
             const pat = localStorage.getItem('gistPAT') || '';
             if (!pat.trim()) return;
-            let ok = false;
+            let ok = false, held = '';
             try {
                 const backup = await collectBackup(false);
-                // Limit cloud history size; large files are fetched via raw_url on restore.
-                // Merging by id preserves older sessions already stored on the device.
-                backup.workoutHistory = workoutHistoryCache.slice(0, 200);
-                const content = JSON.stringify(backup, null, 2);
+                // The WHOLE history goes up, written compactly (it used to be the newest 200
+                // sessions, pretty-printed). Only a backup too big for a Gist is trimmed,
+                // oldest sessions first, and the settings sheet then says how many it holds.
+                // Large files come back through raw_url on restore.
+                let history = workoutHistoryCache.slice();
+                let content = JSON.stringify({ ...backup, workoutHistory: history });
+                while (content.length > GIST_MAX_CHARS && history.length > 50) {
+                    history = history.slice(0, Math.floor(history.length * 0.8));
+                    content = JSON.stringify({ ...backup, workoutHistory: history });
+                }
+                held = history.length + '/' + workoutHistoryCache.length;
                 const gistId = localStorage.getItem('gistId') || '';
                 const headers = { 'Authorization': `token ${pat}`, 'Content-Type': 'application/json' };
                 const body = JSON.stringify({ description: 'Gomu Trainer backup', public: false, files: { 'gomu-trainer-backup.json': { content } } });
@@ -1202,6 +1354,7 @@
             } catch(_) {}
             if (ok) {
                 localStorage.setItem('lastGistBackup', String(Date.now()));
+                localStorage.setItem('lastGistSessions', held);
                 localStorage.removeItem('lastGistError');
             } else {
                 localStorage.setItem('lastGistError', String(Date.now()));
@@ -1288,6 +1441,12 @@
 
         window.roundForEquipment = function(weight, exName) {
             const mode = getEquipmentMode(exName);
+            // Pounds: round the POUND value (5 lb on a bar or one dumbbell, 10 lb for a
+            // pair, 1 lb on a stack) and hand back kg, like every other load in the app.
+            if (isLbs()) {
+                const step = mode === '2db' ? 10 : mode === 'cable' ? 1 : 5;
+                return Math.round(Math.round(weight * LB_PER_KG / step) * step / LB_PER_KG * 1000) / 1000;
+            }
             switch (mode) {
                 case '1db':  return Math.round(weight / 2) * 2;
                 case '2db':  return Math.round(weight / 4) * 4;
@@ -1384,8 +1543,7 @@
                         updateLibraryUI();
                         renderWeekPills();
                         renderDayPills();
-                        document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-                        document.getElementById('workout-screen').classList.add('active');
+                        switchTab('workout-screen');
                         renderWorkout();
                         
                         // FIX: Scroll to top for fresh workouts so you see the Warm-Up routine!
@@ -1495,13 +1653,13 @@
             const H = 108, CY = 54, PX_PER_MM = 104 / 450, gap = 1.5;
             const SHAFT = 26, FLANGE = 7, RING = 3, COLLAR = 8, STUB = 12, CAP = 3, MAX_PLATES_W = 112;
             const plates = platesPerSide(weight);
-            const raw = plates.reduce((t, p) => t + (THICK[p.w] || 8) + gap, 0);
+            const raw = plates.reduce((t, p) => t + (THICK[plateSize(p)] || 8) + gap, 0);
             const squeeze = raw > MAX_PLATES_W ? MAX_PLATES_W / raw : 1; // very heavy bars: thinner plates
             const sleeveX = SHAFT + FLANGE + RING;
             let x = sleeveX + 2;
             const plateSvg = plates.map((p, i) => {
-                const t = (THICK[p.w] || 8) * squeeze;
-                const h = (DIAM[p.w] || 150) * PX_PER_MM;
+                const t = (THICK[plateSize(p)] || 8) * squeeze;
+                const h = (DIAM[plateSize(p)] || 150) * PX_PER_MM;
                 // Near-black plates (2.5 / 1.25 kg by default) get a light rim so they read on a dark page.
                 const hex = String(p.c).replace('#', '');
                 const lum = hex.length === 6 ? (0.2126 * parseInt(hex.slice(0, 2), 16) + 0.7152 * parseInt(hex.slice(2, 4), 16) + 0.0722 * parseInt(hex.slice(4, 6), 16)) / 255 : 1;
@@ -1516,7 +1674,7 @@
             const sleeveEnd = (plates.length ? collarX + COLLAR : sleeveX + 40) + STUB;
             const W = Math.ceil(sleeveEnd + CAP + 1);
             const SCALE = 0.82; // drawn at 104 px plates, shown a touch smaller so heavy bars leave room for the text
-            return `<svg viewBox="0 0 ${W} ${H}" width="${(W * SCALE).toFixed(1)}" height="${(H * SCALE).toFixed(1)}" role="img" aria-label="${plates.length ? `Bar loaded with ${plates.map(p => p.w).join(', ')} kg per side` : 'Empty bar'}">
+            return `<svg viewBox="0 0 ${W} ${H}" width="${(W * SCALE).toFixed(1)}" height="${(H * SCALE).toFixed(1)}" role="img" aria-label="${plates.length ? `Bar loaded with ${plates.map(p => p.w).join(', ')} ${unitSuffix()} per side` : 'Empty bar'}">
                 <defs><linearGradient id="lb-fade" x1="0" x2="1"><stop offset="0" stop-color="#8b8b93" stop-opacity="0"/><stop offset="1" stop-color="#8b8b93"/></linearGradient></defs>
                 <rect x="0" y="${CY - 2.5}" width="${SHAFT + 1}" height="5" fill="url(#lb-fade)"/>
                 <rect x="${SHAFT}" y="${CY - 20}" width="${FLANGE}" height="40" rx="1.5" class="lb-metal"/>
@@ -1572,14 +1730,15 @@
                 document.getElementById('ob-sq').value = '';
                 document.getElementById('ob-bp').value = '';
                 document.getElementById('ob-dl').value = '';
+                document.querySelectorAll('#onboarding-modal label').forEach(l => { l.textContent = l.textContent.replace(/\((kg|lbs)\)/, `(${unitSuffix()})`); });
                 document.getElementById('onboarding-modal').style.display = 'flex';
             }
         }
 
         function saveOnboarding() {
-            let sq = parseFloat(document.getElementById('ob-sq').value);
-            let bp = parseFloat(document.getElementById('ob-bp').value);
-            let dl = parseFloat(document.getElementById('ob-dl').value);
+            let sq = kgFromEntry(document.getElementById('ob-sq').value);
+            let bp = kgFromEntry(document.getElementById('ob-bp').value);
+            let dl = kgFromEntry(document.getElementById('ob-dl').value);
             
             let saved1RMs = safeParse('global1RMs', {});
             if(sq) saved1RMs['Squat'] = sq;
@@ -1768,6 +1927,43 @@
             return hasSeed ? seed * factor : 0;
         }
 
+        // Writes a reference 1RM from the workout screen (the e1RM cell). Any program
+        // training max that was grown from the old value is re-seeded to the new one, so
+        // its progress survives: only an edit in Stats (updateManual1RM) restarts a
+        // training max. Returns [storeKey, oldSeed] pairs so the tap can be undone.
+        function setReference1RM(exName, kg) {
+            const rms = safeParse('global1RMs', {});
+            const old = Number(rms[exName]);
+            rms[exName] = kg;
+            localStorage.setItem('global1RMs', JSON.stringify(rms));
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('programTMs_')) keys.push(k);
+            }
+            const touched = [];
+            keys.forEach(k => {
+                const store = safeParse(k, {});
+                const entry = store.tms && store.tms[exName];
+                // Only a training max that was live: its seed matched the old 1RM.
+                if (entry && entry.tm > 0 && (!(old > 0) || entry.seed === old)) {
+                    touched.push([k, entry.seed]);
+                    entry.seed = kg;
+                    localStorage.setItem(k, JSON.stringify(store));
+                }
+            });
+            return touched;
+        }
+        function restoreReference1RM(exName, oldKg, touched) {
+            const rms = safeParse('global1RMs', {});
+            if (oldKg > 0) rms[exName] = oldKg; else delete rms[exName];
+            localStorage.setItem('global1RMs', JSON.stringify(rms));
+            (touched || []).forEach(([k, seed]) => {
+                const store = safeParse(k, {});
+                if (store.tms && store.tms[exName]) { store.tms[exName].seed = seed; localStorage.setItem(k, JSON.stringify(store)); }
+            });
+        }
+
         // Exercises carrying `tmProgression: { block, steps, also }` move their reference
         // TM from the reps logged on that 1-based block's set: the largest step whose
         // rep threshold was met wins (steps = [[minReps, kg], ...]). `also` moves other
@@ -1860,8 +2056,7 @@
             renderWeekPills();
             renderDayPills();
             
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-            document.getElementById('workout-screen').classList.add('active');
+            switchTab('workout-screen');
             
             renderWorkout();
             updateBanners();
@@ -2021,8 +2216,7 @@
             renderWeekPills();
             renderDayPills();
             
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-            document.getElementById('workout-screen').classList.add('active');
+            switchTab('workout-screen');
             
             renderWorkout();
             updateBanners();
@@ -2194,6 +2388,64 @@
             return blocks;
         }
 
+        // The ONE way a session ends, for database programs and custom workouts alike
+        // (custom workouts used to finish through a thinner copy that skipped the cloud
+        // backup and the new-best snapshot). The log is built first and nothing is
+        // committed until that has worked, so a failure leaves the session running.
+        function finishWorkout(key, durationMs) {
+            flushSessionState();
+            let built, tmChanges;
+            try {
+                built = buildWorkoutLog(key, durationMs);
+                tmChanges = applyTrainingMaxProgression(currentProgram, key,
+                    getActiveExercises(currentProgram, selectedWeek, selectedDay, key), safeParse(key, {}));
+            } catch (err) {
+                console.error('Finish failed:', err);
+                showErrorToast('Could not finish the workout. Nothing was lost, try again.');
+                return false;
+            }
+
+            completedDays[key] = true;
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            // Bests as they stood at the start, so the summary can light up new ones.
+            window._summaryBestsBefore = (activeWorkout && activeWorkout.backupState && activeWorkout.backupState.actualBests) || null;
+            activeWorkout = null;
+            localStorage.removeItem('activeWorkout');
+
+            // If every day in the program is now complete, clear program-level swaps
+            // so exercises revert to DB originals when the block is run again
+            const allDone = Object.keys(db[currentProgram]?.weeks || {}).every(w =>
+                Object.keys(db[currentProgram].weeks[w] || {}).every(d =>
+                    completedDays[`${currentProgram}_w${w}_d${d}`]
+                )
+            );
+            Object.values(window.exTimerState || {}).forEach(state => { if (state && state.interval) clearInterval(state.interval); });
+            window.exTimerState = {};
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeTimer();
+            clearInterval(workoutDurationInterval);
+            const timerEl = document.getElementById('workout-duration');
+            if (timerEl) timerEl.style.display = 'none';
+
+            presentSummary(built);
+            const tmEl = document.getElementById('sum-tm');
+            if (tmEl) {
+                const lines = Object.entries(tmChanges || {}).map(([ref, kg]) =>
+                    `${escapeHtml(ref)} TM +${kgDisp(kg, 2)} ${unitSuffix()} → ${kgDisp(getProgramTrainingMax(currentProgram, ref, 0.9), 1)} ${unitSuffix()}`);
+                tmEl.innerHTML = lines.join('<br>');
+                tmEl.style.display = lines.length ? 'block' : 'none';
+            }
+            // The summary must read the same swapped names and converted blocks
+            // that were shown while logging the final workout.
+            if (allDone) {
+                localStorage.removeItem(`programSwaps_${currentProgram}`);
+                localStorage.removeItem(`programModes_${currentProgram}`);
+            }
+            gdriveBackup(); // silent cloud backup
+            updateDashboard();
+            return true;
+        }
+
         async function toggleWorkoutState(action) {
             const key = getWorkoutKey();
             
@@ -2230,50 +2482,10 @@
                 insultedThisSession = {};
             
             } else if (action === 'finish') {
-                const keyForSummary = key;
                 const durationMs = activeWorkout && activeWorkout.startTime ? (Date.now() - activeWorkout.startTime) : 0;
-
-                completedDays[key] = true;
-                localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                // Bests as they stood at the start, so the summary can light up new ones.
-                window._summaryBestsBefore = (activeWorkout && activeWorkout.backupState && activeWorkout.backupState.actualBests) || null;
-                activeWorkout = null;
-                localStorage.removeItem('activeWorkout');
-
-                // If every day in the program is now complete, clear program-level swaps
-                // so exercises revert to DB originals when the block is run again
-                const allDone = Object.keys(db[currentProgram]?.weeks || {}).every(w =>
-                    Object.keys(db[currentProgram].weeks[w] || {}).every(d =>
-                        completedDays[`${currentProgram}_w${w}_d${d}`]
-                    )
-                );
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                closeTimer();
-                clearInterval(workoutDurationInterval);
-                const timerEl = document.getElementById('workout-duration');
-                if (timerEl) timerEl.style.display = 'none';
-                
-                flushSessionState();
-                const tmChanges = applyTrainingMaxProgression(currentProgram, keyForSummary,
-                    getActiveExercises(currentProgram, selectedWeek, selectedDay, keyForSummary), safeParse(keyForSummary, {}));
-                generateSummary(keyForSummary, durationMs);
-                const tmEl = document.getElementById('sum-tm');
-                if (tmEl) {
-                    const lines = Object.entries(tmChanges).map(([ref, kg]) =>
-                        `${escapeHtml(ref)} TM +${kgDisp(kg, 2)} ${unitSuffix()} → ${kgDisp(getProgramTrainingMax(currentProgram, ref, 0.9), 1)} ${unitSuffix()}`);
-                    tmEl.innerHTML = lines.join('<br>');
-                    tmEl.style.display = lines.length ? 'block' : 'none';
-                }
-                // The summary must read the same swapped names and converted blocks
-                // that were shown while logging the final workout.
-                if (allDone) {
-                    localStorage.removeItem(`programSwaps_${currentProgram}`);
-                    localStorage.removeItem(`programModes_${currentProgram}`);
-                }
-                gdriveBackup(); // Feature 1: silent cloud backup
-                updateDashboard();
+                finishWorkout(key, durationMs);
                 return;
-                
+
             } else if (action === 'restart') {
                 delete completedDays[key];
                 localStorage.setItem('completedDays', JSON.stringify(completedDays));
@@ -2332,7 +2544,9 @@
             el.style.display = rows ? '' : 'none';
         }
 
-        function generateSummary(key, durationMs = 0) {
+        // Builds the history entry for a session from its saved inputs. It only reads,
+        // so a failure here leaves the workout running with nothing half-written.
+        function buildWorkoutLog(key, durationMs = 0) {
             const savedSession = safeParse(key, {});
             const exercises = getActiveExercises(currentProgram, selectedWeek, selectedDay, key);
             
@@ -2416,16 +2630,35 @@
                 if (exerciseLog.sets.length > 0) workoutDetails.push(exerciseLog);
             });
 
-            // --- SAFELY UPDATE UI ---
+            return {
+                exCount, maxLoad,
+                logEntry: {
+                    id: Date.now().toString(),
+                    key: key,
+                    programName: db[currentProgram]?.name || currentProgram,
+                    week: selectedWeek,
+                    day: selectedDay,
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    volume: totalVolume,
+                    sets: completedSets,
+                    duration: durationMs,
+                    details: workoutDetails
+                }
+            };
+        }
+
+        // Shows the summary screen for a built log and stores the log in history.
+        function presentSummary(built) {
+            const { logEntry, exCount, maxLoad } = built;
             let timeString = "00:00";
-            if (durationMs > 0) {
-                const totalSecs = Math.floor(durationMs / 1000);
+            if (logEntry.duration > 0) {
+                const totalSecs = Math.floor(logEntry.duration / 1000);
                 const h = Math.floor(totalSecs / 3600);
                 const m = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
                 const s = (totalSecs % 60).toString().padStart(2, '0');
                 timeString = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
             }
-            
+
             const timeEl = document.getElementById('sum-time');
             const volEl = document.getElementById('sum-vol');
             const setsEl = document.getElementById('sum-sets');
@@ -2433,42 +2666,27 @@
             const exEl = document.getElementById('sum-ex');
 
             if (timeEl) timeEl.innerText = timeString;
-            // These hardcoded "kg" meant the summary lied in lbs mode.
-            if (volEl) volEl.innerText = `${kgDisp(totalVolume, 0).toLocaleString('en-US')} ${unitSuffix()}`;
-            if (setsEl) setsEl.innerText = completedSets;
+            if (volEl) volEl.innerText = `${kgDisp(logEntry.volume, 0).toLocaleString('en-US')} ${unitSuffix()}`;
+            if (setsEl) setsEl.innerText = logEntry.sets;
             if (maxEl) maxEl.innerText = `${kgDisp(maxLoad, 1)} ${unitSuffix()}`;
             if (exEl) exEl.innerText = exCount;
-            // ------------------------
-            
-            renderSummarySheet(workoutDetails);
 
-            const logEntry = {
-                id: Date.now().toString(),
-                key: key,
-                programName: db[currentProgram]?.name || currentProgram,
-                week: selectedWeek,
-                day: selectedDay,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                volume: totalVolume,
-                sets: completedSets,
-                duration: durationMs,
-                details: workoutDetails 
-            };
-            
+            // Must run before the new log joins the history it is compared against.
+            renderSummarySheet(logEntry.details);
+
             workoutHistoryCache.unshift(logEntry);
-            setDB('workoutHistory', workoutHistoryCache);
+            saveHistory();
             window._lastSummaryLogId = logEntry.id;
 
             renderDayPills();
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
+            switchTab('summary-screen');
+            const noteEl = document.getElementById('session-note');
+            if (noteEl) noteEl.value = '';
+            if (typeof fireConfetti === 'function') fireConfetti();
+        }
 
-            const summaryScreen = document.getElementById('summary-screen');
-            if (summaryScreen) {
-                summaryScreen.classList.add('active');
-                const noteEl = document.getElementById('session-note');
-                if (noteEl) noteEl.value = '';
-                if (typeof fireConfetti === 'function') fireConfetti();
-            }
+        function generateSummary(key, durationMs = 0) {
+            presentSummary(buildWorkoutLog(key, durationMs));
         }
 
         window.saveSessionNote = function(val) {
@@ -2478,7 +2696,7 @@
             else delete entry.note;
             // Start persistence while the input event is active, before navigation or
             // closing the PWA can discard a debounce timer. Exports see the edit now too.
-            return setDB('workoutHistory', workoutHistoryCache);
+            return saveHistory();
         };
 
     let currentChartEx = '';
@@ -3191,7 +3409,7 @@
         function deleteHistoryLog(id, key) {
             flushSessionState();
             workoutHistoryCache = workoutHistoryCache.filter(h => String(h.id) !== String(id));
-            setDB('workoutHistory', workoutHistoryCache);
+            saveHistory();
             // A repeated day can have several history entries and a new active session.
             // Deleting one old log must preserve those other sessions and their inputs.
             if (!workoutHistoryCache.some(h => h.key === key)) {
@@ -3482,7 +3700,7 @@
             if (currentRM > 0) startPct = Math.round((currentRM / parentRM) * 100);
             window.variationPctState = { exName, parentName, parentRM };
             document.getElementById('vpct-sub').textContent =
-                `% of ${parentName}'s ref 1RM (${parentRM.toFixed(1)} kg)`;
+                `% of ${parentName}'s ref 1RM (${kgDisp(parentRM)} ${unitSuffix()})`;
             setVariationPct(startPct);
             document.getElementById('variation-pct-modal').style.display = 'flex';
         };
@@ -4221,7 +4439,7 @@
             </section>
             <div class="vault-bw-row">
                 <label class="vault-bw">Bodyweight
-                    <input type="number" class="input-box" value="${savedBw}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal" aria-label="Bodyweight in kg">
+                    <input type="number" class="input-box" value="${entryFromKg(savedBw)}" placeholder="--" onchange="updateBodyweight(this.value)" inputmode="decimal" aria-label="Bodyweight in ${unitSuffix()}">
                     <span>kg</span>
                 </label>
                 <select class="input-box vault-sex" onchange="updateGender(this.value)" aria-label="Category for GL points">
@@ -4286,7 +4504,7 @@
                     <div class="stat-card stat-swipable" style="padding: 12px 18px; margin-bottom: 0;" data-exname="${safeExHTML}">
                         <span class="stat-name" style="flex: 1; padding-right: 15px; word-break: break-word; line-height: 1.3;">${safeExHTML}</span>
                         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                            <input type="number" class="input-box vault-1rm-input" aria-label="${safeExHTML} reference 1RM in kg" style="width: 84px;" value="${global1RMs[ex] > 0 ? global1RMs[ex].toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM(${safeExJS}, this.value)" inputmode="decimal">
+                            <input type="number" class="input-box vault-1rm-input" aria-label="${safeExHTML} reference 1RM in ${unitSuffix()}" style="width: 84px;" value="${global1RMs[ex] > 0 ? (isLbs() ? global1RMs[ex] * LB_PER_KG : global1RMs[ex]).toFixed(1) : ''}" placeholder="--" onchange="updateManual1RM(${safeExJS}, kgFromEntry(this.value))" inputmode="decimal">
                             <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">kg</span>
                         </div>
                     </div>
@@ -4455,7 +4673,7 @@
                 alert("⚠️ This exercise has no weighted sets to warm up for.");
                 return;
             }
-            const targetWeight = parseFloat(firstLoadInput.value);
+            const targetWeight = loadFieldKg(firstLoadInput);
 
             const setRow = firstLoadInput.closest('.set-row');
             const firstRepsInput = setRow ? setRow.querySelector('input[id$="_reps"]') : null;
@@ -4486,6 +4704,7 @@
             
             let sets = [];
             const roundToPlate = (w) => roundForEquipment(w, exName);
+            const barKg = barbellKg();
 
             const wReps1 = targetReps >= 8 ? 4 : 1;
             const wReps2 = targetReps >= 8 ? 5 : 2;
@@ -4493,7 +4712,7 @@
 
             if (scheme === 5) {
                 sets = [
-                    { label: targetWeight > 20 ? "Bar" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.3), reps: Math.max(10, targetReps) },
+                    { label: targetWeight > barKg ? "Bar" : "Light", load: targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.3), reps: Math.max(10, targetReps) },
                     { load: roundToPlate(targetWeight * 0.4), reps: Math.max(5, wReps3) },
                     { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
                     { load: roundToPlate(targetWeight * 0.75), reps: wReps2 },
@@ -4501,7 +4720,7 @@
                 ];
             } else if (scheme === 3) {
                 sets = [
-                    { label: targetWeight > 20 ? "Bar" : "Light", load: targetWeight > 20 ? 20 : roundToPlate(targetWeight*0.4), reps: Math.max(8, wReps3 + 2) },
+                    { label: targetWeight > barKg ? "Bar" : "Light", load: targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.4), reps: Math.max(8, wReps3 + 2) },
                     { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
                     { load: roundToPlate(targetWeight * 0.8), reps: wReps1 }
                 ];
@@ -4518,20 +4737,22 @@
 
                 // For 2DB: show per-dumbbell weight with a dumbbell icon
                 if (eqMode === '2db') {
-                    const perDb = Math.round((weight / 2) * 10) / 10;
+                    const perDb = kgDisp(weight / 2);
                     return `<div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="3" height="6" rx="1"/><rect x="19" y="9" width="3" height="6" rx="1"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                        <span style="font-size: 10px; color: var(--text-muted); font-weight: 800;">${perDb}kg each</span>
+                        <span style="font-size: 10px; color: var(--text-muted); font-weight: 800;">${perDb} ${unitSuffix()} each</span>
                     </div>`;
                 }
 
                 // For non-BB modes: no badges
                 if (eqMode !== 'bb') return '';
 
+                // Bar and plates are in the lifter's unit; the warm-up loads are kg.
+                const shown = isLbs() ? Math.round(weight * LB_PER_KG * 10) / 10 : weight;
                 let barWeight = typeof getBarbellWeight === 'function' ? getBarbellWeight() : 20;
-                if (weight <= barWeight) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">Empty Bar</div>`;
+                if (shown <= barWeight) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">Empty Bar</div>`;
 
-                let perSide = (weight - barWeight) / 2;
+                let perSide = (shown - barWeight) / 2;
                 perSide = Math.round(perSide * 100) / 100;
 
                 const available = typeof getActivePlates === 'function' ? getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w) : [
@@ -4561,7 +4782,7 @@
             };
 
             sets.forEach((s, i) => {
-                let displayLoad = s.label || `${Math.max(0, s.load)} kg`;
+                let displayLoad = s.label || `${kgDisp(Math.max(0, s.load))} ${unitSuffix()}`;
                 let badges = s.label ? '' : getPlateBadges(s.load);
                 html += `
                 <tr style="border-top: 1px solid rgba(var(--tint-rgb),0.05);">
@@ -4580,7 +4801,7 @@
                 <tr style="border-top: 1px dashed var(--accent); background: rgba(var(--accent-rgb), 0.05);">
                     <td style="padding: 12px 0; font-size: 12px; font-weight: 800; color: var(--accent);">WORK</td>
                     <td style="padding: 12px 0;">
-                        <div style="color:var(--text-main); font-weight: 900; font-size: 16px;">${targetWeight} kg</div>
+                        <div style="color:var(--text-main); font-weight: 900; font-size: 16px;">${kgDisp(targetWeight)} ${unitSuffix()}</div>
                         ${workBadges}
                     </td>
                     <td style="padding: 12px 0; font-size: 15px; font-weight: 700;">${targetReps}</td>
@@ -4606,6 +4827,73 @@
         window.closeWarmupModal = function(e) {
             if (e.target.id === 'warmup-modal') e.target.style.display = 'none';
         };
+        // --- RPE PICKER ---
+        // RPE is one of nine values, so the field opens a strip of chips instead of the
+        // keyboard (RPE inputs carry inputmode="none"). "Type" hands the field back to
+        // the keyboard for anything unusual. There is one picker for the whole app,
+        // re-anchored to whichever RPE field was tapped.
+        const RPE_CHIPS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+        let rpePickerFor = null;
+        function closeRpePicker() {
+            const el = document.getElementById('rpe-picker');
+            if (el) el.hidden = true;
+            rpePickerFor = null;
+        }
+        function openRpePicker(input) {
+            let el = document.getElementById('rpe-picker');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'rpe-picker';
+                el.setAttribute('role', 'group');
+                el.setAttribute('aria-label', 'Pick an RPE');
+                el.setAttribute('data-no-tab-swipe', '');
+                document.body.appendChild(el);
+                // Keep focus on the field while a chip is pressed.
+                el.addEventListener('pointerdown', e => e.preventDefault());
+                el.addEventListener('click', e => {
+                    const btn = e.target.closest('button');
+                    const target = rpePickerFor;
+                    if (!btn || !target) return;
+                    if (btn.dataset.rpe === 'type') {
+                        target.setAttribute('inputmode', 'decimal');
+                        closeRpePicker();
+                        target.blur();
+                        target.focus();
+                        return;
+                    }
+                    target.value = btn.dataset.rpe; // '' clears the field
+                    target.dispatchEvent(new Event('input', { bubbles: true }));
+                    closeRpePicker();
+                    target.blur();
+                });
+            }
+            const current = parseFloat(input.value);
+            el.innerHTML = RPE_CHIPS.map(v => `<button type="button" data-rpe="${v}"${v === current ? ' class="on" aria-pressed="true"' : ''}>${v}</button>`).join('')
+                + '<button type="button" data-rpe="" class="quiet">Clear</button><button type="button" data-rpe="type" class="quiet">Type</button>';
+            el.hidden = false;
+            rpePickerFor = input;
+            // Under the field when there is room above the nav, otherwise over it.
+            const r = input.getBoundingClientRect(), h = el.offsetHeight, w = el.offsetWidth;
+            const below = r.bottom + 8 + h < window.innerHeight - 90;
+            el.style.top = Math.round(below ? r.bottom + 8 : r.top - h - 8) + 'px';
+            el.style.left = Math.round(Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2))) + 'px';
+        }
+        document.addEventListener('focusin', e => {
+            const t = e.target;
+            if (t && t.matches && t.matches('.input-rpe') && !t.disabled && t.getAttribute('inputmode') === 'none') openRpePicker(t);
+        });
+        document.addEventListener('focusout', e => {
+            const t = e.target;
+            // A field handed to the keyboard by "Type" goes back to chips afterwards.
+            if (t && t.matches && t.matches('.input-rpe') && t.getAttribute('inputmode') === 'decimal') t.setAttribute('inputmode', 'none');
+        });
+        document.addEventListener('pointerdown', e => {
+            if (!rpePickerFor) return;
+            if (e.target === rpePickerFor || (e.target.closest && e.target.closest('#rpe-picker'))) return;
+            closeRpePicker();
+        }, true);
+        window.addEventListener('scroll', closeRpePicker, { passive: true });
+
         window.colorizeRpe = function(input) {
             input.style.color = '';
         };
@@ -4647,9 +4935,43 @@
             return { dir: 'stable', label: 'Stable', delta: pct };
         }
 
+        // Program rows that are text, not lifts ("Rest Day", "Information"). The WHOLE
+        // name has to be one of these: a substring test used to strip the swap, warm-up
+        // and 1RM controls from any exercise with "rest", "info" or "note" in its name.
+        function isNonExerciseName(name) {
+            return /^\s*(rest(\s+day)?|info(rmation)?|notes?)\s*$/i.test(String(name || ''));
+        }
+
+        // "Last time" for a lift: the sets of the most recent logged session that had
+        // it (canonical name, so aliases in other programs count). Target sets the engine
+        // added are left out, so set N lines up with set N of the prescription.
+        function lastSessionSets(exName) {
+            const canon = normalizeExName(exName);
+            for (const log of workoutHistoryCache) {
+                const hit = (log.details || []).find(d => normalizeExName(d.name) === canon && Array.isArray(d.sets) && d.sets.length);
+                if (hit) return { id: log.id, sets: hit.sets.filter(s => !s.isTargetSet) };
+            }
+            return null;
+        }
+        // "95 kg × 5 @ 7" when the sets matched, "95 kg × 5, 5, 4" when only the reps
+        // moved, "100 × 5, 95 × 5 kg" when the load did.
+        function formatLastTime(sets) {
+            const u = unitSuffix();
+            const loads = sets.map(s => Number(s.load) || 0), reps = sets.map(s => Number(s.reps) || 0);
+            const rpes = sets.map(s => parseFloat(s.rpe)).filter(v => isFinite(v));
+            const same = arr => arr.every(v => v === arr[0]);
+            const rpeTxt = rpes.length !== sets.length ? '' : same(rpes) ? ` @ ${rpes[0]}` : ` @ ${Math.min(...rpes)} to ${Math.max(...rpes)}`;
+            if (same(loads)) {
+                const repTxt = same(reps) ? reps[0] : reps.join(', ');
+                return (loads[0] > 0 ? `${kgDisp(loads[0])} ${u} × ${repTxt}` : `${repTxt} reps`) + rpeTxt;
+            }
+            return sets.map((s, i) => `${kgDisp(loads[i])} × ${reps[i]}`).join(', ') + ` ${u}`;
+        }
+
         function renderWorkout() {
             const container = document.getElementById('workout-container');
             if (!container) return;
+            closeRpePicker(); // its field is about to be replaced
             container.innerHTML = '';
             if (!currentProgram || !db[currentProgram]) {
                 container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No program selected.</div>';
@@ -4789,7 +5111,7 @@
                 const warmupSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
                 const timerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><polyline points="12 9 12 13 14 15"></polyline><line x1="12" y1="2" x2="12" y2="4"></line><line x1="9" y1="2" x2="15" y2="2"></line></svg>`;
 
-                const isNonExercise = /rest|information|info|note/i.test(ex.name);
+                const isNonExercise = isNonExerciseName(ex.name);
                 const techniqueLift = !isNonExercise && typeof getTechniqueLift === 'function' ? getTechniqueLift(ex.name) : null;
                 const videoUnavailable = isCompleted ? 'Open an unfinished workout to analyze and save a set video.'
                     : isMyo || isDrop ? 'Video analysis supports standard sets. Turn off MYO or DROP to use it.'
@@ -4897,6 +5219,9 @@
                 const lastVisibleBlock = visibleBlockIdx[visibleBlockIdx.length - 1];
                 const isLadder = visibleBlockIdx.length >= 3;
                 let lastColKind = null;
+                // Last session's sets for this lift, walked in step with the blocks below.
+                const lastTime = (isCompleted || isNonExercise) ? null : lastSessionSets(ex.name);
+                let lastFlat = 0;
 
                 ex.blocks.forEach((block, bIndex) => {
                     if (block._deleted) return; // block removed via swipe-delete of its only set
@@ -4905,6 +5230,10 @@
                     // left blank for the lifter to log.
                     const amrapIdx = amrapSetIndex(block);
                     const blockAllAmrap = amrapIdx !== null && block.sets === 1;
+                    const lastSets = lastTime ? lastTime.sets.slice(lastFlat, lastFlat + block.sets) : [];
+                    lastFlat += block.sets;
+                    const lastHtml = lastSets.length && !block.durationMin
+                        ? `<span class="block-last" title="${escapeHtml(fmtShortDate(parseInt(lastTime.id, 10)))}">Last time ${escapeHtml(formatLastTime(lastSets))}</span>` : '';
                     let details = [];
                     if (block.pct) details.push(`${(block.pct * 100).toFixed(0)}%${percentageTrainingMax !== null ? ' TM' : ''}`);
                     if (block.targetRpe) {
@@ -4974,6 +5303,7 @@
                         <div class="block-container${isLadder ? ' ladder' : ''}${showCols ? '' : ' no-cols'}">
                             <div class="block-header">
                                 <span class="block-label">${blockCountLabel}</span>
+                                ${lastHtml}
                             </div>
                             ${showCols ? colHeaders : ''}
                         `;
@@ -5103,7 +5433,7 @@
                                     <span class="ex-timer-disp" id="ex-timer-disp-${rowId}">${timerDisp}</span>
                                     <span class="ex-timer-target" onclick="window.editExTimerTarget('${rowId}', ${effMin})" title="Tap to edit target">/ ${targetLabel}</span>
                                 </div>
-                                ${hasRpe ? `<span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>` : ''}
+                                ${hasRpe ? `<span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${block.targetRpe}" value="${rpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>` : ''}
                                 <span class="check-circle ${isChecked}" id="${checkId}" data-rest="0" data-norest="true" data-timerrow="true" onclick="toggleCheck(this)"></span>
                             </div>`;
                         } else {
@@ -5113,9 +5443,9 @@
                             <div class="set-row">
                                 <span ${noteTapAttr}>${s}${setNote ? '<span style="color:var(--teal);font-size:9px;vertical-align:top;"> ●</span>' : ''}</span>
                                 <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
-                                <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
+                                <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 ${bwOnly ? '<span class="bw-only-load">Bodyweight</span>' : `<span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${loadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${entryFromKg(loadValue)}" placeholder="${unitSuffix()}" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" aria-label="Show plates per side"><span class="plate-strip" data-load="${loadInputId}"></span></button>`}
                                 </span>
@@ -5168,9 +5498,9 @@
                             <div class="set-row" style="${borderStyle} margin-top: 8px;">
                                 ${setLabel}
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
-                                <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="decimal" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
+                                <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${eLoadValue}" placeholder="kg" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${entryFromKg(eLoadValue)}" placeholder="${unitSuffix()}" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
                                     ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" aria-label="Show plates per side"><span class="plate-strip" data-load="${extraRowId}_load"></span></button>`}
                                 </span>
@@ -5288,7 +5618,7 @@
                     // Heaviest loaded set of the card, as "92.5 kg × 4".
                     let top = null;
                     card.querySelectorAll('.set-row:not(.header)').forEach(row => {
-                        const load = parseFloat((row.querySelector('.main-load, .acc-load') || {}).value);
+                        const load = loadFieldKg(row.querySelector('.main-load, .acc-load'));
                         const reps = parseInt((row.querySelector('input[id$="_reps"]') || {}).value, 10);
                         if (load > 0 && (!top || load > top.load)) top = { load, reps };
                     });
@@ -6066,32 +6396,50 @@
             setTimeout(() => overlay.style.display = 'none', 300);
         };
         // --- GYM INVENTORY ENGINE ---
+        // Plates and bar are kept per unit: a kilo gym and a pound gym do not share an
+        // inventory. Everything in this block is in the lifter's unit; platesPerSide()
+        // takes kg and converts. `s` on a pound plate is the kilo plate it is DRAWN like.
+        const DEFAULT_PLATES_KG = [
+            {w: 25, c: '#ef4444', t: '#fff', active: true},
+            {w: 20, c: '#3b82f6', t: '#fff', active: true},
+            {w: 15, c: '#eab308', t: '#000', active: true},
+            {w: 10, c: '#22c55e', t: '#fff', active: true},
+            {w: 5, c: '#f4f4f5', t: '#000', active: true},
+            {w: 2.5, c: '#27272a', t: '#fff', active: true},
+            {w: 1.25, c: '#52525b', t: '#fff', active: true}
+        ];
+        const DEFAULT_PLATES_LB = [
+            {w: 45, s: 20, c: '#3b82f6', t: '#fff', active: true},
+            {w: 35, s: 15, c: '#eab308', t: '#000', active: true},
+            {w: 25, s: 10, c: '#22c55e', t: '#fff', active: true},
+            {w: 10, s: 2.5, c: '#f4f4f5', t: '#000', active: true},
+            {w: 5, s: 2.5, c: '#27272a', t: '#fff', active: true},
+            {w: 2.5, s: 1.25, c: '#52525b', t: '#fff', active: true}
+        ];
+        function plateInventoryKey() { return isLbs() ? 'gymPlateInventoryLb' : 'gymPlateInventory'; }
+        function barbellKey() { return isLbs() ? 'gymBarbellWeightLb' : 'gymBarbellWeight'; }
+        function plateSize(p) { return p.s || p.w; }
+
         function getActivePlates() {
-            let saved = safeParse('gymPlateInventory', null);
+            let saved = safeParse(plateInventoryKey(), null);
             if (!saved) {
-                // Default IPF standard plates
-                saved = [
-                    {w: 25, c: '#ef4444', t: '#fff', active: true},
-                    {w: 20, c: '#3b82f6', t: '#fff', active: true},
-                    {w: 15, c: '#eab308', t: '#000', active: true},
-                    {w: 10, c: '#22c55e', t: '#fff', active: true},
-                    {w: 5, c: '#f4f4f5', t: '#000', active: true},
-                    {w: 2.5, c: '#27272a', t: '#fff', active: true},
-                    {w: 1.25, c: '#52525b', t: '#fff', active: true}
-                ];
-                localStorage.setItem('gymPlateInventory', JSON.stringify(saved));
+                saved = JSON.parse(JSON.stringify(isLbs() ? DEFAULT_PLATES_LB : DEFAULT_PLATES_KG));
+                localStorage.setItem(plateInventoryKey(), JSON.stringify(saved));
             }
             return saved;
         }
 
         function getBarbellWeight() {
-            return parseFloat(localStorage.getItem('gymBarbellWeight')) || 20;
+            return parseFloat(localStorage.getItem(barbellKey())) || (isLbs() ? 45 : 20);
+        }
+        function barbellKg() {
+            return isLbs() ? getBarbellWeight() / LB_PER_KG : getBarbellWeight();
         }
 
         window.updateBarbellWeight = function(val) {
             let w = parseFloat(val);
             if (!isNaN(w) && w >= 0) {
-                localStorage.setItem('gymBarbellWeight', w);
+                localStorage.setItem(barbellKey(), w);
             }
         };
 
@@ -6110,13 +6458,15 @@
             // Set the barbell input to your saved value
             const barInput = document.getElementById('settings-bar-weight');
             if (barInput) barInput.value = getBarbellWeight();
+            const barUnit = document.getElementById('settings-bar-unit');
+            if (barUnit) barUnit.textContent = unitSuffix();
 
             const container = document.getElementById('plate-toggles-container');
             container.innerHTML = plates.map((p, i) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border);">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div class="plate-block" style="background: ${p.c}; color: ${p.t}; width: 28px; text-align: center; font-size: 12px;">${p.w}</div>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 14px;">kg Plate</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 14px;">${unitSuffix()} plate</span>
                     </div>
                     <input type="checkbox" ${p.active ? 'checked' : ''} onchange="togglePlateInventory(${i}, this.checked)" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
                 </div>
@@ -6128,7 +6478,7 @@
         window.togglePlateInventory = function(idx, isActive) {
             let plates = getActivePlates();
             plates[idx].active = isActive;
-            localStorage.setItem('gymPlateInventory', JSON.stringify(plates));
+            localStorage.setItem(plateInventoryKey(), JSON.stringify(plates));
         };
 
         window.closePlateSettings = function() {
@@ -6141,8 +6491,9 @@
         // Same greedy breakdown as the balloon below. Load values are also written by code
         // (e1RM cascade, toggleCheck), which fires no input event, so a delegated click
         // listener repaints on the next tick as well.
-        function platesPerSide(weight) {
+        function platesPerSide(weightKg) {
             const bar = getBarbellWeight();
+            const weight = isLbs() ? Math.round(weightKg * LB_PER_KG * 10) / 10 : weightKg;
             if (!(weight > bar)) return [];
             let perSide = Math.round(((weight - bar) / 2) * 100) / 100;
             const out = [];
@@ -6154,12 +6505,12 @@
         function paintPlateStrips(root) {
             (root || document).querySelectorAll('.plate-strip').forEach(strip => {
                 const input = document.getElementById(strip.dataset.load);
-                const w = input ? parseFloat(input.value) : NaN;
-                const key = isNaN(w) ? '' : String(w);
+                const w = loadFieldKg(input);
+                const key = isNaN(w) ? '' : getUnit() + w;
                 if (strip.dataset.painted === key) return;
                 strip.dataset.painted = key;
                 strip.innerHTML = platesPerSide(w).map(p =>
-                    `<i style="flex:0 0 ${(p.w / 1.2).toFixed(2)}%;background:${p.c}"></i>`).join('');
+                    `<i style="flex:0 0 ${(p.w / (isLbs() ? 2.65 : 1.2)).toFixed(2)}%;background:${p.c}"></i>`).join('');
             });
         }
         document.addEventListener('input', e => {
@@ -6190,12 +6541,12 @@
             
             if (weight < barWeight) {
                 html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">${weight}kg</div>
+                        <div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">${weight} ${unitSuffix()}</div>
                         <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Dumbbell / Plate</div>`;
             } else if (weight === barWeight) {
                 html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
                         <div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">Empty Bar</div>
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${barWeight}kg</div>`;
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${barWeight} ${unitSuffix()}</div>`;
             } else {
                 let perSide = (weight - barWeight) / 2;
                 let plates = [];
@@ -6213,7 +6564,7 @@
                 }
                 
                 html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; z-index: 10;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">Per Side (${barWeight}kg Bar)</div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">Per side (${barWeight} ${unitSuffix()} bar)</div>
                         
                         <div style="display: flex; align-items: center; justify-content: flex-start; max-width: 100%; overflow-x: auto; padding: 25px 5px; scrollbar-width: none;">
                             <div style="width: 14px; height: 10px; background: #52525b; border-radius: 2px 0 0 2px; flex-shrink: 0;"></div>
@@ -6222,16 +6573,17 @@
                 
                 // Draw dynamic plates!
                 plates.forEach((p, i) => {
-                    let h = p.w >= 20 ? 54 : p.w >= 15 ? 46 : p.w >= 10 ? 36 : p.w >= 5 ? 26 : p.w >= 2.5 ? 20 : 16;
-                    let w = p.w >= 10 ? 14 : 10;
-                    let f = p.w >= 10 ? 9 : 8;
+                    const sz = plateSize(p);
+                    let h = sz >= 20 ? 54 : sz >= 15 ? 46 : sz >= 10 ? 36 : sz >= 5 ? 26 : sz >= 2.5 ? 20 : 16;
+                    let w = sz >= 10 ? 14 : 10;
+                    let f = sz >= 10 ? 9 : 8;
                     html += `<div class="plate-anim" style="animation-delay: ${i * 60}ms; width: ${w}px; height: ${h}px; background: ${p.c}; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; margin-right: 1px; flex-shrink: 0; box-shadow: inset -1px 0 3px rgba(0,0,0,0.3); z-index: 3;">
                                 <span style="font-size: ${f}px; font-weight: 800; color: ${p.t}; transform: rotate(-90deg); letter-spacing: -0.5px;">${p.w}</span>
                              </div>`;
                 });
                 
                 if (perSide > 0.01) {
-                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))}kg</div>`;
+                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))} ${unitSuffix()}</div>`;
                 }
                 
                 html += `   </div>
@@ -6534,7 +6886,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', (event) => {
                 if (event.data && event.data.action === 'timerAlarmTooLong') {
-                    showErrorToast('Rest over 4 min: keep the app open for the beep');
+                    showErrorToast('Rest over 5 min: keep the app open for the beep');
                 }
             });
         }
@@ -6683,7 +7035,7 @@
                         const loadEl = document.getElementById(`${baseId}_load`);
                         const repsEl = document.getElementById(`${baseId}_reps`);
                         const exName = loadEl ? (loadEl.dataset.exname || '') : '';
-                        const rawLoad = loadEl ? parseFloat(loadEl.value || loadEl.placeholder) : NaN;
+                        const rawLoad = loadFieldKg(loadEl);
                         const load = Number.isFinite(rawLoad) ? kgDisp(rawLoad) : '';
                         const reps = repsEl ? (repsEl.value || '') : '';
                         if (exName) {
@@ -6707,7 +7059,7 @@
         // Only updates sets that are NOT yet checked. Shared by toggleCheck (on check) and the
         // live load-input handler (so editing the activation weight re-strips the drops instantly).
         window.cascadeMyoDropLoads = function(loadInput, exName) {
-            if (!loadInput || loadInput.value === '') return;
+            if (!loadInput || loadFieldKgString(loadInput) === '') return;
             const baseId = loadInput.id.replace('_load', '');
             const exIdMatch = baseId.match(/(ex-\d+)/);
             const currentBlockMatch = baseId.match(/_b(\d+)_/);
@@ -6715,7 +7067,7 @@
             const exId = exIdMatch[1];
             const currentBIndex = parseInt(currentBlockMatch[1]);
             const allLoadInputs = document.querySelectorAll(`input[id^="${exId}_b"][id$="_load"]`);
-            const currentLoad = loadInput.value;
+            const currentLoad = loadFieldKgString(loadInput); // kg
             const activationBase = parseFloat(currentLoad);
 
             let foundCurrent = false;
@@ -6734,7 +7086,7 @@
                     if (!isNaN(dropFactor) && !isNaN(activationBase)) {
                         cascadeLoad = String(roundForEquipment(activationBase * dropFactor, exName));
                     }
-                    input.value = cascadeLoad;
+                    setLoadField(input, cascadeLoad);
                     saveSessionState(input.id, cascadeLoad);
                     input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
@@ -6782,8 +7134,9 @@
                 if (repsInput) repsInput.disabled = true; // Locks reps
 
                 if (loadInput && loadInput.value) {
-                    const val = parseFloat(loadInput.value);
-                    saveSessionState(loadInput.id, loadInput.value);
+                    const val = loadFieldKg(loadInput);
+                    const kgStr = loadFieldKgString(loadInput);
+                    saveSessionState(loadInput.id, kgStr);
                     
                     let lastUsed = safeParse('lastUsedWeights', {});
                     
@@ -6792,14 +7145,20 @@
                         lastUsed[exName] = { fallback: lastUsed[exName] };
                     }
                     const suffixMatch = loadInput.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
-                    if (suffixMatch) lastUsed[exName][suffixMatch[0]] = loadInput.value;
+                    if (suffixMatch) lastUsed[exName][suffixMatch[0]] = kgStr;
+                    // The latest logged load also seeds set positions that have never been
+                    // done (an added set, a week with one more block): those used to open blank.
+                    lastUsed[exName].fallback = kgStr;
                     
                     localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
 
-                    if (!isNaN(val) && rpeInput && rpeInput.value) {
+                    // A blank RPE is read as RPE 10: the most conservative e1RM, and the same
+                    // reading the history rebuild uses, so percentage-only sets can set PRs.
+                    if (!isNaN(val) && rpeInput) {
                         let actualBests = safeParse('actualBests', {});
                         const reps = repsInput && repsInput.value ? parseFloat(repsInput.value) : (parseFloat(loadInput.dataset.reps) || 0);
-                        const rpeVal = parseFloat(rpeInput.value);
+                        const rpeEntered = rpeInput.value !== '' && !isNaN(parseFloat(rpeInput.value));
+                        const rpeVal = rpeEntered ? parseFloat(rpeInput.value) : 10;
                         
                         let effectiveWeight = val;
                         if (isBodyweightExercise(exName)) {
@@ -6859,7 +7218,7 @@
                             // Not a PR — insult only on top sets that come in below the reference 1RM
                             const ref1RM = getResolved1RM(exName);
                             const isTopSet = el.dataset.blocktype === 'top';
-                            if (isTopSet && ref1RM > 0 && newE1RM > 0 && newE1RM < ref1RM && !insultedThisSession[exName]) {
+                            if (rpeEntered && isTopSet && ref1RM > 0 && newE1RM > 0 && newE1RM < ref1RM * NO_LIFT_MARGIN && !insultedThisSession[exName]) {
                                 insultedThisSession[exName] = true;
                                 showInsultToast(exName);
                             }
@@ -6875,7 +7234,7 @@
 
                 // Cascade ONLY load to next sets (keep target RPE and reps as default)
                 const myoType = el.dataset.myotype;
-                const currentLoad = loadInput ? loadInput.value : '';
+                const currentLoad = loadInput ? loadFieldKgString(loadInput) : ''; // kg
 
                 if (myoType === 'activation' && currentLoad !== '') {
                     // MYO-REP / DROP-SET CASCADE: Push load to next sets, but STOP if we hit a new Activation block.
@@ -6890,6 +7249,9 @@
                         let currentSet = parseInt(match[2]);
 
                         let nextSet = currentSet + 1;
+                        // A load the lifter typed into a later set (a planned ramp) is theirs:
+                        // only sets nobody has touched follow the one just done.
+                        const typedIn = safeParse(getWorkoutKey(), {});
                         while(true) {
                             const nextCheck = document.getElementById(`${blockPrefix}_s${nextSet}_check`);
                             if (!nextCheck) break; 
@@ -6897,8 +7259,8 @@
                             if (!nextCheck.classList.contains('checked')) {
                                 const nextLoad = document.getElementById(`${blockPrefix}_s${nextSet}_load`);
 
-                                if (nextLoad && currentLoad !== '') {
-                                    nextLoad.value = currentLoad;
+                                if (nextLoad && currentLoad !== '' && !typedIn[`${blockPrefix}_s${nextSet}_typed`]) {
+                                    setLoadField(nextLoad, currentLoad);
                                     saveSessionState(nextLoad.id, currentLoad);
                                     
                                     // This triggers the e1RM button on this future set to recalculate 
@@ -6959,7 +7321,7 @@
 
                 if (!el.dataset.norest) startTimer(restSeconds);
                 if (rpeInput && repsInput && loadInput) {
-                const weight = parseFloat(loadInput.value);
+                const weight = loadFieldKg(loadInput);
                 const rpeVal = parseFloat(rpeInput.value);
                 const reps = parseFloat(repsInput.value);
                 
@@ -7113,7 +7475,7 @@
                 }
 
                 // Skip if rounded weight is the same as what was just lifted
-                if (newWeight === weight) return;
+                if (Math.abs(newWeight - weight) < 0.05) return;
 
                 extrasArray = extrasArray.slice(0, currentExtraIndex + 1);
                 extrasArray.push({ reps: reps, rpe: block.targetRpe, weight: newWeight });
@@ -7150,8 +7512,13 @@
         function attachListeners() {
             document.querySelectorAll('.saveable').forEach(input => {
                 input.addEventListener('input', (e) => {
-                    saveSessionState(e.target.id, e.target.value);
-                    if(e.target.id.includes('_load') && e.target.value) {
+                    // Load fields hold the lifter's unit; the session keeps kg.
+                    const isLoad = e.target.id.endsWith('_load');
+                    const kgStr = isLoad ? loadFieldKgString(e.target) : '';
+                    saveSessionState(e.target.id, isLoad ? kgStr : e.target.value);
+                    // Typed by hand, not written by a cascade: later checks leave it alone.
+                    if (isLoad && e.isTrusted) saveSessionState(e.target.id.replace(/_load$/, '_typed'), kgStr !== '' ? true : undefined);
+                    if(isLoad && kgStr) {
                         let lastUsed = safeParse('lastUsedWeights', {});
                         const exName = normalizeExName(e.target.dataset.exname);
                         
@@ -7160,7 +7527,7 @@
                             lastUsed[exName] = { fallback: lastUsed[exName] };
                         }
                         const suffixMatch = e.target.id.match(/_b\d+_s\d+(?:_extra_\d+)?/);
-                        if (suffixMatch) lastUsed[exName][suffixMatch[0]] = e.target.value;
+                        if (suffixMatch) lastUsed[exName][suffixMatch[0]] = kgStr;
 
                         localStorage.setItem('lastUsedWeights', JSON.stringify(lastUsed));
 
@@ -7188,7 +7555,7 @@
 
                 const exName = normalizeExName(loadInput.dataset.exname); // BUG FIX: Defines the exercise name so the engine doesn't crash!
 
-                const weight = parseFloat(loadInput.value) || 0; // Handles empty or 0 inputs (0kg added)
+                const weight = loadFieldKg(loadInput) || 0; // Handles empty or 0 inputs (0kg added)
                 const rpe = parseFloat(rpeInput.value);
                 const reps = parseFloat(repsInput.value); 
 
@@ -7239,15 +7606,20 @@
                     const clickedRowId = currentBtn.dataset.rowid;
                     
                     const clickedLoadInput = document.getElementById(`${clickedRowId}_load`);
-                    const clickedWeight = clickedLoadInput ? parseFloat(clickedLoadInput.value) : 0;
+                    const clickedWeight = clickedLoadInput ? (loadFieldKg(clickedLoadInput) || 0) : 0;
                     
                     if (e1rm > 0) {
-                        let saved1RMs = safeParse('global1RMs', {});
-                        saved1RMs[exName] = e1rm;
-                        localStorage.setItem('global1RMs', JSON.stringify(saved1RMs));
+                        // One tap used to rewrite the reference 1RM for good, and on a
+                        // percentage program that silently threw away the progressed
+                        // training max. Now the training max is kept (setReference1RM)
+                        // and the whole tap can be undone from the toast.
+                        const before1RM = Number(safeParse('global1RMs', {})[exName]) || 0;
+                        const reseeded = setReference1RM(exName, e1rm);
+                        const rewritten = []; // [loadInputId, kg before]
+                        const usesTrainingMax = !!document.querySelector(`input[id$="_load"][data-exid="${exId}"][data-training-max="true"]`);
                         
                         const headerE1rm = document.getElementById(`global-e1rm-${exId}`);
-                        if(headerE1rm) headerE1rm.innerText = `Ref 1RM: ${kgDisp(e1rm)} ${unitSuffix()}`;
+                        if(headerE1rm && !usesTrainingMax) headerE1rm.innerText = `Ref 1RM: ${kgDisp(e1rm)} ${unitSuffix()}`;
 
                         const clickedBlockMatch = clickedRowId.match(/_b(\d+)_/);
                         const clickedBlockIdx = clickedBlockMatch ? clickedBlockMatch[1] : null;
@@ -7292,14 +7664,16 @@
                                     if (bw > 0) targetWeight = Math.max(0, targetWeight - bw);
                                 }
                                 
-                                loadInput.value = targetWeight;
+                                rewritten.push([loadInput.id, loadFieldKgString(loadInput)]);
+                                setLoadField(loadInput, targetWeight);
                                 saveSessionState(loadInput.id, targetWeight); 
                                 loadInput.dispatchEvent(new Event('input', {bubbles: true}));
                                 
                             // ONLY cascade the raw weight if it's a straight-volume block (no pct, no RPE)
                             } else if (clickedBlockIdx !== null && clickedBlockIdx === targetBlockIdx) {
                                 if (clickedWeight > 0) {
-                                    loadInput.value = clickedWeight;
+                                    rewritten.push([loadInput.id, loadFieldKgString(loadInput)]);
+                                    setLoadField(loadInput, clickedWeight);
                                     saveSessionState(loadInput.id, clickedWeight);
                                     loadInput.dispatchEvent(new Event('input', {bubbles: true})); 
                                 }
@@ -7307,6 +7681,16 @@
                         });
                         
                         updateDashboard(); 
+                        showUndoToast(`${escapeHtml(exName)} ref 1RM: ${kgDisp(e1rm)} ${unitSuffix()}`, () => {}, () => {
+                            restoreReference1RM(exName, before1RM, reseeded);
+                            const session = safeParse(getWorkoutKey(), {});
+                            rewritten.forEach(([id, kg]) => {
+                                // A set checked off since the tap keeps what was lifted.
+                                if (!session[id.replace(/_load$/, '_check')]) saveSessionState(id, kg === '' ? undefined : kg);
+                            });
+                            renderWorkout();
+                            updateDashboard();
+                        });
                     }
                 });
             });
@@ -7332,17 +7716,12 @@
             let today = new Date();
             today.setHours(0,0,0,0);
             
-            // Find the most recent Saturday (0=Sun, ..., 6=Sat)
-            let dayOfWeek = today.getDay(); 
-            let daysSinceSaturday = (dayOfWeek === 6) ? 0 : (dayOfWeek + 1);
-            
-            let startOfStreak = new Date(today);
-            startOfStreak.setDate(today.getDate() - daysSinceSaturday);
+            // The training week (Settings > Week starts on), same start as "This week".
+            let startOfStreak = weekStartDate();
 
             let html = '';
-            // Hard-locked to your Saturday-Friday schedule
-            const dayLabels = ['S', 'S', 'M', 'T', 'W', 'T', 'F'];
-            
+            const dayLabels = Array.from({ length: 7 }, (_, i) => WEEKDAY_NAMES[(weekStartDay() + i) % 7][0]);
+
             for (let i = 0; i < 7; i++) {
                 let d = new Date(startOfStreak);
                 d.setDate(startOfStreak.getDate() + i);
@@ -7364,12 +7743,12 @@
 
         function updateAnalytics() {
             renderStreak();
-            // This week (Monday to now) against last week. Lifetime totals were numbers
+            // This training week against the one before. Lifetime totals were numbers
             // nobody could act on; these say whether the week is on track.
             const history = (typeof workoutHistoryCache !== 'undefined' && workoutHistoryCache.length) ? workoutHistoryCache : safeParse('workoutHistory', []);
-            const monday = new Date(); monday.setHours(0, 0, 0, 0);
-            monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-            const weekStart = monday.getTime(), lastStart = weekStart - 7 * 86400000;
+            const thisWeek = weekStartDate(), prevWeek = new Date(thisWeek);
+            prevWeek.setDate(prevWeek.getDate() - 7); // by date, so a DST change does not shift it
+            const weekStart = thisWeek.getTime(), lastStart = prevWeek.getTime();
             const wk = { n: 0, sets: 0, vol: 0 }, last = { n: 0, sets: 0, vol: 0 };
             history.forEach(log => {
                 const ts = parseInt(log.id, 10);
@@ -7417,13 +7796,49 @@
         }
         // --- CUSTOM WORKOUT LOGIC ---
 
+        // An "empty workout" that was opened and left: no exercises, never completed, not
+        // running, nothing typed. Each tap on "Start an empty workout" used to leave one.
+        function isAbandonedEmptyWorkout(pid, prog) {
+            if (!prog || prog.name !== 'On-the-Fly Workout') return false;
+            const days = Object.values(prog.weeks || {}).flatMap(w => Object.values(w || {}));
+            if (days.some(d => Array.isArray(d) && d.length)) return false;
+            if (activeWorkout && activeWorkout.program === pid) return false;
+            return !Object.keys(completedDays).some(k => k.startsWith(pid + '_w')) && !localStorage.getItem(`${pid}_w1_d1`);
+        }
+        // A custom workout is written to the library once it has something in it or
+        // has been started, not when its (still empty) screen is first opened.
+        function persistCustomProgram(pid) {
+            if (!pid || !pid.startsWith('Custom_') || !db[pid]) return;
+            const customProgs = safeParse('customPrograms', {});
+            customProgs[pid] = db[pid];
+            localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+        }
+        // Main lifts are the three competition lifts by exact name, never by substring
+        // ("Dumbbell Bench" and "Goblet Squat" are accessories).
+        function isExactSBD(name) {
+            const n = String(normalizeExName(name) || '').trim().toLowerCase();
+            return Object.prototype.hasOwnProperty.call(SBD_PARENTS, n) || Object.values(SBD_PARENTS).some(parent => parent.toLowerCase() === n);
+        }
+        // The minimum a program must be for the app to open it: weeks > days > exercises
+        // with a name and blocks that each have a set count.
+        function isValidProgram(data) {
+            const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+            if (!isObj(data) || !isObj(data.weeks) || !Object.keys(data.weeks).length) return false;
+            return Object.values(data.weeks).every(week => isObj(week) && Object.keys(week).length &&
+                Object.values(week).every(day => Array.isArray(day) && day.every(ex =>
+                    isObj(ex) && typeof ex.name === 'string' && Array.isArray(ex.blocks) &&
+                    ex.blocks.every(b => isObj(b) && Number(b.sets) >= 1))));
+        }
+
         const originalInitApp = initApp;
         initApp = async function() {
             // 1. Get custom workouts from browser memory
             const customProgs = safeParse('customPrograms', {});
 
             // Seed built-in templates into custom workouts on first load
-            if (!customProgs['Custom_caroline_girvan_fb']) {
+            // Seeded ONCE. Without the flag the template came back on every launch after
+            // being deleted. (It is in BACKUP_MIGRATIONS so a restore does not re-seed it.)
+            if (!localStorage.getItem('seededTemplates_v1') && !customProgs['Custom_caroline_girvan_fb']) {
                 customProgs['Custom_caroline_girvan_fb'] = {
                     name: "Caroline Girvan Full Body",
                     weeks: { 1: { 1: [
@@ -7440,13 +7855,24 @@
                 };
                 localStorage.setItem('customPrograms', JSON.stringify(customProgs));
             }
+            localStorage.setItem('seededTemplates_v1', '1');
 
             // 2. SAFETY CHECK: If db (from database.js) doesn't exist, create it
             if (typeof window.db === 'undefined') window.db = {};
 
-            // 3. Merge custom workouts INTO the main database object
+            // 3. Merge custom workouts and the lifter's own programs INTO the database.
+            // A stored program can never replace a built-in one (an import carrying a
+            // built-in's id used to), and empty workouts that were never run are dropped.
+            const builtIn = new Set(Object.keys(window.db));
+            let pruned = false;
             Object.keys(customProgs).forEach(k => {
-                window.db[k] = customProgs[k];
+                if (isAbandonedEmptyWorkout(k, customProgs[k])) { delete customProgs[k]; pruned = true; return; }
+                if (k.startsWith('Custom_') && !builtIn.has(k)) window.db[k] = customProgs[k];
+            });
+            if (pruned) localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            const userProgs = safeParse('userPrograms', {});
+            Object.keys(userProgs).forEach(k => {
+                if (k.startsWith('User_') && !builtIn.has(k)) window.db[k] = userProgs[k];
             });
 
             // 4. Run the original boot sequence
@@ -7455,6 +7881,7 @@
 
         const originalToggleWorkoutState = toggleWorkoutState;
         toggleWorkoutState = async function(action) {
+            if (action === 'start') persistCustomProgram(currentProgram);
             const customProgs = safeParse('customPrograms', {});
             const isCustom = !!customProgs[currentProgram];
 
@@ -7471,25 +7898,7 @@
         };
 
         function executeFinish(key, durationMs) {
-            completedDays[key] = true;
-            localStorage.setItem('completedDays', JSON.stringify(completedDays));
-            activeWorkout = null;
-            localStorage.removeItem('activeWorkout');
-            // Stop any running exercise timers
-            if (window.exTimerState) {
-                Object.keys(window.exTimerState).forEach(rid => {
-                    const s = window.exTimerState[rid];
-                    if (s && s.interval) clearInterval(s.interval);
-                });
-                window.exTimerState = {};
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            closeTimer();
-            if (typeof workoutDurationInterval !== 'undefined') clearInterval(workoutDurationInterval);
-            const timerEl = document.getElementById('workout-duration');
-            if (timerEl) timerEl.style.display = 'none';
-            generateSummary(key, durationMs); 
-            updateDashboard();
+            finishWorkout(key, durationMs);
         }
 
         window.startCustomWorkout = async function() {
@@ -7499,9 +7908,7 @@
                 weeks: { 1: { 1: [] } } 
             };
             
-            let customProgs = safeParse('customPrograms', {});
-            customProgs[customId] = db[customId];
-            localStorage.setItem('customPrograms', JSON.stringify(customProgs));
+            // Not written to the library yet: see persistCustomProgram.
             
             currentProgram = customId;
             selectedWeek = '1';
@@ -7511,8 +7918,7 @@
             // until you actually click "Start Workout"!
             
             updateLibraryUI();
-            document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
-            document.getElementById('workout-screen').classList.add('active');
+            switchTab('workout-screen');
             renderWeekPills();
             renderDayPills();
             renderWorkout();
@@ -7528,7 +7934,7 @@
 
         window.submitNewExercise = function() {
             const name = document.getElementById('add-ex-name').value.trim() || "New Exercise";
-            const isMain = name.toLowerCase().includes('squat') || name.toLowerCase().includes('bench') || name.toLowerCase().includes('deadlift');
+            const isMain = isExactSBD(name);
             const isMyo = document.getElementById('add-ex-mode-myo').classList.contains('active');
 
             let blocks, notes;
@@ -7560,11 +7966,7 @@
                 } else {
                     dayExercises.push(newExercise);
                 }
-                const customProgs = safeParse('customPrograms', {});
-                if (customProgs[currentProgram]) {
-                    customProgs[currentProgram] = db[currentProgram];
-                    localStorage.setItem('customPrograms', JSON.stringify(customProgs));
-                }
+                persistCustomProgram(currentProgram);
             } else {
                 const key = getWorkoutKey();
                 let savedSession = safeParse(key, {});
@@ -7609,8 +8011,7 @@
                 if (currentProgram === pid) {
                     currentProgram = null;
                     // BUG FIX: Removed the line that was deleting your main activeProgram!
-                    document.getElementById('library-screen').classList.add('active');
-                    document.getElementById('workout-screen').classList.remove('active');
+                    switchTab('library-screen');
                 }
                 
                 updateLibraryUI();
@@ -8017,10 +8418,9 @@
             const v = getUnit() === 'lbs' ? kg * 2.2046 : kg;
             return dec === 0 ? Math.round(v) : parseFloat(v.toFixed(dec));
         }
-        // NOTE: this is a DISPLAY unit only. Loads, plate inventory, bar weight and
-        // roundForEquipment() all work in kg, so the workout screen's load field
-        // stays kg — converting data entry means a unit-aware plate model, which is
-        // a feature, not a bug fix.
+        // The unit covers entry as well as display: load, bodyweight and 1RM fields take
+        // the lifter's unit (see UNIT BOUNDARY at the top), suggestions round to pound
+        // steps and the plate maths uses the pound inventory. Storage stays kg.
         window.toggleUnit = function() {
             localStorage.setItem('preferredUnit', getUnit() === 'kg' ? 'lbs' : 'kg');
             renderStats();
@@ -8183,12 +8583,15 @@
             if (!b64) return;
             try {
                 const payload = JSON.parse(decodeURIComponent(escape(atob(b64.trim()))));
-                if (!payload.pid || !payload.data || !payload.data.name) throw new Error('Invalid format');
+                if (!payload || !payload.data || typeof payload.data.name !== 'string' || !payload.data.name || !isValidProgram(payload.data)) throw new Error('Invalid format');
                 const progs = safeParse('customPrograms', {});
-                let targetPid = payload.pid;
-                if (progs[targetPid]) targetPid = payload.pid + '_' + Date.now();
+                // The pasted id is never trusted: the workout always lands on a free
+                // Custom_ id, so it cannot replace a built-in program.
+                let targetPid = typeof payload.pid === 'string' && /^Custom_[\w-]+$/.test(payload.pid) ? payload.pid : 'Custom_' + Date.now();
+                if (progs[targetPid] || db[targetPid]) targetPid = 'Custom_' + Date.now();
                 progs[targetPid] = payload.data;
                 localStorage.setItem('customPrograms', JSON.stringify(progs));
+                db[targetPid] = payload.data; // open-able straight away, not after a restart
                 updateLibraryUI();
                 const folder = document.getElementById('custom-folder');
                 if (folder) folder.open = true;
@@ -8199,9 +8602,17 @@
         };
 
 
-        // Boot: try sessionStorage key first (page reload), else show login
-        const cachedKey = sessionStorage.getItem('gomu_key');
-        if (cachedKey) {
-            bootWithPassword(cachedKey, true);
-        }
-        // If no cached key, login screen is already visible — user enters password → checkLogin()
+        // Boot: the session key first (page reload), then the password remembered on this
+        // device (cold start). While either is tried the login card shows "Unlocking"
+        // instead of an empty password field; with neither, the form is simply there.
+        (async () => {
+            const loginScreen = document.getElementById('login-screen');
+            let cachedKey = sessionStorage.getItem('gomu_key');
+            if (loginScreen && (cachedKey || stayUnlockedOn())) loginScreen.classList.add('unlocking');
+            try {
+                if (!cachedKey && stayUnlockedOn()) cachedKey = await recallPassword();
+                if (cachedKey) await bootWithPassword(cachedKey, true);
+            } finally {
+                if (loginScreen) loginScreen.classList.remove('unlocking');
+            }
+        })();

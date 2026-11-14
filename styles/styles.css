@@ -468,6 +468,23 @@ button, .pill, .check-circle, .stat-card {
 }
 
 #undo-toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(12px); opacity: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; display: flex; align-items: center; gap: 14px; z-index: 1601; transition: opacity 0.2s, transform 0.2s; max-width: calc(100vw - 32px); box-sizing: border-box; box-shadow: 0 4px 20px rgba(0,0,0,0.5); pointer-events: all; }
+/* "Last time" on a block: its own line under the prescription, inline on a ladder. */
+.block-header { flex-wrap: wrap; gap: 2px 12px; }
+.block-last { flex: 0 1 100%; min-width: 0; color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.block-container.ladder .block-last { flex: 0 1 auto; margin-left: auto; }
+
+/* RPE picker: nine chips instead of the keyboard. */
+#rpe-picker { position: fixed; z-index: 1550; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 8px; width: min(calc(100vw - 16px), 348px); box-sizing: border-box; background: var(--card); border: 1px solid var(--line-strong, var(--border)); border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+#rpe-picker[hidden] { display: none; }
+#rpe-picker button { min-height: 44px; padding: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-sunken, var(--input-bg)); color: var(--text-main); font-family: var(--font-body); font-size: 15px; font-weight: 700; cursor: pointer; }
+#rpe-picker button.on { background: var(--accent-fill); color: var(--on-accent); border-color: transparent; }
+#rpe-picker button.quiet { color: var(--text-muted); font-size: 12px; }
+
+/* Login card while a remembered password is being tried. */
+.login-unlocking { display: none; margin: 0; color: var(--text-muted); font-size: 14px; }
+#login-screen.unlocking .login-card > :not(.login-icon):not(.login-unlocking) { display: none; }
+#login-screen.unlocking .login-unlocking { display: block; }
+
 #undo-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #undo-toast span { color: var(--text-main); font-size: 14px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #undo-toast button { background: none; border: none; color: var(--teal); font-size: 13px; font-weight: 900; cursor: pointer; padding: 2px 4px; letter-spacing: 0.5px; flex-shrink: 0; }

@@ -43,6 +43,7 @@ function harness() {
         section('let _sessionCacheKey =', 'let currentProgram ='),
         section('function saveSessionState(', 'window.dismissTargetSet ='),
         section('const BACKUP_PREFERENCES', 'function fmtRelTime'),
+        section('const UNSAVED_HISTORY_KEY', 'async function getDB('),
         section('window.saveSessionNote =', "let currentChartEx = ''"),
         section('let _undoTimer =', '// --- PROGRAM MANAGEMENT FUNCTIONS'),
         section('async function clearAllPRs()', 'window.updateManual1RM ='),

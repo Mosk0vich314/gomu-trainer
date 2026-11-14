@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gomu-trainer-v2026.11.13.1853'; // Increment this!
+const CACHE_NAME = 'gomu-trainer-v2026.11.14.1837'; // Increment this!
 const urlsToCache = [
   './',
   './index.html',
@@ -117,6 +117,10 @@ self.addEventListener('notificationclick', function(event) {
 // Chrome allows an extendable event ~5 minutes; past that the worker is killed
 // and the alarm never fires.
 const MAX_ALARM_MS = 4.5 * 60 * 1000;
+// A rest a little longer than that (the 5-minute rest after an RPE 9+ main lift is
+// the common one) still gets a background alert: it fires at the limit, early, and
+// says how much rest is left. Only rests beyond this window are refused.
+const EARLY_WARNING_MS = 60 * 1000;
 let timerTimeout = null;
 let timerDone = null; // resolver for the waitUntil promise
 let timerGeneration = 0;
@@ -141,10 +145,13 @@ self.addEventListener('message', (event) => {
         // Chrome keeps an extendable event alive for roughly 5 minutes. A longer
         // rest (custom timers accept any number of minutes) would silently never
         // notify, so tell the page rather than pretending the alarm is armed.
-        if (delay > MAX_ALARM_MS) {
+        if (delay > MAX_ALARM_MS + EARLY_WARNING_MS) {
             event.source && event.source.postMessage({ action: 'timerAlarmTooLong', delay: delay });
             return;
         }
+        // Seconds of rest still to go when the alert fires (0 = on time).
+        const earlySec = delay > MAX_ALARM_MS ? Math.round((delay - MAX_ALARM_MS) / 1000) : 0;
+        const fireIn = Math.min(delay, MAX_ALARM_MS);
         event.waitUntil(new Promise((resolve) => {
             timerDone = resolve;
             timerTimeout = setTimeout(async () => {
@@ -153,8 +160,8 @@ self.addEventListener('message', (event) => {
                     const clientList = await self.clients.matchAll({ type: 'window' });
                     const appVisible = clientList.some(c => c.visibilityState === 'visible');
                     if (generation !== timerGeneration || appVisible) return;
-                    await self.registration.showNotification("Bar is loaded", {
-                        body: "Rest is over. Tap to resume.",
+                    await self.registration.showNotification(earlySec ? earlySec + " seconds of rest left" : "Bar is loaded", {
+                        body: earlySec ? "Head back to the bar." : "Rest is over. Tap to resume.",
                         icon: "./assets/logo-192.png",
                         vibrate: [200, 100, 200, 100, 400],
                         tag: "gomu-timer",
@@ -167,7 +174,7 @@ self.addEventListener('message', (event) => {
                     if (generation === timerGeneration) timerDone = null;
                     resolve();
                 }
-            }, delay);
+            }, fireIn);
         }));
     }
 

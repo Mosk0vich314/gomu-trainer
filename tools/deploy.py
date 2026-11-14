@@ -80,7 +80,10 @@ commit_msg = f"Auto-deploy build v{new_version}"
 # If you passed an argument in the terminal, use it!
 if len(sys.argv) > 1:
     custom_msg = " ".join(sys.argv[1:])
-    commit_msg = f"{custom_msg} (v{new_version})"
+    # The version belongs on the subject line. Appending it to the end of a
+    # multi-line message would break trailers such as Co-Authored-By.
+    subject, _, body = custom_msg.partition("\n")
+    commit_msg = f"{subject} (v{new_version})" + (f"\n{body}" if body else "")
 
 
 # --- 5. AUTO-PUSH TO GITHUB ---

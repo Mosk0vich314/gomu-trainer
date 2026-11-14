@@ -24,9 +24,12 @@ function context() {
         scrollTo() {}, gdriveBackup() {}, setDB() {}, isBodyweightExercise: () => false, kgDisp: n => n, unitSuffix: () => 'kg',
         showConfirm: async () => true, navigator: {}, console,
         // Training-max progression has its own suite (review_nsuns_test.cjs); the finish path only needs it callable.
-        applyTrainingMaxProgression: () => ({}), flushPendingUndo() {}
+        applyTrainingMaxProgression: () => ({}), flushPendingUndo() {},
+        // History persistence and screen switching have their own suites.
+        saveHistory() {}, switchTab() {}, showErrorToast(msg) { throw new Error(msg); }
     });
     c.window = c;
+    vm.runInContext(section('// --- UNIT BOUNDARY ---', '// --- HTML ESCAPE ---'), c);
     vm.runInContext(section('let _sessionCacheKey =', 'let currentProgram ='), c);
     vm.runInContext(section('function saveSessionState(', 'window.dismissTargetSet ='), c);
     vm.runInContext(section('function getWorkoutKey()', 'function generateSummary('), c);
@@ -115,7 +118,8 @@ test('final-day summary uses swaps and converted blocks before cleanup', async (
     c.localStorage.setItem('programModes_Custom_test', JSON.stringify({ Row: { type: 'dropset', drops: 2 } }));
     c.activeWorkout = { key, startTime: Date.now() };
     let summary;
-    c.generateSummary = () => { summary = c.getActiveExercises('Custom_test', '1', '1', key)[0]; };
+    vm.runInContext(section('function amrapSetIndex(', 'const TAB_ORDER'), c);
+    c.presentSummary = () => { summary = c.getActiveExercises('Custom_test', '1', '1', key)[0]; };
     await c.toggleWorkoutState('finish');
     assert.equal(summary.name, 'Cable Row');
     assert.equal(summary.blocks.length, 3);
