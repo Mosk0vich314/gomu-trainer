@@ -246,7 +246,7 @@ Four separate implementations for different card types — all follow the same p
 **SBD swipe layout note:** SBD cards are in a flex row (`.pr-sbd-row`). Each card is wrapped in `.swipe-wrapper.sbd-swipe` which has `display: flex` so the inner `.pr-sbd-card` stretches to full height. Without `display: flex` on the wrapper the red background bleeds out at the bottom.
 
 ### Themes
-Four palettes — **Flame, Seal, Coral, Expedition** — each in a dark and a light cut, so the `THEMES` array at the top of `app.js` has eight entries:
+Seven palettes — **Flame, Seal, Coral, Expedition, Kyuri, Kite, Mirage** — each in a dark and a light cut, so the `THEMES` array at the top of `app.js` has fourteen entries:
 ```js
 { name: 'Flame Dark', palette: 'Flame', mode: 'dark',   // name = `${palette} ${Mode}`, stored in localStorage.appTheme
   accent: '#hex', teal: '#hex', bg: '#hex', card: '#hex', inputBg: '#hex', border: '#hex',

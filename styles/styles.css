@@ -929,6 +929,16 @@ button, .pill, .check-circle, .stat-card {
 }
 .bottom-sheet-overlay.open { opacity: 1; }
 .bottom-sheet-overlay.open .bottom-sheet { transform: translateY(0); }
+/* Exercise history sheet (History link on a workout card) */
+.ex-hist-empty { color: var(--text-muted); text-align: center; font-style: italic; margin-top: 30px; }
+.ex-hist-session { background: var(--surface-row); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.ex-hist-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); font-size: 13px; font-weight: 800; }
+.ex-hist-date { color: var(--accent); text-transform: uppercase; }
+.ex-hist-top { color: var(--text-main); }
+.ex-hist-set { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; margin-bottom: 6px; color: var(--text-main); }
+.ex-hist-set span { color: var(--text-muted); font-weight: 600; }
+.ex-hist-set b { font-weight: 700; }
+.ex-hist-rpe { color: var(--text-muted); font-size: 12px; font-weight: 600; }
 .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 20px auto; }
 /* PLATE CALCULATOR BALLOON & BUTTON */
 .plate-btn {

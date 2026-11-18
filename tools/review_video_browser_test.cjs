@@ -32,7 +32,7 @@ try { ({ chromium } = require('playwright')); } catch (e) {
         // Simulate an existing installation that already ran the old alias migration.
         await page.evaluate(() => {
             localStorage.setItem('exerciseDB_v1', '1');
-            localStorage.removeItem('exerciseDB_v2');
+            localStorage.removeItem('exerciseDB_v3');
             localStorage.setItem('global1RMs', JSON.stringify({ 'Barbell Bench': 110, 'Bench Press': 100 }));
             localStorage.setItem('lastUsedWeights', JSON.stringify({ 'Barbell Bench': 80 }));
             localStorage.setItem('equipmentModes', JSON.stringify({ 'Barbell Bench': 'bb' }));
@@ -42,7 +42,7 @@ try { ({ chromium } = require('playwright')); } catch (e) {
             rms: JSON.parse(localStorage.getItem('global1RMs')),
             weights: JSON.parse(localStorage.getItem('lastUsedWeights')),
             equipment: JSON.parse(localStorage.getItem('equipmentModes')),
-            migrated: localStorage.getItem('exerciseDB_v2')
+            migrated: localStorage.getItem('exerciseDB_v3')
         })), { rms: { 'Bench Press': 110 }, weights: { 'Bench Press': 80 }, equipment: { 'Bench Press': 'bb' }, migrated: '1' });
         await page.evaluate(() => {
             window.db = { VideoTest: { name: 'Video test', weeks: { 1: { 1: [

@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.15.0059";
+        const APP_VERSION = "v2026.11.18.1542";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -199,6 +199,15 @@
             // Forsythia / Deep Saffron on Oceanic Noir + Nocturnal Expedition
             { name: 'Expedition Dark',  palette: 'Expedition', mode: 'dark',  accent: '#FFC801', teal: '#FF9932', bg: '#09141A', card: '#172B36', inputBg: '#114C5A', border: '#2D6470', textMain: '#F1F6F4', textMuted: '#B8CEC8' },
             { name: 'Expedition Light', palette: 'Expedition', mode: 'light', accent: '#B85C00', accentFill: '#FFC801', teal: '#114C5A', bg: '#D3E3DC', card: '#F9FBFA', inputBg: '#E6F0EC', border: '#A6C2B7', textMain: '#172B36', textMuted: '#4D666F' },
+            // Tobiko Orange / Sneezeweeds on Blind Forest + Kyuri Green, White Chalk / Radiant Dawn
+            { name: 'Kyuri Dark',       palette: 'Kyuri',      mode: 'dark',  accent: '#F26B20', accentFill: '#E45C10', teal: '#F2B635', bg: '#111A00', card: '#223300', inputBg: '#34470E', border: '#4B5D16', textMain: '#F6F4F1', textMuted: '#D3CCB6' },
+            { name: 'Kyuri Light',      palette: 'Kyuri',      mode: 'light', accent: '#B4470A', accentFill: '#E45C10', teal: '#4B5D16', bg: '#DDCFB0', card: '#F6F4F1', inputBg: '#ECE2CE', border: '#C9BC9C', textMain: '#223300', textMuted: '#5A6440' },
+            // Toxic Orange / Aqua Mist on Black Kite + Garnet, Morning Snow / Amazon Mist
+            { name: 'Kite Dark',        palette: 'Kite',       mode: 'dark',  accent: '#FF6037', teal: '#A0C9CB', bg: '#120808', card: '#351E1C', inputBg: '#4A2C2A', border: '#733635', textMain: '#F5F4ED', textMuted: '#CFC4BC' },
+            { name: 'Kite Light',       palette: 'Kite',       mode: 'light', accent: '#C33F1A', accentFill: '#FF6037', teal: '#2E6A6E', tealFill: '#A0C9CB', bg: '#D8D8C3', card: '#F5F4ED', inputBg: '#ECECDC', border: '#C2C0AA', textMain: '#351E1C', textMuted: '#6B5452' },
+            // First Colors of Spring / Mantis on Midnight Mirage + Nuit Blanche, Praxeti White; Picture Book Green
+            { name: 'Mirage Dark',      palette: 'Mirage',     mode: 'dark',  accent: '#DBE64C', teal: '#74C365', bg: '#000610', card: '#001F3F', inputBg: '#0E3463', border: '#1E488F', textMain: '#F6F7ED', textMuted: '#B5C2CF' },
+            { name: 'Mirage Light',     palette: 'Mirage',     mode: 'light', accent: '#00804C', accentFill: '#DBE64C', teal: '#1E488F', bg: '#D9DFC6', card: '#F6F7ED', inputBg: '#EAEEDB', border: '#BAC3A8', textMain: '#001F3F', textMuted: '#4A5C6E' },
         ];
         // A stored name from the old theme list (Ember, Inferno...) falls back to the default.
         const currentTheme = () => THEMES.find(t => t.name === localStorage.getItem('appTheme')) || THEMES[0];
@@ -1128,7 +1137,7 @@
         // ONE definition of what a backup contains, shared by local export,
         // Gist backup, local import, and Gist restore — so the four can't drift.
         const BACKUP_PREFERENCES = ['appTheme', 'bgMode', 'timerSoundEnabled', 'ttsEnabled', 'officialSBDTotal', 'onboardingSkipped', 'techniqueBody', 'techniqueCues', 'videoRpeCalibration', 'videoAnalysisArchive', 'weekStart', 'gymBarbellWeightLb'];
-        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1', 'seededTemplates_v1'];
+        const BACKUP_MIGRATIONS = ['exerciseDB_v1', 'exerciseDB_v2', 'exerciseDB_v3', 'prHistoryRTS_v2', 'actualBestsHistorySync_v2', 'prTimelineStaleSync_v1', 'seededTemplates_v1'];
         const isWorkoutStorageKey = key => /^.+_w\d+_d\d+$/.test(key);
         async function collectBackup(includePictures) {
             flushSessionState();
@@ -1788,6 +1797,7 @@
             '1-board (backoffs)': '1-Board (bench)',
             // Bench variations
             'larsen press': 'Larsen Press (bench)', 'larsen press (barbell)': 'Larsen Press (bench)',
+            'spoto press': 'Spoto (bench)', 'spoto press (bench)': 'Spoto (bench)',
             'db bench': 'Dumbbell Bench', 'bench press (dumbbell)': 'Dumbbell Bench', 'dumbbell flat (bench)': 'Dumbbell Bench',
             'chest machine': 'Machine Chest Press',
             // Squat variations
@@ -1830,7 +1840,7 @@
         // (Dumbbell)") merges into one record. IndexedDB history stays raw — it is
         // canonicalized at read time (charts, PR rebuild).
         function migrateExerciseDB() {
-            if (localStorage.getItem('exerciseDB_v2')) return;
+            if (localStorage.getItem('exerciseDB_v3')) return;
 
             // actualBests: highest e1RM wins per canonical name
             const bests = safeParse('actualBests', {});
@@ -1884,7 +1894,7 @@
                 localStorage.setItem('videoRpeCalibration', JSON.stringify(calibration.map(sample =>
                     sample && typeof sample.exercise === 'string' ? { ...sample, exercise: normalizeExName(sample.exercise) } : sample)));
             }
-            localStorage.setItem('exerciseDB_v2', '1');
+            localStorage.setItem('exerciseDB_v3', '1');
         }
         migrateExerciseDB();
 
@@ -2025,13 +2035,18 @@
 
         // Renders the exercise title; if the name ends in a parenthetical naming a parent
         // lift that has a known ref 1RM (e.g. "Larsen Press (bench)"), the parenthetical is
-        // a tappable link that opens the % -> ref-1RM slider modal.
+        // a tappable link that opens the % -> ref-1RM slider modal. A program name without
+        // the marker ("Spoto Press") still links when its canonical name carries one.
         function variationTitleHtml(ex, exIndex, isNonExercise, techniqueLift = null) {
             const title = name => techniqueLift
                 ? `<button type="button" class="exercise-guide-title" onclick="openTechniqueGuide('${techniqueLift}', this)" aria-label="${escapeHtml(name)} technique guide">${escapeHtml(name)}</button>`
                 : escapeHtml(name);
             if (!isNonExercise) {
-                const pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
+                let pm = ex.name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/);
+                if (!pm && typeof normalizeExName === 'function') {
+                    const cm = String(normalizeExName(ex.name)).match(/\(([^()]+)\)\s*$/);
+                    if (cm) pm = [ex.name, ex.name, cm[1]];
+                }
                 if (pm && getResolved1RM(pm[2]) > 0) {
                     const safeFull = escapeJsAttr(ex.name);
                     const safeParent = escapeJsAttr(pm[2]);
@@ -6351,49 +6366,36 @@
             document.getElementById('history-overlay-title').innerText = exName;
             const content = document.getElementById('history-overlay-content');
             
-            let history = safeParse('workoutHistory', []);
-            let foundSessions = [];
-
-            // Scan history for the last 3 times this exercise was performed.
-            // Canonical-name match so sessions logged under aliases show up too.
+            // Same source and order as the "Last time" line (newest first). The legacy
+            // localStorage copy was stale, so the sheet could disagree with the card.
+            const foundSessions = [];
             const overlayTarget = normalizeExName(exName);
-            for (let log of history) {
-                const matches = (log.details || []).filter(e => normalizeExName(e.name) === overlayTarget);
-                const allSets = matches.flatMap(m => m.sets || []);
-                if (allSets.length > 0) {
-                    foundSessions.push({
-                        date: log.date,
-                        weight: Math.max(...allSets.map(s => s.load)),
-                        sets: allSets
-                    });
-                }
+            for (const log of (workoutHistoryCache || [])) {
+                const sets = (log.details || []).filter(e => normalizeExName(e.name) === overlayTarget)
+                    .flatMap(m => m.sets || []).filter(st => !st.isTargetSet);
+                if (sets.length) foundSessions.push({ date: log.date, top: Math.max(...sets.map(st => Number(st.load) || 0)), sets });
                 if (foundSessions.length >= 3) break;
             }
-            
+
+            const u = unitSuffix();
             if (foundSessions.length === 0) {
-                content.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 30px;">No previous logs found for this exercise.</p>';
+                content.innerHTML = '<p class="ex-hist-empty">No previous logs found for this exercise.</p>';
             } else {
-                let html = '';
-                foundSessions.forEach(session => {
-                    html += `
-                    <div style="background: #1e1e20; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-                            <span style="color: var(--accent); font-weight: 800; font-size: 13px; text-transform: uppercase;">${session.date}</span>
-                            <span style="color:var(--text-main); font-weight: 800; font-size: 13px;">Top: ${session.weight}kg</span>
-                        </div>`;
-                    session.sets.forEach((s, i) => {
-                        let rpeText = s.rpe ? `<span style="color:var(--text-muted); font-size:12px;">@${s.rpe}</span>` : '';
-                        html += `
-                        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; color: var(--text-main);">
-                            <span style="color: var(--text-muted); font-weight: 600;">Set ${i+1}</span>
-                            <span style="font-weight: 700;">${s.load}kg x ${s.reps} ${rpeText}</span>
-                        </div>`;
-                    });
-                    html += `</div>`;
-                });
-                content.innerHTML = html;
+                // Surfaces and ink come from the theme vars so the sheet follows light mode.
+                content.innerHTML = foundSessions.map(session => `
+                    <div class="ex-hist-session">
+                        <div class="ex-hist-head">
+                            <span class="ex-hist-date">${escapeHtml(session.date || '')}</span>
+                            <span class="ex-hist-top">${session.top > 0 ? `Top: ${kgDisp(session.top)} ${u}` : ''}</span>
+                        </div>
+                        ${session.sets.map((st, i) => {
+                            const load = Number(st.load) || 0;
+                            const rpe = st.rpe ? ` <span class="ex-hist-rpe">@${escapeHtml(String(st.rpe))}</span>` : '';
+                            return `<div class="ex-hist-set"><span>Set ${i + 1}</span><b>${load > 0 ? `${kgDisp(load)} ${u} × ` : ''}${escapeHtml(String(st.reps ?? ''))}${load > 0 ? '' : ' reps'}${rpe}</b></div>`;
+                        }).join('')}
+                    </div>`).join('');
             }
-            
+
             const overlay = document.getElementById('history-overlay');
             overlay.style.display = 'flex';
             // Slight delay allows the CSS transition to fire smoothly
