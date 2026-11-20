@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.18.1542";
+        const APP_VERSION = "v2026.11.20.2319";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -864,6 +864,17 @@
             if (typeof block.amrap === 'number') return block.amrap; // explicit set index
             return null;
         }
+        // EVERY set of the block is AMRAP: `amrap: "all"`, a single-set AMRAP block, or a
+        // rep-counted block with no rep count (OCR'd "AMRAP" programs store reps: 0).
+        function blockIsAllAmrap(block) {
+            if (!block || block.durationMin) return false;
+            if (block.amrap === 'all') return true;
+            if (amrapSetIndex(block) !== null && block.sets === 1) return true;
+            return !(parseFloat(block.reps) > 0);
+        }
+        function isAmrapSet(block, s) {
+            return blockIsAllAmrap(block) || amrapSetIndex(block) === s;
+        }
 
         const TAB_ORDER = ['library-screen', 'home-screen', 'history-screen'];
         function switchTab(tabId) {
@@ -1157,6 +1168,7 @@
                 bwHistory: safeParse('bwHistory', []),
                 lastUsedWeights: safeParse('lastUsedWeights', {}),
                 equipmentModes: safeParse('equipmentModes', {}),
+                equipmentBase: safeParse('equipmentBase', {}),
                 customPrograms: safeParse('customPrograms', {}),
                 userPrograms: safeParse('userPrograms', {}),
                 warmupRoutine: safeParse('warmupRoutine', null),
@@ -1197,7 +1209,7 @@
             const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
             const fail = () => { throw new Error('Invalid backup structure. No data was restored.'); };
             if (!isObject(data) || !['workoutHistory', 'actualBests', 'completedDays', 'customPrograms'].some(k => Object.hasOwn(data, k))) fail();
-            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'customPrograms', 'userPrograms', 'programSwaps', 'programModes', 'programTMs', 'workoutSessions', 'preferences', 'migrations'];
+            const maps = ['completedDays', 'global1RMs', 'actualBests', 'prHistory', 'lastUsedWeights', 'equipmentModes', 'equipmentBase', 'customPrograms', 'userPrograms', 'programSwaps', 'programModes', 'programTMs', 'workoutSessions', 'preferences', 'migrations'];
             maps.forEach(k => { if (data[k] != null && !isObject(data[k])) fail(); });
             ['workoutHistory', 'progressPictures', 'bwHistory', 'warmupRoutine', 'gymPlateInventory', 'gymPlateInventoryLb'].forEach(k => {
                 if (data[k] != null && !Array.isArray(data[k])) fail();
@@ -1234,6 +1246,7 @@
             setJSON('bwHistory', data.bwHistory);
             setJSON('lastUsedWeights', data.lastUsedWeights);
             setJSON('equipmentModes', data.equipmentModes);
+            setJSON('equipmentBase', data.equipmentBase);
             setJSON('customPrograms', data.customPrograms);
             // Merged, never replaced: the Gist leaves out copies of built-in programs,
             // so restoring from it must not delete the ones on this phone.
@@ -1439,6 +1452,8 @@
             const key = normalizeExName(exName);
             if (modes[key]) return modes[key];
             // Auto-detect default from exercise name
+            // Pull-ups, chin-ups, dips: the load field is weight ADDED to bodyweight.
+            if (isBodyweightExercise(exName)) return 'bw';
             if (/dumbbell|dumbell|\bdb\b/i.test(exName)) return '1db';
             if (/cable|machine|pulldown|lat pull|tricep push|face pull/i.test(exName)) return 'cable';
             return 'bb';
@@ -1452,14 +1467,50 @@
         };
 
         window.cycleEquipmentMode = function(exName) {
-            const order = ['bb', '1db', '2db', 'cable'];
+            // 'plate' = plate-loaded on both sides over its own empty weight (machines,
+            // specialty bars); 'plate1' = loaded on ONE side only (landmine).
+            const order = ['bb', 'plate', 'plate1', '1db', '2db', 'cable'];
+            if (isBodyweightExercise(exName)) order.unshift('bw');
             const current = getEquipmentMode(exName);
             const next = order[(order.indexOf(current) + 1) % order.length];
             setEquipmentMode(exName, next);
         };
 
+        // Empty weight of a plate-loaded machine / specialty bar / landmine, per canonical
+        // exercise, in kg like every stored load. Missing = not set yet (counts as 0).
+        function hasEquipmentBase(exName) {
+            return Object.hasOwn(safeParse('equipmentBase', {}), normalizeExName(exName));
+        }
+        function getEquipmentBaseKg(exName) {
+            const v = parseFloat(safeParse('equipmentBase', {})[normalizeExName(exName)]);
+            return v > 0 ? v : 0;
+        }
+        // The "Empty 40 kg" chip beside the equipment chip. Blank clears it.
+        window.editEquipmentBase = function(exName) {
+            const what = getEquipmentMode(exName) === 'plate1' ? 'the bar on the landmine' : 'the machine or bar';
+            const current = hasEquipmentBase(exName) ? entryFromKg(getEquipmentBaseKg(exName)) : '';
+            const v = prompt(`Empty weight of ${what}, no plates (${unitSuffix()}):`, current);
+            if (v === null) return;
+            const store = safeParse('equipmentBase', {});
+            const key = normalizeExName(exName);
+            const kg = kgFromEntry(v);
+            if (v.trim() === '' || isNaN(kg) || kg < 0) delete store[key]; else store[key] = parseFloat(kg.toFixed(3));
+            localStorage.setItem('equipmentBase', JSON.stringify(store));
+            renderWorkout();
+        };
+
         window.roundForEquipment = function(weight, exName) {
             const mode = getEquipmentMode(exName);
+            // Machine / landmine: what can be built is the empty weight plus whole steps of the
+            // smallest active plate on each loaded side (an odd 37 kg sled must stay odd).
+            if (mode === 'plate' || mode === 'plate1') {
+                const cfg = plateLoading(exName);
+                const sizes = getActivePlates().filter(p => p.active).map(p => p.w);
+                const step = cfg.sides * (sizes.length ? Math.min(...sizes) : (isLbs() ? 2.5 : 1.25));
+                const inUnit = isLbs() ? weight * LB_PER_KG : weight;
+                const built = cfg.base + Math.max(0, Math.round((inUnit - cfg.base) / step)) * step;
+                return isLbs() ? Math.round(built / LB_PER_KG * 1000) / 1000 : Math.round(built * 1000) / 1000;
+            }
             // Pounds: round the POUND value (5 lb on a bar or one dumbbell, 10 lb for a
             // pair, 1 lb on a stack) and hand back kg, like every other load in the app.
             if (isLbs()) {
@@ -1604,7 +1655,7 @@
         // Home hero: the day's first lift and its first prescribed set, loaded with the
         // same priority as renderWorkout's preload (TM % -> RPE via RTS -> % of 1RM).
         function heroPrescription(programId, ex, block) {
-            const amrapAll = amrapSetIndex(block) !== null && block.sets === 1;
+            const amrapAll = blockIsAllAmrap(block);
             const count = block.durationMin ? `${block.sets} × ${block.durationMin} min`
                 : `${block.sets} × ${amrapAll ? 'AMRAP' : block.reps}`;
             let load = 0;
@@ -1879,9 +1930,9 @@
             });
             localStorage.setItem('global1RMs', JSON.stringify(newRms));
 
-            // lastUsedWeights + equipmentModes: an entry already stored under the
+            // lastUsedWeights + equipmentModes + equipmentBase: an entry already stored under the
             // canonical name wins; otherwise first alias seen.
-            ['lastUsedWeights', 'equipmentModes'].forEach(storeKey => {
+            ['lastUsedWeights', 'equipmentModes', 'equipmentBase'].forEach(storeKey => {
                 const store = safeParse(storeKey, {});
                 const out = {};
                 Object.keys(store).forEach(k => { if (normalizeExName(k) === k) out[k] = store[k]; });
@@ -2602,7 +2653,7 @@
                             const rpe = savedSession[rpeInputId] || '';
                             const enteredReps = parseFloat(savedSession[repsInputId]);
                             const actualReps = Number.isFinite(enteredReps) ? enteredReps :
-                                (amrapSetIndex(block) === s ? 0 : (parseFloat(block.reps) || 0));
+                                (isAmrapSet(block, s) ? 0 : (parseFloat(block.reps) || 0));
                             
                             let effectiveLoad = load;
                             if (isBodyweightExercise(ex.name)) {
@@ -4729,7 +4780,11 @@
             
             let sets = [];
             const roundToPlate = (w) => roundForEquipment(w, exName);
-            const barKg = barbellKg();
+            // First warm-up set is the empty bar, or the empty machine / landmine bar.
+            const warmCfg = plateLoading(exName);
+            const onMachine = !!warmCfg && warmCfg.mode !== 'bb';
+            const barKg = onMachine ? getEquipmentBaseKg(exName) : barbellKg();
+            const barLabel = onMachine ? 'Empty' : 'Bar';
 
             const wReps1 = targetReps >= 8 ? 4 : 1;
             const wReps2 = targetReps >= 8 ? 5 : 2;
@@ -4737,7 +4792,7 @@
 
             if (scheme === 5) {
                 sets = [
-                    { label: targetWeight > barKg ? "Bar" : "Light", load: targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.3), reps: Math.max(10, targetReps) },
+                    { label: barKg > 0 && targetWeight > barKg ? barLabel : "Light", load: barKg > 0 && targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.3), reps: Math.max(10, targetReps) },
                     { load: roundToPlate(targetWeight * 0.4), reps: Math.max(5, wReps3) },
                     { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
                     { load: roundToPlate(targetWeight * 0.75), reps: wReps2 },
@@ -4745,7 +4800,7 @@
                 ];
             } else if (scheme === 3) {
                 sets = [
-                    { label: targetWeight > barKg ? "Bar" : "Light", load: targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.4), reps: Math.max(8, wReps3 + 2) },
+                    { label: barKg > 0 && targetWeight > barKg ? barLabel : "Light", load: barKg > 0 && targetWeight > barKg ? barKg : roundToPlate(targetWeight*0.4), reps: Math.max(8, wReps3 + 2) },
                     { load: roundToPlate(targetWeight * 0.6), reps: wReps3 },
                     { load: roundToPlate(targetWeight * 0.8), reps: wReps1 }
                 ];
@@ -4769,29 +4824,15 @@
                     </div>`;
                 }
 
-                // For non-BB modes: no badges
-                if (eqMode !== 'bb') return '';
+                // Plate-loaded (barbell, machine, landmine): plates for one loaded side.
+                const cfg = typeof plateLoading === 'function' ? plateLoading(exName) : null;
+                if (!cfg) return '';
 
                 // Bar and plates are in the lifter's unit; the warm-up loads are kg.
                 const shown = isLbs() ? Math.round(weight * LB_PER_KG * 10) / 10 : weight;
-                let barWeight = typeof getBarbellWeight === 'function' ? getBarbellWeight() : 20;
-                if (shown <= barWeight) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">Empty Bar</div>`;
-
-                let perSide = (shown - barWeight) / 2;
-                perSide = Math.round(perSide * 100) / 100;
-
-                const available = typeof getActivePlates === 'function' ? getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w) : [
-                    {w: 25, c: '#ef4444', t: '#fff'}, {w: 20, c: '#3b82f6', t: '#fff'}, {w: 15, c: '#eab308', t: '#000'},
-                    {w: 10, c: '#22c55e', t: '#fff'}, {w: 5, c: '#f4f4f5', t: '#000'}, {w: 2.5, c: '#27272a', t: '#fff'}, {w: 1.25, c: '#52525b', t: '#fff'}
-                ];
-
-                let plates = [];
-                for (let p of available) {
-                    while (perSide >= p.w) {
-                        plates.push(p);
-                        perSide = Math.round((perSide - p.w) * 100) / 100;
-                    }
-                }
+                if (shown <= cfg.base) return `<div style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 3px;">${cfg.mode === 'bb' ? 'Empty Bar' : 'No plates'}</div>`;
+                const { plates, rest } = plateBreakdown(shown, cfg);
+                let perSide = rest;
 
                 if (plates.length === 0) return '';
 
@@ -5116,6 +5157,8 @@
                 const percentageTrainingMax = getPercentageTrainingMax(ex);
                 // Reps-only bodyweight work (Nordic curls): no load, e1RM, 1RM line or equipment chips.
                 const bwOnly = !!ex.bodyweightOnly;
+                // BW mode (pull-ups, dips): the load field is added weight, blank = bodyweight alone.
+                const bwAdded = !bwOnly && getEquipmentMode(ex.name) === 'bw';
                 const historical1RM = percentageTrainingMax !== null
                     ? (percentageTrainingMax > 0 ? `Training max: ${kgDisp(percentageTrainingMax)} ${unitSuffix()}` : 'Training max -- (set reference 1RM in Stats)')
                     : (resolved1RM > 0 ? `Ref 1RM: ${kgDisp(resolved1RM)} ${unitSuffix()}` : '1RM --');
@@ -5218,12 +5261,15 @@
                         ${!isNonExercise && !bwOnly ? (() => {
                             const eqMode = getEquipmentMode(ex.name);
                             const safeExJS = escapeHtml(JSON.stringify(ex.name));
-                            const labels = {bb:'BB', '1db':'1DB', '2db':'2DB', cable:'Cable'};
+                            const labels = {bw:'BW', bb:'BB', plate:'Plates', plate1:'1 side', '1db':'1DB', '2db':'2DB', cable:'Cable'};
+                            // Plate-loaded machine / landmine: its empty weight, tap to set.
+                            const baseChip = (eqMode === 'plate' || eqMode === 'plate1')
+                                ? `<button class="eq-cycle-chip" onclick="editEquipmentBase(${safeExJS})" style="${hasEquipmentBase(ex.name) ? '' : 'border-color:var(--accent); color:var(--accent);'}">${hasEquipmentBase(ex.name) ? `Empty ${kgDisp(getEquipmentBaseKg(ex.name))} ${unitSuffix()}` : 'Set empty weight'}</button>` : '';
                             const myoChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleMyoRep(${exIndex})" style="border-color:${isMyo ? 'var(--teal)' : 'var(--border)'}; color:${isMyo ? 'var(--teal)' : 'var(--text-muted)'}; ${isMyo ? 'background:rgba(var(--teal-rgb),0.12);' : ''}">MYO</button>` : '';
                             // Bench only: the video lab opens from a chip, not a full-width button above the sets.
                             const videoChip = techniqueLift === 'bench' ? `<div class="bench-video-entry"><button type="button" class="bench-video-button" aria-label="Analyze video" onclick="openBenchVideoAnalysis('${exId}', this)" ${videoUnavailable ? `disabled aria-describedby="${exId}-video-help"` : ''}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg>Video</button>${videoUnavailable ? `<p id="${exId}-video-help">${videoUnavailable}</p>` : ''}</div>` : '';
                             const dropChip = !isMain ? `<button class="eq-cycle-chip" onclick="toggleDropset(${exIndex})" style="border-color:${isDrop ? 'var(--accent)' : 'var(--border)'}; color:${isDrop ? 'var(--accent)' : 'var(--text-muted)'}; ${isDrop ? 'background:rgba(var(--accent-rgb),0.12);' : ''}">DROP</button>` : '';
-                            return `<div class="ex-chip-row"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode]}</button>${myoChip}${dropChip}${videoChip}</div>`;
+                            return `<div class="ex-chip-row"><button class="eq-cycle-chip" onclick="cycleEquipmentMode(${safeExJS})">${labels[eqMode] || 'BB'}</button>${baseChip}${myoChip}${dropChip}${videoChip}</div>`;
                         })() : ''}
 
 
@@ -5254,7 +5300,7 @@
                     // 1-based index when `amrap` is a number). The flagged set is RPE 10 with reps
                     // left blank for the lifter to log.
                     const amrapIdx = amrapSetIndex(block);
-                    const blockAllAmrap = amrapIdx !== null && block.sets === 1;
+                    const blockAllAmrap = blockIsAllAmrap(block);
                     const lastSets = lastTime ? lastTime.sets.slice(lastFlat, lastFlat + block.sets) : [];
                     lastFlat += block.sets;
                     const lastHtml = lastSets.length && !block.durationMin
@@ -5318,7 +5364,7 @@
                                 <span>Set</span>
                                 <span>Reps</span>
                                 <span onclick="openRpeHub()" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>
-                                ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : '<span>Load</span><span>e1RM</span>'}
+                                ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : `<span>${bwAdded ? 'Added' : 'Load'}</span><span>e1RM</span>`}
                                 <span></span>
                                </div>`;
                         const colKind = isTimeBased ? `time${block.targetRpe ? '-rpe' : ''}` : 'std';
@@ -5358,7 +5404,7 @@
 
                     // --- DRAW STANDARD SETS AND THEIR EXTRAS ---
                     for(let s = 1; s <= block.sets; s++) {
-                        const isAmrap = amrapIdx === s;
+                        const isAmrap = isAmrapSet(block, s);
                         let smartDefaultLoad = '';
                         if (block.pct && percentageTrainingMax !== null) {
                             // Missing exact reference stays blank instead of using another lift's max.
@@ -5467,11 +5513,11 @@
                             setHtml = `
                             <div class="set-row">
                                 <span ${noteTapAttr}>${s}${setNote ? '<span style="color:var(--teal);font-size:9px;vertical-align:top;"> ●</span>' : ''}</span>
-                                <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'AMRAP' : ''}" inputmode="numeric" ${disabledAttr}></span>
+                                <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'max' : ''}" ${isAmrap ? 'aria-label="Reps achieved (AMRAP)"' : ''} inputmode="numeric" ${disabledAttr}></span>
                                 <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 ${bwOnly ? '<span class="bw-only-load">Bodyweight</span>' : `<span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${entryFromKg(loadValue)}" placeholder="${unitSuffix()}" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
-                                    ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !(parseFloat(loadValue) > 0) ? '' : entryFromKg(loadValue)}" placeholder="${bwAdded ? `+${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    ${!isPlateMode(getEquipmentMode(ex.name)) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" aria-label="Show plates per side"><span class="plate-strip" data-load="${loadInputId}"></span></button>`}
                                 </span>
                                 ${e1rmCell}`}
@@ -5525,8 +5571,8 @@
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${entryFromKg(eLoadValue)}" placeholder="${unitSuffix()}" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
-                                    ${getEquipmentMode(ex.name) !== 'bb' ? '' : `
+                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !(parseFloat(eLoadValue) > 0) ? '' : entryFromKg(eLoadValue)}" placeholder="${bwAdded ? `+${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    ${!isPlateMode(getEquipmentMode(ex.name)) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" aria-label="Show plates per side"><span class="plate-strip" data-load="${extraRowId}_load"></span></button>`}
                                 </span>
                                 <span><button class="e1rm-btn" id="e1rm-btn-${extraRowId}" data-exid="${exId}" data-exname="${escapeHtml(ex.name)}" data-rowid="${extraRowId}" data-e1rm="0"><span class="e1rm-label">Calc</span><span class="e1rm-value">--</span></button></span>
@@ -6503,25 +6549,46 @@
         // Same greedy breakdown as the balloon below. Load values are also written by code
         // (e1RM cascade, toggleCheck), which fires no input event, so a delegated click
         // listener repaints on the next tick as well.
-        function platesPerSide(weightKg) {
-            const bar = getBarbellWeight();
+        // Without an exercise name this is the barbell (the Home hero).
+        function platesPerSide(weightKg, exName) {
             const weight = isLbs() ? Math.round(weightKg * LB_PER_KG * 10) / 10 : weightKg;
-            if (!(weight > bar)) return [];
-            let perSide = Math.round(((weight - bar) / 2) * 100) / 100;
-            const out = [];
+            return plateBreakdown(weight, plateLoading(exName)).plates;
+        }
+        // How a lift is loaded with plates, in the lifter's unit: the barbell (bar from the
+        // gym settings, two sides), a plate-loaded machine or specialty bar ('plate': its own
+        // empty weight, two sides) or a landmine ('plate1': empty weight, ONE side).
+        // null = not plate-loaded (dumbbells, cable, bodyweight).
+        const PLATE_SIDES = { bb: 2, plate: 2, plate1: 1 };
+        function isPlateMode(mode) { return Object.hasOwn(PLATE_SIDES, mode); }
+        function plateLoading(exName) {
+            const mode = exName ? getEquipmentMode(exName) : 'bb';
+            if (!isPlateMode(mode)) return null;
+            const baseKg = mode === 'bb' ? barbellKg() : getEquipmentBaseKg(exName);
+            const base = mode === 'bb' ? getBarbellWeight()
+                : (isLbs() ? Math.round(baseKg * LB_PER_KG * 10) / 10 : baseKg);
+            return { mode, sides: PLATE_SIDES[mode], base, baseSet: mode === 'bb' || hasEquipmentBase(exName) };
+        }
+        // Greedy breakdown of a load (lifter's unit) into plates for ONE loaded side.
+        // `rest` is what the inventory cannot make.
+        function plateBreakdown(weight, cfg) {
+            if (!cfg || !(weight > cfg.base)) return { plates: [], rest: 0 };
+            let perSide = Math.round(((weight - cfg.base) / cfg.sides) * 100) / 100;
+            const plates = [];
             for (const p of getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w)) {
-                while (perSide >= p.w) { out.push(p); perSide = Math.round((perSide - p.w) * 100) / 100; }
+                while (perSide >= p.w) { plates.push(p); perSide = Math.round((perSide - p.w) * 100) / 100; }
             }
-            return out;
+            return { plates, rest: perSide };
         }
         function paintPlateStrips(root) {
             (root || document).querySelectorAll('.plate-strip').forEach(strip => {
                 const input = document.getElementById(strip.dataset.load);
                 const w = loadFieldKg(input);
-                const key = isNaN(w) ? '' : getUnit() + w;
+                const exName = input ? input.dataset.exname : '';
+                const cfg = plateLoading(exName);
+                const key = isNaN(w) || !cfg ? '' : `${getUnit()}${w}|${cfg.mode}|${cfg.base}`;
                 if (strip.dataset.painted === key) return;
                 strip.dataset.painted = key;
-                strip.innerHTML = platesPerSide(w).map(p =>
+                strip.innerHTML = isNaN(w) ? '' : platesPerSide(w, exName).map(p =>
                     `<i style="flex:0 0 ${(p.w / (isLbs() ? 2.65 : 1.2)).toFixed(2)}%;background:${p.c}"></i>`).join('');
             });
         }
@@ -6543,40 +6610,38 @@
                 return;
             }
 
-            if (!input || !input.value) return;
+            if (!input) return;
+            const exName = input.dataset.exname || '';
+            const cfg = plateLoading(exName) || plateLoading();
+            const u = unitSuffix();
+            const gear = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; z-index: 10;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>`;
+            // Machines and landmines: say what the empty weight is, or that it is not set.
+            const baseLine = cfg.mode === 'bb' ? '' : cfg.baseSet
+                ? `<div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Empty ${cfg.base} ${u}${cfg.sides === 1 ? ', one side' : ''}</div>`
+                : `<div style="font-size: 11px; color: var(--accent); font-weight: 700;">Empty weight not set: counted as 0</div>`;
 
             const weight = parseFloat(input.value);
-            if (isNaN(weight) || weight <= 0) return;
+            if (!(weight > 0) && cfg.mode === 'bb') return;
 
             let html = '';
-            let barWeight = getBarbellWeight();
+            let barWeight = cfg.base;
             
-            if (weight < barWeight) {
-                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">${weight} ${unitSuffix()}</div>
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Dumbbell / Plate</div>`;
+            if (!(weight > 0)) {
+                html = `${gear}<div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">Enter a load</div>${baseLine}`;
+            } else if (weight < barWeight) {
+                html = `${gear}<div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">${weight} ${u}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${cfg.mode === 'bb' ? 'Dumbbell / Plate' : `Below the empty ${cfg.base} ${u}`}</div>`;
             } else if (weight === barWeight) {
-                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">Empty Bar</div>
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${barWeight} ${unitSuffix()}</div>`;
+                html = `${gear}<div style="font-weight: 800; color: var(--accent); font-size: 14px; margin-top: 6px;">${cfg.mode === 'bb' ? 'Empty Bar' : 'No plates'}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${barWeight} ${u}</div>`;
             } else {
-                let perSide = (weight - barWeight) / 2;
-                let plates = [];
+                const { plates, rest } = plateBreakdown(weight, cfg);
+                let perSide = rest;
+                const heading = cfg.mode === 'bb' ? `Per side (${barWeight} ${u} bar)`
+                    : cfg.sides === 1 ? `On the loaded end (${barWeight} ${u} empty)` : `Per side (${barWeight} ${u} empty)`;
                 
-                // Float precision fix so weird numbers don't break the loop
-                perSide = Math.round(perSide * 100) / 100; 
-
-                const available = getActivePlates().filter(p => p.active).sort((a, b) => b.w - a.w);
-
-                for (let p of available) {
-                    while (perSide >= p.w) {
-                        plates.push(p);
-                        perSide = Math.round((perSide - p.w) * 100) / 100;
-                    }
-                }
-                
-                html = `<div style="position: absolute; top: 6px; right: 8px; padding: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; z-index: 10;" onclick="openPlateSettings(event)" title="Settings">⚙️</div>
-                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">Per side (${barWeight} ${unitSuffix()} bar)</div>
+                html = `${gear}
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: -10px; font-weight: 800; text-transform: uppercase; padding-right: 15px; text-align: center;">${heading}</div>
                         
                         <div style="display: flex; align-items: center; justify-content: flex-start; max-width: 100%; overflow-x: auto; padding: 25px 5px; scrollbar-width: none;">
                             <div style="width: 14px; height: 10px; background: #52525b; border-radius: 2px 0 0 2px; flex-shrink: 0;"></div>
@@ -6595,11 +6660,11 @@
                 });
                 
                 if (perSide > 0.01) {
-                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))} ${unitSuffix()}</div>`;
+                    html += `<div style="margin-left: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap;">+${parseFloat(perSide.toFixed(2))} ${u}</div>`;
                 }
                 
                 html += `   </div>
-                        </div>`;
+                        </div>${cfg.baseSet ? '' : baseLine}`;
             }
 
             balloon.innerHTML = html;
@@ -7145,9 +7210,11 @@
                 if (rpeInput) rpeInput.disabled = true;
                 if (repsInput) repsInput.disabled = true; // Locks reps
 
-                if (loadInput && loadInput.value) {
-                    const val = loadFieldKg(loadInput);
-                    const kgStr = loadFieldKgString(loadInput);
+                // In BW mode a blank field is bodyweight alone: +0 added, still a real set.
+                const bwBlank = !!loadInput && !loadInput.value && getEquipmentMode(exName) === 'bw';
+                if (loadInput && (loadInput.value || bwBlank)) {
+                    const val = bwBlank ? 0 : loadFieldKg(loadInput);
+                    const kgStr = bwBlank ? '0' : loadFieldKgString(loadInput);
                     saveSessionState(loadInput.id, kgStr);
                     
                     let lastUsed = safeParse('lastUsedWeights', {});

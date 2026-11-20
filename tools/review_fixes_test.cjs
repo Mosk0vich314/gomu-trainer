@@ -119,6 +119,27 @@ test('pound mode rounds suggestions to pound steps and plates the pound inventor
     assert.equal(c.safeParse('gymPlateInventoryLb', null)[0].w, 45);
 });
 
+test('plate-loaded machines and landmines plate over their own empty weight', () => {
+    const modes = { 'Leg Press': 'plate', 'Landmine Row': 'plate1', 'Odd Sled': 'plate', 'Bench Press': 'bb' };
+    const c = helpers({ getEquipmentMode: n => modes[n] || 'bb', getUnit: () => c.localStorage.getItem('preferredUnit') || 'kg' });
+    vm.runInContext(section('function hasEquipmentBase(', 'window.editEquipmentBase ='), c);
+    vm.runInContext(section('window.roundForEquipment =', 'function updateDashboard()'), c);
+    vm.runInContext(section('const DEFAULT_PLATES_KG', 'window.openPlateSettings ='), c);
+    vm.runInContext(section('function platesPerSide(', 'function paintPlateStrips('), c);
+    c.localStorage.setItem('equipmentBase', JSON.stringify({ 'Leg Press': 40, 'Landmine Row': 20, 'Odd Sled': 37 }));
+    assert.deepEqual(Array.from(c.platesPerSide(100, 'Leg Press'), p => p.w), [25, 5], '(100 - 40) / 2 per side');
+    assert.deepEqual(Array.from(c.platesPerSide(65, 'Landmine Row'), p => p.w), [25, 20], 'one side carries all 45');
+    assert.deepEqual(Array.from(c.platesPerSide(100, 'Bench Press'), p => p.w), [25, 15], 'the barbell is unchanged');
+    assert.deepEqual(Array.from(c.platesPerSide(100), p => p.w), [25, 15], 'no name is the barbell');
+    assert.equal(c.roundForEquipment(101.3, 'Odd Sled'), 102, 'an odd sled stays buildable: 37 + 26 x 2.5');
+    assert.equal(c.roundForEquipment(31.9, 'Landmine Row'), 32.5, 'one side steps by one small plate');
+    assert.equal(c.roundForEquipment(10, 'Leg Press'), 40, 'nothing below the empty machine');
+    assert.equal(c.plateLoading('Leg Press').baseSet, true);
+    modes['Cable Fly'] = 'cable';
+    assert.equal(c.plateLoading('Cable Fly'), null, 'no plates on a cable stack');
+    assert.deepEqual(Array.from(c.platesPerSide(50, 'Cable Fly')), []);
+});
+
 test('the training week has one start, Saturday unless the lifter changes it', () => {
     const c = helpers();
     const wednesday = new Date(2026, 10, 18, 15, 30); // Wed 18 Nov 2026
