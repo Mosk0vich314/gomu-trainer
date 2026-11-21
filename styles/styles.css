@@ -1598,6 +1598,15 @@ button, input, textarea, select { font-family: inherit; }
     transition: height 0.15s;
 }
 .plate-btn:active .plate-strip { height: 8px; }
+/* BW mode (pull-ups, dips): flips the load between assisted (negative) and added weight.
+   Small corner tab like the plate strip; the hit area is padded out to 44px. */
+.set-row .bw-sign-btn {
+    position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; padding: 0; border: 0;
+    border-radius: 6px; background: rgba(var(--tint-rgb), 0.08); color: var(--text-muted);
+    font: 700 13px/20px var(--font-body); cursor: pointer; z-index: 10;
+}
+.set-row .bw-sign-btn::before { content: ''; position: absolute; left: -12px; top: -12px; width: 44px; height: 44px; }
+.set-row .bw-sign-btn:disabled { opacity: 0.35; }
 .plate-strip i { display: block; min-width: 3px; height: 100%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16); }
 .input-box:disabled ~ .plate-btn .plate-strip { opacity: 0.45; }
 

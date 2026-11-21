@@ -11,7 +11,7 @@
         }
 
         // --- APP VERSION ---
-        const APP_VERSION = "v2026.11.20.2319";
+        const APP_VERSION = "v2026.11.21.1842";
 
         // --- CANONICAL RTS TABLE ---
         // Single source of truth (see CLAUDE.md "RTS table"). Every e1RM / load
@@ -1446,6 +1446,23 @@
             if (!name) return false;
             return /pull[-\s]?up|chin[-\s]?up|dip/i.test(name);
         };
+        // Lowest load a bodyweight lift can be given: in BW mode a band or the assisted
+        // machine takes weight OFF (negative load), never more than the lifter weighs.
+        function bwLoadFloor(exName, bw) {
+            return getEquipmentMode(exName) === 'bw' ? -bw : 0;
+        }
+        // The ± button in a BW load field: assisted <-> weighted. Android's decimal
+        // keypad often has no minus key, so this is how a negative load gets typed.
+        window.flipLoadSign = function(e, inputId) {
+            e.stopPropagation();
+            const input = document.getElementById(inputId);
+            if (!input || input.disabled) return;
+            const kg = loadFieldKg(input);
+            if (!kg) { input.focus(); return; }
+            setLoadField(input, -kg);
+            saveSessionState(inputId.replace(/_load$/, '_typed'), true);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
 
         window.getEquipmentMode = function(exName) {
             const modes = safeParse('equipmentModes', {});
@@ -2660,6 +2677,7 @@
                                 const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
                                 if (bw > 0) effectiveLoad += bw;
                             }
+                            effectiveLoad = Math.max(0, effectiveLoad); // assisted, bodyweight unknown
                             
                             totalVolume += (effectiveLoad * actualReps);
                             if (effectiveLoad > maxLoad) maxLoad = effectiveLoad;
@@ -2692,6 +2710,7 @@
                                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
                                     if (bw > 0) effectiveLoad += bw;
                                 }
+                                effectiveLoad = Math.max(0, effectiveLoad);
                                 totalVolume += (effectiveLoad * actualReps);
                                 if (effectiveLoad > maxLoad) maxLoad = effectiveLoad;
                                 
@@ -5029,7 +5048,7 @@
             const rpeTxt = rpes.length !== sets.length ? '' : same(rpes) ? ` @ ${rpes[0]}` : ` @ ${Math.min(...rpes)} to ${Math.max(...rpes)}`;
             if (same(loads)) {
                 const repTxt = same(reps) ? reps[0] : reps.join(', ');
-                return (loads[0] > 0 ? `${kgDisp(loads[0])} ${u} × ${repTxt}` : `${repTxt} reps`) + rpeTxt;
+                return (loads[0] !== 0 ? `${kgDisp(loads[0])} ${u} × ${repTxt}` : `${repTxt} reps`) + rpeTxt;
             }
             return sets.map((s, i) => `${kgDisp(loads[i])} × ${reps[i]}`).join(', ') + ` ${u}`;
         }
@@ -5364,7 +5383,7 @@
                                 <span>Set</span>
                                 <span>Reps</span>
                                 <span onclick="openRpeHub()" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1;" title="RPE Guide">RPE ${rpeInfoIcon}</span>
-                                ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : `<span>${bwAdded ? 'Added' : 'Load'}</span><span>e1RM</span>`}
+                                ${bwOnly ? '<span style="grid-column: span 2;">Load</span>' : `<span>${bwAdded ? '± BW' : 'Load'}</span><span>e1RM</span>`}
                                 <span></span>
                                </div>`;
                         const colKind = isTimeBased ? `time${block.targetRpe ? '-rpe' : ''}` : 'std';
@@ -5417,7 +5436,7 @@
                                 let calcWeight = roundForEquipment(resolved1RM * targetPct, ex.name);
                                 if (isBodyweightExercise(ex.name)) {
                                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
-                                    if (bw > 0) calcWeight = Math.max(0, calcWeight - bw);
+                                    if (bw > 0) calcWeight = Math.max(bwLoadFloor(ex.name, bw), calcWeight - bw);
                                 }
                                 smartDefaultLoad = calcWeight;
                             }
@@ -5516,7 +5535,8 @@
                                 <span><input type="number" id="${repsInputId}" class="${repsClass}" data-rowid="${rowId}" value="${repsValue}" placeholder="${isAmrap ? 'max' : ''}" ${isAmrap ? 'aria-label="Reps achieved (AMRAP)"' : ''} inputmode="numeric" ${disabledAttr}></span>
                                 <span><input type="number" id="${rpeInputId}" class="${rpeClass}" data-rowid="${rowId}" data-targetrpe="${isAmrap ? '10' : (block.targetRpe || '')}" value="${rpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${disabledAttr}></span>
                                 ${bwOnly ? '<span class="bw-only-load">Bodyweight</span>' : `<span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !(parseFloat(loadValue) > 0) ? '' : entryFromKg(loadValue)}" placeholder="${bwAdded ? `+${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    <input type="number" id="${loadInputId}" class="${loadClass}" data-rowid="${rowId}" data-pct="${block.pct || ''}" data-training-max="${percentageTrainingMax !== null && !!block.pct}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !parseFloat(loadValue) ? '' : entryFromKg(loadValue)}" placeholder="${bwAdded ? `±${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${disabledAttr}>
+                                    ${bwAdded ? `<button type="button" class="bw-sign-btn" onclick="flipLoadSign(event, '${loadInputId}')" aria-label="Switch between assisted and added weight" ${disabledAttr}>±</button>` : ''}
                                     ${!isPlateMode(getEquipmentMode(ex.name)) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${loadInputId}')" aria-label="Show plates per side"><span class="plate-strip" data-load="${loadInputId}"></span></button>`}
                                 </span>
@@ -5571,7 +5591,8 @@
                                 <span><input type="number" id="${extraRowId}_reps" class="input-box saveable calc-trigger" data-rowid="${extraRowId}" value="${eRepsValue}" inputmode="numeric" ${eDisabledAttr}></span>
                                 <span><input type="number" id="${extraRowId}_rpe" class="input-box saveable calc-trigger input-rpe" style="opacity: ${eDisabledAttr ? '0.6' : '1'};" data-rowid="${extraRowId}" data-targetrpe="${extraData.rpe || ''}" value="${eRpeValue}" step="0.5" inputmode="none" oninput="if(window.colorizeRpe) window.colorizeRpe(this)" ${eDisabledAttr}></span>
                                 <span style="position:relative; display:flex; align-items:center; justify-content:center; width: 100%;">
-                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !(parseFloat(eLoadValue) > 0) ? '' : entryFromKg(eLoadValue)}" placeholder="${bwAdded ? `+${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    <input type="number" id="${extraRowId}_load" class="input-box saveable calc-trigger ${isMain ? 'main-load' : 'acc-load'}" data-rowid="${extraRowId}" data-exname="${escapeHtml(ex.name)}" data-exid="${exId}" value="${bwAdded && !parseFloat(eLoadValue) ? '' : entryFromKg(eLoadValue)}" placeholder="${bwAdded ? `±${unitSuffix()}` : unitSuffix()}" inputmode="decimal" style="width: 100%;" ${eDisabledAttr}>
+                                    ${bwAdded ? `<button type="button" class="bw-sign-btn" onclick="flipLoadSign(event, '${extraRowId}_load')" aria-label="Switch between assisted and added weight" ${eDisabledAttr}>±</button>` : ''}
                                     ${!isPlateMode(getEquipmentMode(ex.name)) ? '' : `
                                     <button class="plate-btn" onclick="togglePlateBalloon(event, '${extraRowId}_load')" aria-label="Show plates per side"><span class="plate-strip" data-load="${extraRowId}_load"></span></button>`}
                                 </span>
@@ -6437,7 +6458,7 @@
                         ${session.sets.map((st, i) => {
                             const load = Number(st.load) || 0;
                             const rpe = st.rpe ? ` <span class="ex-hist-rpe">@${escapeHtml(String(st.rpe))}</span>` : '';
-                            return `<div class="ex-hist-set"><span>Set ${i + 1}</span><b>${load > 0 ? `${kgDisp(load)} ${u} × ` : ''}${escapeHtml(String(st.reps ?? ''))}${load > 0 ? '' : ' reps'}${rpe}</b></div>`;
+                            return `<div class="ex-hist-set"><span>Set ${i + 1}</span><b>${load !== 0 ? `${kgDisp(load)} ${u} × ` : ''}${escapeHtml(String(st.reps ?? ''))}${load !== 0 ? '' : ' reps'}${rpe}</b></div>`;
                         }).join('')}
                     </div>`).join('');
             }
@@ -7550,7 +7571,7 @@
                 let newWeight = targetEffectiveWeight;
                 if (isBodyweightExercise(ex.name)) {
                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
-                    if (bw > 0) newWeight = Math.max(0, targetEffectiveWeight - bw); // Subtract BW back out so it just tells you the added plate weight!
+                    if (bw > 0) newWeight = Math.max(bwLoadFloor(ex.name, bw), targetEffectiveWeight - bw); // Subtract BW back out so it just tells you the added plate weight!
                 }
 
                 // Skip if rounded weight is the same as what was just lifted
@@ -7740,7 +7761,7 @@
                                 
                                 if (isBodyweightExercise(exName)) {
                                     const bw = parseFloat(localStorage.getItem('userBodyweight')) || 0;
-                                    if (bw > 0) targetWeight = Math.max(0, targetWeight - bw);
+                                    if (bw > 0) targetWeight = Math.max(bwLoadFloor(exName, bw), targetWeight - bw);
                                 }
                                 
                                 rewritten.push([loadInput.id, loadFieldKgString(loadInput)]);
